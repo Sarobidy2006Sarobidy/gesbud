@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane styleClass="background-page" xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.budgetmanager.controller.HistoryController">
+
+    <left>
+        <fx:include fx:id="sidebar" source="sidebar.fxml"/>
+    </left>
+
+    <center>
+        <VBox spacing="16" styleClass="page-content, page-content-flat">
+            <Label text="Historique des opérations" styleClass="page-title"/>
+
+            <VBox styleClass="card" spacing="12">
+                <Label text="Rechercher, trier et filtrer" styleClass="card-title"/>
+                <HBox spacing="10">
+                    <TextField fx:id="champRecherche" promptText="Rechercher une description" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="comboFiltreType" promptText="Type" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="comboFiltreCategorie" promptText="Catégorie" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <HBox spacing="10">
+                    <DatePicker fx:id="champFiltreDateDebut" promptText="Du" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    <DatePicker fx:id="champFiltreDateFin" promptText="Au" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="boutonFiltrer" minWidth="-Infinity" text="Filtrer" styleClass="button-primary" onAction="#rechercherEtFiltrer" contentDisplay="LEFT"/>
+                    <Button fx:id="boutonReinitialiser" minWidth="-Infinity" text="Réinitialiser" styleClass="button-secondary" onAction="#reinitialiserFiltres" contentDisplay="LEFT"/>
+                </HBox>
+            </VBox>
+
+            <TableView fx:id="tableHistorique" VBox.vgrow="ALWAYS" minHeight="260">
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                <columns>
+                    <TableColumn fx:id="colonneType" text="Type" prefWidth="90"/>
+                    <TableColumn fx:id="colonneCategorie" text="Catégorie" prefWidth="150"/>
+                    <TableColumn fx:id="colonneMontant" text="Montant" prefWidth="110"/>
+                    <TableColumn fx:id="colonneDescription" text="Description" prefWidth="250"/>
+                    <TableColumn fx:id="colonneDate" text="Date" prefWidth="110"/>
+                </columns>
+            </TableView>
+
+            <!-- Barre de pagination -->
+            <HBox alignment="CENTER" spacing="10" styleClass="card">
+                <Button fx:id="boutonPremiere" text="«" styleClass="button-secondary" onAction="#allerPremierePage" minWidth="36"/>
+                <Button fx:id="boutonPrecedente" text="‹" styleClass="button-secondary" onAction="#allerPagePrecedente" minWidth="36"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="labelPagination" styleClass="page-subtitle"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="boutonSuivante" text="›" styleClass="button-secondary" onAction="#allerPageSuivante" minWidth="36"/>
+                <Button fx:id="boutonDerniere" text="»" styleClass="button-secondary" onAction="#allerDernierePage" minWidth="36"/>
+            </HBox>
+
+        </VBox>
+    </center>
+</BorderPane>

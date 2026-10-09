@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane styleClass="background-page" xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.budgetmanager.controller.SavingsController">
+
+    <left>
+        <fx:include fx:id="sidebar" source="sidebar.fxml"/>
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="page-scroll">
+            <VBox spacing="16" styleClass="page-content">
+                <Label text="Mes économies" styleClass="page-title"/>
+
+                <HBox spacing="16">
+                    <VBox styleClass="card" spacing="4" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                        <Label text="TOTAL ÉCONOMISÉ" styleClass="stat-label"/>
+                        <Label fx:id="labelTotal" text="0" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox styleClass="card" spacing="4" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                        <Label text="CE MOIS-CI" styleClass="stat-label"/>
+                        <Label fx:id="labelMois" text="0" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox styleClass="card" spacing="4" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                        <Label text="NB. ÉCONOMIES" styleClass="stat-label"/>
+                        <Label fx:id="labelNombre" text="0" styleClass="stat-value"/>
+                    </VBox>
+                </HBox>
+
+                <Label fx:id="labelAlerteSolde" visible="false" managed="false" wrapText="true"
+                       style="-fx-text-fill: #c62828; -fx-font-weight: bold;"/>
+
+                <VBox styleClass="card" spacing="12">
+                    <HBox spacing="12">
+                        <Label text="Évolution des économies" styleClass="card-title"/>
+                        <ComboBox fx:id="comboPeriode" promptText="Période"/>
+                    </HBox>
+                    <LineChart fx:id="courbeEconomies" prefHeight="300">
+                        <xAxis><CategoryAxis/></xAxis>
+                        <yAxis><NumberAxis/></yAxis>
+                    </LineChart>
+                </VBox>
+
+                <VBox styleClass="card" spacing="12">
+                    <Label text="Ajouter / Modifier une économie" styleClass="card-title"/>
+                    <HBox spacing="12">
+                        <TextField fx:id="champMontant" promptText="Montant" HBox.hgrow="ALWAYS"/>
+                        <DatePicker fx:id="champDate" promptText="Date (début)" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    </HBox>
+                    <TextField fx:id="champDescription" promptText="Description (ex. : projet, urgence, voyage)"/>
+                    <HBox spacing="12">
+                        <ComboBox fx:id="comboFrequence" promptText="Fréquence" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <DatePicker fx:id="champDateFin" promptText="Jusqu'au (facultatif)" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    </HBox>
+                    <Label fx:id="labelAideFrequence" styleClass="page-subtitle" wrapText="true"/>
+                    <HBox spacing="10">
+                        <Button fx:id="boutonAjouter" text="Ajouter" styleClass="button-primary" onAction="#ajouterEconomie" contentDisplay="LEFT"/>
+                        <Button fx:id="boutonModifier" text="Modifier" styleClass="button-secondary" onAction="#modifierEconomie" contentDisplay="LEFT"/>
+                        <Button fx:id="boutonSupprimer" text="Supprimer" styleClass="button-danger" onAction="#supprimerEconomie" contentDisplay="LEFT"/>
+                    </HBox>
+                </VBox>
+
+                <VBox styleClass="card" spacing="12">
+                    <Label text="Rechercher et filtrer" styleClass="card-title"/>
+                    <HBox spacing="12">
+                        <TextField fx:id="champRecherche" promptText="Rechercher une description" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox spacing="12">
+                        <DatePicker fx:id="champFiltreDateDebut" promptText="Du" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <DatePicker fx:id="champFiltreDateFin" promptText="Au" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="boutonFiltrer" minWidth="-Infinity" text="Filtrer" styleClass="button-primary" onAction="#rechercherEtFiltrer" contentDisplay="LEFT"/>
+                        <Button fx:id="boutonReinitialiser" minWidth="-Infinity" text="Réinitialiser" styleClass="button-secondary" onAction="#reinitialiserFiltres" contentDisplay="LEFT"/>
+                    </HBox>
+                </VBox>
+
+                <TableView fx:id="tableEconomies" prefHeight="320" minHeight="220">
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="colonneMontant" text="Montant" prefWidth="140"/>
+                        <TableColumn fx:id="colonneDescription" text="Description" prefWidth="300"/>
+                        <TableColumn fx:id="colonneDate" text="Date" prefWidth="130"/>
+                        <TableColumn fx:id="colonneFrequence" text="Fréquence" prefWidth="170"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

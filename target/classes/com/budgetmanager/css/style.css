@@ -1,0 +1,878 @@
+/* =========================================================================
+   Thème « Gestionnaire de Budget Personnel » — bleu bancaire (100% JavaFX)
+   =========================================================================
+   Inspiré de l'écran de connexion « S2Biz » :
+   - Fond bleu profond en dégradé, panneau de connexion bleu translucide.
+   - Champs blancs avec icône à gauche, bouton bleu ciel à plat, lien
+     « mot de passe oublié » aligné à droite sous les champs.
+   - Badges hexagonaux lumineux (dessinés en Java, voir util/Hexagon.java).
+   - Les écrans internes reprennent la même palette : barre latérale bleu
+     nuit, cartes blanches aux angles discrets, boutons bleus.
+
+   Palette
+     bleu nuit   #071a4a  #0b2a6b      bleu action  #1565c0  #1e88e5
+     bleu ciel   #29b6f6  #7ec3ff      fond clair   #f3f7fd  #e6eefb
+     texte       #0f2a5c (titres)      #5b7099 (secondaire)
+     succès #12805c   erreur #d92d20
+
+   Typographie (polices embarquées dans /fonts, chargées par Main.java)
+     - « Poppins » : titres, montants, marque
+     - « Inter »   : texte courant, champs, tableaux
+   ========================================================================= */
+
+.root {
+    -fx-font-family: "Inter";
+    -fx-font-size: 13px;
+    -fx-background-color: linear-gradient(to bottom right, #f3f7fd, #e6eefb);
+
+    -fx-accent: #1e88e5;
+    -fx-focus-color: #1e88e5;
+    -fx-faint-focus-color: rgba(30,136,229,0.18);
+    -fx-text-base-color: #0f2a5c;
+}
+
+.label {
+    -fx-text-fill: #35508a;
+}
+
+/* --- Fond général de chaque écran interne --- */
+.background-page {
+    /* Deux halos lumineux (ciel en haut à droite, indigo en bas à gauche) sur un dégradé bleu glacier */
+    -fx-background-color:
+        radial-gradient(focus-angle 0deg, focus-distance 0%, center 100% 0%, radius 55%,
+                        rgba(41,182,246,0.28), rgba(41,182,246,0.0)),
+        radial-gradient(focus-angle 0deg, focus-distance 0%, center 0% 100%, radius 60%,
+                        rgba(92,107,192,0.20), rgba(92,107,192,0.0)),
+        linear-gradient(to bottom right, #f6faff 0%, #e3eefc 55%, #d4e4fa 100%);
+    -fx-padding: 22;
+}
+
+.page-scroll, .page-scroll .viewport {
+    -fx-background-color: transparent;
+}
+.page-scroll {
+    -fx-padding: 0 0 0 22;
+}
+
+.page-content {
+    -fx-padding: 4 4 4 0;
+}
+
+/* Pages sans ScrollPane (revenus, dépenses, catégories, historique) : même marge que les autres */
+.page-content-flat {
+    -fx-padding: 4 4 4 22;
+}
+
+/* --- Cartes génériques --- */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #e1e9f7;
+    -fx-border-radius: 10;
+    -fx-padding: 22;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.08), 18, 0, 0, 6);
+}
+
+.card-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5b7099;
+}
+
+/* =========================================================================
+   Barre latérale « pilule » — bleu nuit
+   ========================================================================= */
+.sidebar-pill {
+    -fx-background-color: linear-gradient(to bottom, #0f3a8f, #071d52);
+    -fx-background-radius: 30;
+    -fx-padding: 22 11;
+    -fx-pref-width: 64;
+    -fx-min-width: 64;
+    -fx-max-width: 64;
+    -fx-effect: dropshadow(gaussian, rgba(7,26,74,0.35), 22, 0, 0, 10);
+}
+
+.nav-circle {
+    -fx-background-color: transparent;
+    -fx-background-radius: 22;
+    -fx-min-width: 42;
+    -fx-min-height: 42;
+    -fx-max-width: 42;
+    -fx-max-height: 42;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.nav-circle:hover {
+    -fx-background-color: rgba(255,255,255,0.12);
+}
+
+.nav-circle-active {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,12,50,0.35), 10, 0, 0, 3);
+}
+
+.nav-circle-active:hover {
+    -fx-background-color: white;
+}
+
+.nav-circle-logout:hover {
+    -fx-background-color: rgba(255,138,128,0.20);
+}
+
+/* Infobulles (noms des sections, puisque la pilule n'affiche que des icônes) */
+.tooltip {
+    -fx-background-color: #0b2a6b;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-font-family: "Inter";
+    -fx-font-size: 11px;
+    -fx-padding: 6 10;
+}
+
+/* =========================================================================
+   Titres
+   ========================================================================= */
+.page-title {
+    -fx-font-family: "Poppins";
+    -fx-font-weight: bold;
+    -fx-font-size: 26px;
+    -fx-text-fill: #0b2a6b;
+}
+
+.page-subtitle {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 13px;
+    -fx-text-fill: #1e88e5;
+}
+
+.card-title {
+    -fx-font-family: "Poppins Medium";
+    -fx-font-size: 15px;
+    -fx-text-fill: #0b2a6b;
+}
+
+/* =========================================================================
+   Cartes statistiques du tableau de bord — teinte + filet d'accent à gauche
+   ========================================================================= */
+.stat-card {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 0 0 0 4;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 14, 0, 0, 5);
+}
+
+.stat-label {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #5b7099;
+}
+
+.stat-value {
+    -fx-font-family: "Poppins";
+    -fx-font-weight: bold;
+    -fx-font-size: 21px;
+    -fx-text-fill: #0b2a6b;
+}
+
+/* Les noms de classes sont conservés (dashboard.fxml) ; leur teinte suit le sens :
+   teal = revenus (vert), coral = dépenses (rouge), violet = solde (bleu), sand/sky = compteurs. */
+.stat-card-teal   { -fx-background-color: #e4f6ee; -fx-border-color: #2fa876; }
+.stat-card-coral  { -fx-background-color: #fdeceb; -fx-border-color: #e5564b; }
+.stat-card-violet { -fx-background-color: #e3eeff; -fx-border-color: #1e6fe0; }
+.stat-card-sand   { -fx-background-color: #e0f4fb; -fx-border-color: #1fa7d4; }
+.stat-card-sky    { -fx-background-color: #ebe9fb; -fx-border-color: #6559d6; }
+
+/* =========================================================================
+   Boutons d'action
+   ========================================================================= */
+.button-primary {
+    -fx-background-color: linear-gradient(to right, #1e88e5, #1565c0);
+    -fx-text-fill: white;
+    -fx-font-family: "Inter SemiBold";
+    -fx-graphic-text-gap: 8;
+    -fx-background-radius: 6;
+    -fx-padding: 10 22;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(21,101,192,0.28), 10, 0, 0, 4);
+}
+
+.button-primary:hover {
+    -fx-background-color: linear-gradient(to right, #2b97f3, #1b72d4);
+}
+
+.button-primary:pressed {
+    -fx-background-color: #1259a8;
+}
+
+.button-secondary {
+    -fx-background-color: #e8f0fc;
+    -fx-text-fill: #374151;
+    -fx-font-family: "Inter SemiBold";
+    -fx-graphic-text-gap: 8;
+    -fx-background-radius: 6;
+    -fx-padding: 10 22;
+    -fx-cursor: hand;
+}
+
+.button-secondary:hover {
+    -fx-background-color: #d8e5f9;
+}
+
+.button-danger {
+    -fx-background-color: #fde9e7;
+    -fx-text-fill: #b91c1c;
+    -fx-font-family: "Inter SemiBold";
+    -fx-graphic-text-gap: 8;
+    -fx-background-radius: 6;
+    -fx-padding: 10 22;
+    -fx-cursor: hand;
+}
+
+.button-danger:hover {
+    -fx-background-color: #fbd5d2;
+}
+
+/* =========================================================================
+   Champs de formulaire (écrans internes)
+   ========================================================================= */
+.text-field, .password-field, .combo-box, .date-picker {
+    -fx-font-family: "Inter";
+    -fx-text-fill: #0f2a5c;
+    -fx-background-color: #f6f9fe;
+    -fx-background-radius: 6;
+    -fx-border-color: #d3e0f4;
+    -fx-border-radius: 6;
+    -fx-padding: 9;
+}
+
+.combo-box, .date-picker {
+    -fx-padding: 0;
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
+    -fx-border-color: #1e88e5;
+    -fx-background-color: white;
+}
+
+/* Listes déroulantes (combos, sélecteur de date) */
+.combo-box-popup .list-view, .date-picker-popup {
+    -fx-background-color: white;
+    -fx-border-color: #d3e0f4;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.list-cell {
+    -fx-font-family: "Inter";
+    -fx-text-fill: #0f2a5c;
+}
+
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #e8f1ff;
+    -fx-text-fill: #0f2a5c;
+}
+
+.combo-box-popup .list-cell:filled:selected, .combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: #1565c0;
+    -fx-text-fill: white;
+}
+
+/* Valeur affichée dans la liste déroulante fermée : jamais en surbrillance */
+.combo-box .list-cell, .combo-box .list-cell:filled:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: #0f2a5c;
+    -fx-padding: 9 4 9 6;
+}
+
+.combo-box .arrow-button, .date-picker .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0 6 6 0;
+}
+
+.combo-box .arrow, .date-picker .arrow-button .icon {
+    -fx-background-color: #5b7099;
+}
+
+/* Sélecteur de date : un seul cadre (celui du DatePicker), champ interne transparent */
+.date-picker > .text-field, .date-picker > .text-field:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 9 4 9 10;
+}
+
+.date-picker-popup .month-year-pane {
+    -fx-background-color: #0b2a6b;
+}
+
+.date-picker-popup .spinner .button .left-arrow,
+.date-picker-popup .spinner .button .right-arrow {
+    -fx-background-color: white;
+}
+
+.date-picker-popup .spinner .label {
+    -fx-text-fill: white;
+}
+
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: #e8f1ff;
+}
+
+.date-picker-popup .day-cell:selected {
+    -fx-background-color: #1565c0;
+    -fx-text-fill: white;
+}
+
+/* =========================================================================
+   Barres de défilement fines, dans la palette bleue
+   ========================================================================= */
+.scroll-bar:vertical, .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #b9cdee;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #8fb0e8;
+}
+
+.scroll-bar > .increment-button, .scroll-bar > .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-padding: 0;
+    -fx-shape: " ";
+}
+
+/* =========================================================================
+   TableView
+   ========================================================================= */
+.table-view {
+    -fx-font-family: "Inter";
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #e1e9f7;
+    -fx-border-radius: 10;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 14, 0, 0, 5);
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #eaf1fc;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #35508a;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 11px;
+}
+
+.table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #eef3fb transparent;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #f4f8ff;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #dbeafe;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #0b2a6b;
+}
+
+.table-cell {
+    -fx-text-fill: #0f2a5c;
+}
+
+/* =========================================================================
+   Graphiques (statistiques) — palette bleue
+   ========================================================================= */
+.chart-title {
+    -fx-font-family: "Poppins Medium";
+    -fx-font-size: 14px;
+    -fx-text-fill: #0b2a6b;
+}
+
+.axis {
+    -fx-tick-label-fill: #5b7099;
+    -fx-tick-label-font-size: 11px;
+}
+
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
+    -fx-stroke: #e6eefb;
+}
+
+.chart-plot-background {
+    -fx-background-color: #f7faff;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.chart-pie-label {
+    -fx-fill: #0f2a5c;
+}
+
+.default-color0.chart-pie { -fx-pie-color: #1e88e5; }
+.default-color1.chart-pie { -fx-pie-color: #26c6da; }
+.default-color2.chart-pie { -fx-pie-color: #5c6bc0; }
+.default-color3.chart-pie { -fx-pie-color: #2fa876; }
+.default-color4.chart-pie { -fx-pie-color: #ffa726; }
+.default-color5.chart-pie { -fx-pie-color: #ef5350; }
+.default-color6.chart-pie { -fx-pie-color: #8d6edb; }
+.default-color7.chart-pie { -fx-pie-color: #78909c; }
+
+.default-color0.chart-bar { -fx-bar-fill: #1e88e5; }
+.default-color1.chart-bar { -fx-bar-fill: #26c6da; }
+
+.default-color0.chart-series-line { -fx-stroke: #1e88e5; -fx-stroke-width: 2.5px; }
+.default-color0.chart-line-symbol { -fx-background-color: #1565c0, white; }
+
+.default-color0.chart-legend-item-symbol { -fx-background-color: #1e88e5; }
+.default-color1.chart-legend-item-symbol { -fx-background-color: #26c6da; }
+.default-color2.chart-legend-item-symbol { -fx-background-color: #5c6bc0; }
+.default-color3.chart-legend-item-symbol { -fx-background-color: #2fa876; }
+.default-color4.chart-legend-item-symbol { -fx-background-color: #ffa726; }
+.default-color5.chart-legend-item-symbol { -fx-background-color: #ef5350; }
+.default-color6.chart-legend-item-symbol { -fx-background-color: #8d6edb; }
+.default-color7.chart-legend-item-symbol { -fx-background-color: #78909c; }
+
+/* =========================================================================
+   Boîtes de dialogue (AlertUtil)
+   ========================================================================= */
+.app-dialog {
+    -fx-background-color: white;
+    -fx-font-family: "Inter";
+}
+
+.app-dialog .header-panel {
+    -fx-background-color: linear-gradient(to right, #0b2a6b, #1565c0);
+    -fx-padding: 16 20;
+}
+
+.app-dialog .header-panel .label {
+    -fx-font-family: "Poppins Medium";
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+}
+
+.app-dialog .content.label {
+    -fx-text-fill: #0f2a5c;
+    -fx-font-size: 13.5px;
+    -fx-padding: 18 22 10 22;
+}
+
+.app-dialog .button-bar .container {
+    -fx-padding: 6 18 16 18;
+}
+
+.dialog-icon {
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-background-radius: 20;
+    -fx-background-color: white;
+}
+
+.dialog-error-icon   { -fx-background-color: #fde9e7; }
+.dialog-success-icon { -fx-background-color: #e4f6ee; }
+.dialog-confirm-icon { -fx-background-color: #e3eeff; }
+
+/* =========================================================================
+   Connexion / Inscription / Mot de passe oublié
+   ========================================================================= */
+.auth-container {
+    -fx-background-color:
+        linear-gradient(to bottom right, #06174a 0%, #0a3a9c 55%, #0d52c9 100%),
+        radial-gradient(center 38% 42%, radius 42%, rgba(61,139,255,0.30), rgba(61,139,255,0));
+}
+
+/* Panneau décoratif de gauche */
+.auth-hero {
+    -fx-background-color: transparent;
+}
+
+.auth-hero-text {
+    -fx-padding: 0 70 54 64;
+}
+
+.auth-hero-title {
+    -fx-font-family: "Poppins";
+    -fx-font-weight: bold;
+    -fx-font-size: 31px;
+    -fx-text-fill: white;
+    -fx-max-width: 460;
+}
+
+.auth-hero-subtitle {
+    -fx-font-family: "Inter";
+    -fx-font-size: 14px;
+    -fx-text-fill: #c7dcff;
+    -fx-max-width: 440;
+}
+
+/* Colonne de droite + panneau translucide */
+.auth-side {
+    -fx-background-color: transparent;
+    -fx-padding: 28 40 28 0;
+}
+
+.auth-scroll, .auth-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.auth-scroll {
+    -fx-padding: 0;
+}
+
+.auth-scroll-content {
+    -fx-padding: 4 0 4 0;
+}
+
+.auth-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+
+.auth-scroll .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.auth-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(255,255,255,0.35);
+    -fx-background-radius: 4;
+}
+
+.auth-scroll .scroll-bar .increment-button, .auth-scroll .scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
+
+.auth-card {
+    -fx-background-color: linear-gradient(to bottom, rgba(33,111,214,0.90), rgba(15,68,160,0.93));
+    -fx-background-radius: 6;
+    -fx-border-color: rgba(255,255,255,0.20);
+    -fx-border-radius: 6;
+    -fx-padding: 30 36;
+    -fx-effect: dropshadow(gaussian, rgba(0,10,50,0.50), 34, 0, 0, 12);
+}
+
+.auth-card .label {
+    -fx-text-fill: white;
+}
+
+.auth-brand {
+    -fx-font-family: "Poppins";
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-text-fill: white;
+}
+
+.auth-title {
+    -fx-font-family: "Poppins";
+    -fx-font-weight: bold;
+    -fx-font-size: 25px;
+    -fx-text-fill: white;
+}
+
+.auth-tagline {
+    -fx-font-family: "Inter";
+    -fx-text-fill: #d3e5ff;
+    -fx-font-size: 12.5px;
+}
+
+.auth-footer-text {
+    -fx-font-family: "Inter";
+    -fx-text-fill: #cfe3ff;
+    -fx-font-size: 12.5px;
+}
+
+.auth-section-label {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #bfdcff;
+    -fx-padding: 4 0 0 0;
+}
+
+/* Ligne de saisie blanche : [ icône | champ ] */
+.auth-input {
+    -fx-background-color: white;
+    -fx-background-radius: 3;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 3;
+    -fx-min-height: 44;
+    -fx-pref-height: 44;
+    -fx-max-height: 44;
+}
+
+.auth-input-focused {
+    -fx-border-color: #7ec3ff;
+    -fx-effect: dropshadow(gaussian, rgba(126,195,255,0.65), 12, 0.1, 0, 0);
+}
+
+.auth-input-icon {
+    -fx-pref-width: 44;
+    -fx-min-width: 44;
+    -fx-max-width: 44;
+    -fx-background-color: #f1f6fd;
+    -fx-background-radius: 1 0 0 1;
+    -fx-border-color: transparent #e0eaf8 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.auth-textfield, .auth-textfield:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0 14 0 12;
+    -fx-text-fill: #0f2a5c;
+    -fx-prompt-text-fill: #9bb0d3;
+    -fx-font-family: "Inter";
+    -fx-font-size: 14px;
+    -fx-pref-height: 40;
+    -fx-effect: none;
+}
+
+.auth-combo, .auth-combo:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-pref-height: 42;
+    -fx-effect: none;
+}
+
+.auth-combo .list-cell {
+    -fx-text-fill: #0f2a5c;
+    -fx-font-family: "Inter";
+    -fx-font-size: 14px;
+    -fx-padding: 0 8 0 12;
+    -fx-background-color: transparent;
+}
+
+.auth-combo .list-cell.auth-combo-prompt {
+    -fx-text-fill: #9bb0d3;
+}
+
+.auth-combo .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 14 0 8;
+}
+
+.auth-combo .arrow {
+    -fx-background-color: #6f8fc9;
+}
+
+/* Liens */
+.auth-link-light, .auth-link-light:visited {
+    -fx-text-fill: #cfe3ff;
+    -fx-font-family: "Inter";
+    -fx-font-size: 12.5px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.auth-link-light:hover {
+    -fx-text-fill: white;
+    -fx-underline: true;
+}
+
+.auth-link-strong, .auth-link-strong:visited {
+    -fx-text-fill: white;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 12.5px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.auth-link-strong:hover {
+    -fx-text-fill: #bfe0ff;
+    -fx-underline: true;
+}
+
+.auth-card .hyperlink:focused {
+    -fx-border-color: transparent;
+}
+
+/* Séparateur fin sous les champs */
+.auth-separator .line {
+    -fx-border-color: rgba(255,255,255,0.35) transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Bouton principal : bleu ciel, à plat */
+.auth-button {
+    -fx-background-color: linear-gradient(to right, #1e88e5, #00b0ff);
+    -fx-background-radius: 2;
+    -fx-text-fill: white;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 15px;
+    -fx-padding: 13 20;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 8;
+}
+
+.auth-button:hover {
+    -fx-background-color: linear-gradient(to right, #3b9bf0, #33c0ff);
+    -fx-effect: dropshadow(gaussian, rgba(0,176,255,0.45), 14, 0, 0, 3);
+}
+
+.auth-button:pressed {
+    -fx-background-color: #1673c8;
+}
+
+/* Bandeau de message (erreur / succès), affiché en ligne dans la carte */
+.auth-message {
+    -fx-font-family: "Inter";
+    -fx-font-size: 12.5px;
+    -fx-padding: 10 12;
+    -fx-background-radius: 3;
+    -fx-graphic-text-gap: 9;
+}
+
+.auth-card .auth-message-error {
+    -fx-background-color: #fff1f0;
+    -fx-text-fill: #b42318;
+}
+
+.auth-card .auth-message-success {
+    -fx-background-color: #e8f8ef;
+    -fx-text-fill: #0b6b45;
+}
+
+/* Mot de passe oublié : étapes + question */
+.auth-step {
+    -fx-min-width: 30;
+    -fx-min-height: 30;
+    -fx-max-width: 30;
+    -fx-max-height: 30;
+    -fx-alignment: center;
+    -fx-background-radius: 15;
+    -fx-border-color: rgba(255,255,255,0.55);
+    -fx-border-radius: 15;
+    -fx-border-width: 2;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 12.5px;
+}
+
+.auth-card .auth-step {
+    -fx-text-fill: rgba(255,255,255,0.8);
+}
+
+.auth-card .auth-step-active {
+    -fx-background-color: white;
+    -fx-border-color: white;
+    -fx-text-fill: #0b2a6b;
+}
+
+.auth-card .auth-step-done {
+    -fx-background-color: #9fd0ff;
+    -fx-border-color: #9fd0ff;
+}
+
+.auth-step-line {
+    -fx-min-height: 2;
+    -fx-pref-height: 2;
+    -fx-max-height: 2;
+    -fx-background-color: rgba(255,255,255,0.35);
+}
+
+.auth-step-hint {
+    -fx-font-family: "Inter";
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #d3e5ff;
+}
+
+.auth-question {
+    -fx-font-family: "Poppins Medium";
+    -fx-font-size: 15px;
+    -fx-background-color: rgba(255,255,255,0.14);
+    -fx-border-color: rgba(255,255,255,0.32);
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 14 16;
+}
+
+
+/* =========================================================================
+   Indicateur de chargement (ProgressIndicator) et overlay
+   ========================================================================= */
+
+/* Spinner circulaire — couleur bleue cohérente avec la palette */
+.progress-indicator > .indicator {
+    -fx-background-color: transparent;
+}
+
+.progress-indicator > .indicator > .progress {
+    -fx-background-color: #1e88e5;
+}
+
+.progress-indicator .percentage {
+    -fx-fill: transparent;
+    -fx-font-size: 0;
+}
+
+/* Overlay translucide affiché pendant les Task async */
+.overlay-chargement {
+    -fx-background-color: rgba(243, 247, 253, 0.85);
+    -fx-background-radius: 12;
+    -fx-padding: 32;
+}
+
+/* =========================================================================
+   Styles variables globales CSS (thème modifiable en une ligne sur .root)
+   Utilisez ces variables dans toute la CSS pour centraliser les couleurs.
+   Exemple : changer --primary à #7c3aed applique un thème violet partout.
+   ========================================================================= */
+.root {
+    /* Couleurs primaires */
+    --primary:        #1565c0;
+    --primary-light:  #1e88e5;
+    --primary-pale:   #e8f0fc;
+
+    /* Feedback */
+    --success:        #12805c;
+    --danger:         #d92d20;
+    --warning:        #b45309;
+
+    /* Texte */
+    --text-title:     #0f2a5c;
+    --text-body:      #35508a;
+    --text-muted:     #5b7099;
+
+    /* Fonds */
+    --bg-page:        #f3f7fd;
+    --bg-card:        #ffffff;
+    --border:         #d4e4fa;
+}

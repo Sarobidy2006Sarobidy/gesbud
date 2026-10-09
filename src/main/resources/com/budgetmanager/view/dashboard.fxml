@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane styleClass="background-page" xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.budgetmanager.controller.DashboardController">
+
+    <left>
+        <fx:include fx:id="sidebar" source="sidebar.fxml"/>
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="page-scroll">
+            <VBox spacing="22" styleClass="page-content">
+
+                <VBox spacing="2">
+                    <Label fx:id="labelBienvenue" text="Bienvenue" styleClass="page-title"/>
+                    <Label fx:id="labelDevise" text="Devise" styleClass="page-subtitle"/>
+                    <Label text="Solde disponible = revenus − dépenses − économies" styleClass="page-subtitle"/>
+                    <Label fx:id="labelAlerteSolde" visible="false" managed="false" wrapText="true"
+                           style="-fx-text-fill: #c62828; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <GridPane fx:id="grilleCartes" hgap="16" vgap="16">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="20"/>
+                        <ColumnConstraints percentWidth="20"/>
+                        <ColumnConstraints percentWidth="20"/>
+                        <ColumnConstraints percentWidth="20"/>
+                        <ColumnConstraints percentWidth="20"/>
+                    </columnConstraints>
+
+                    <VBox styleClass="stat-card, stat-card-teal" spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="TOTAL REVENUS" styleClass="stat-label"/>
+                        <Label fx:id="labelTotalRevenus" text="0" styleClass="stat-value"/>
+                    </VBox>
+
+                    <VBox styleClass="stat-card, stat-card-coral" spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="TOTAL DEPENSES" styleClass="stat-label"/>
+                        <Label fx:id="labelTotalDepenses" text="0" styleClass="stat-value"/>
+                    </VBox>
+
+                    <VBox styleClass="stat-card, stat-card-violet" spacing="8" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                        <Label text="SOLDE DISPONIBLE" styleClass="stat-label"/>
+                        <Label fx:id="labelSolde" text="0" styleClass="stat-value"/>
+                    </VBox>
+
+                    <VBox styleClass="stat-card, stat-card-sand" spacing="8" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                        <Label text="ÉCONOMIES" styleClass="stat-label"/>
+                        <Label fx:id="labelTotalEconomies" text="0" styleClass="stat-value"/>
+                    </VBox>
+
+                    <VBox styleClass="stat-card, stat-card-sky" spacing="8" GridPane.columnIndex="4" GridPane.rowIndex="0">
+                        <Label text="TAUX D'ÉPARGNE" styleClass="stat-label"/>
+                        <Label fx:id="labelTauxEpargne" text="0 %" styleClass="stat-value"/>
+                    </VBox>
+
+                    <VBox styleClass="stat-card, stat-card-teal" spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label text="NB. REVENUS" styleClass="stat-label"/>
+                        <Label fx:id="labelNombreRevenus" text="0" styleClass="stat-value"/>
+                    </VBox>
+
+                    <VBox styleClass="stat-card, stat-card-coral" spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label text="NB. DEPENSES" styleClass="stat-label"/>
+                        <Label fx:id="labelNombreDepenses" text="0" styleClass="stat-value"/>
+                    </VBox>
+
+                    <VBox styleClass="stat-card, stat-card-violet" spacing="8" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                        <Label text="NB. ÉCONOMIES" styleClass="stat-label"/>
+                        <Label fx:id="labelNombreEconomies" text="0" styleClass="stat-value"/>
+                    </VBox>
+                </GridPane>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
