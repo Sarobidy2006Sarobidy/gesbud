@@ -51,15 +51,19 @@ public class SidebarController {
         boutonParametres.setGraphic(Icons.settings(19, COULEUR_INACTIVE));
         boutonDeconnexion.setGraphic(Icons.logOut(18, COULEUR_DECONNEXION));
 
-        Tooltip.install(boutonDashboard, new Tooltip("Tableau de bord"));
-        Tooltip.install(boutonRevenus, new Tooltip("Revenus"));
-        Tooltip.install(boutonDepenses, new Tooltip("Dépenses"));
-        Tooltip.install(boutonEconomies, new Tooltip("Économies"));
-        Tooltip.install(boutonCategories, new Tooltip("Catégories"));
-        Tooltip.install(boutonHistorique, new Tooltip("Historique"));
-        Tooltip.install(boutonStatistiques, new Tooltip("Statistiques"));
-        Tooltip.install(boutonParametres, new Tooltip("Paramètres"));
-        Tooltip.install(boutonDeconnexion, new Tooltip("Déconnexion"));
+        // setTooltip (et non Tooltip.install) : l'info-bulle reste la propriété
+        // du bouton, donc découvrable via getTooltip() par le nettoyage explicite
+        // de ViewCache.vider() à la déconnexion — sinon sa fenêtre pop-up garde
+        // le contrôleur et sa vue FXML bloqués en RAM.
+        boutonDashboard.setTooltip(new Tooltip("Tableau de bord"));
+        boutonRevenus.setTooltip(new Tooltip("Revenus"));
+        boutonDepenses.setTooltip(new Tooltip("Dépenses"));
+        boutonEconomies.setTooltip(new Tooltip("Économies"));
+        boutonCategories.setTooltip(new Tooltip("Catégories"));
+        boutonHistorique.setTooltip(new Tooltip("Historique"));
+        boutonStatistiques.setTooltip(new Tooltip("Statistiques"));
+        boutonParametres.setTooltip(new Tooltip("Paramètres"));
+        boutonDeconnexion.setTooltip(new Tooltip("Déconnexion"));
 
         boutonsMenu = new Button[]{ boutonDashboard, boutonRevenus, boutonDepenses,
                 boutonEconomies, boutonCategories, boutonHistorique, boutonStatistiques, boutonParametres };

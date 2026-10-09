@@ -2,11 +2,15 @@ package com.budgetmanager;
 
 import com.budgetmanager.controller.AuthHeroController;
 import com.budgetmanager.dao.UserDAO;
+import com.budgetmanager.util.RaccourcisClavier;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -36,6 +40,9 @@ public class Main extends Application {
             "Inter-SemiBold.otf"
     };
 
+    /** Clé sous laquelle Main range le contrôleur d'une vue dans les properties de sa racine. */
+    private static final String CLE_CONTROLEUR = "budget.controleur";
+
     @Override
     public void stop() {
         // Attendre que les tâches DB en cours se terminent avant de fermer le pool.
@@ -63,6 +70,10 @@ public class Main extends Application {
             System.setProperty("budget.db.url.tentee", urlDb);
         } catch (java.sql.SQLException e) {
             erreurDb = com.budgetmanager.util.DbHeartbeat.extraireMessagePublic(e);
+        } catch (RuntimeException e) {
+            // Ex. clé de déchiffrement absente (ConfigCrypto) ou pool HikariCP
+            // impossible à initialiser : message clair plutôt que plantage brut.
+            erreurDb = e.getMessage() != null ? e.getMessage() : e.toString();
         }
 
         if (!dbOk) {
@@ -80,9 +91,13 @@ public class Main extends Application {
         changerScene("view/login.fxml", LARGEUR_AUTH, HAUTEUR_AUTH);
 
         // Suspension des animations quand la fenêtre est minimisée — zéro CPU inutile.
+        // On suspend (pause) au lieu d'arrêter : les badges reprennent exactement où
+        // ils en étaient quand l'utilisateur restaure la fenêtre.
         stage.iconifiedProperty().addListener((obs, ancien, minimise) -> {
             if (minimise) {
-                AuthHeroController.arreterAnimations();
+                AuthHeroController.suspendreAnimations();
+            } else {
+                AuthHeroController.reprendreAnimations();
             }
         });
 
@@ -152,6 +167,9 @@ public class Main extends Application {
                 }
             });
             racine = loader.load();
+            // Le contrôleur voyage avec sa racine : les accélérateurs clavier
+            // peuvent ainsi le retrouver, même quand la vue revient du cache.
+            racine.getProperties().put(CLE_CONTROLEUR, loader.getController());
             com.budgetmanager.util.ViewCache.mettreEnCache(fxml, racine);
         }
 
@@ -171,6 +189,7 @@ public class Main extends Application {
         // aussi bien en développement qu'une fois packagé en .jar.
         scene.getStylesheets().add(Main.class.getResource("css/style.css").toExternalForm());
 
+        installerRaccourcis(scene);
         stagePrincipal.setScene(scene);
         if (!conserver && !stagePrincipal.isMaximized() && !stagePrincipal.isFullScreen()) {
             stagePrincipal.sizeToScene();
@@ -189,7 +208,54 @@ public class Main extends Application {
         return stagePrincipal;
     }
 
+    /**
+     * Installe les raccourcis globaux (Ctrl+N ajouter, Ctrl+S enregistrer) via
+     * l'API officielle des accélérateurs, rattachés à la Scene — jamais via des
+     * écouteurs clavier posés sur les composants. SHORTCUT_DOWN exige le
+     * modificateur exact (Ctrl sous Windows, Cmd sous Mac) : la saisie des
+     * lettres et des accents dans les TextField n'est jamais interceptée.
+     * Chaque nouvelle Scene repart de zéro : aucun conflit entre écrans.
+     */
+    private static void installerRaccourcis(Scene scene) {
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN),
+                () -> actionRaccourci(scene, RaccourcisClavier::auRaccourciAjouter));
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN),
+                () -> actionRaccourci(scene, RaccourcisClavier::auRaccourciEnregistrer));
+    }
+
+    /** Exécute l'action si — et seulement si — le contrôleur de la vue l'implémente. */
+    private static void actionRaccourci(Scene scene, java.util.function.Consumer<RaccourcisClavier> action) {
+        Object controleur = scene.getRoot().getProperties().get(CLE_CONTROLEUR);
+        if (controleur instanceof RaccourcisClavier raccourcis) {
+            action.accept(raccourcis);
+        }
+    }
+
+    /**
+     * Mode de secours graphique : si les pilotes de la carte graphique font
+     * crasher Prism (écran noir, démarrage impossible), forcer le rendu
+     * logiciel (CPU). Activation au choix :
+     * <ul>
+     *   <li>argument de lancement : {@code --rendu-logiciel}</li>
+     *   <li>propriété système : {@code -Dbudget.rendu=logiciel}</li>
+     *   <li>variable d'environnement : {@code BUDGET_RENDU=LOGICIEL}</li>
+     * </ul>
+     * Les propriétés Prism doivent être posées AVANT launch() : c'est le
+     * démarrage du toolkit JavaFX qui choisit le pipeline (DirectX/OpenGL/sw).
+     */
     public static void main(String[] args) {
+        String rendu = System.getProperty("budget.rendu",
+                System.getenv().getOrDefault("BUDGET_RENDU", ""));
+        boolean renduLogiciel = "logiciel".equalsIgnoreCase(rendu.trim());
+        for (String arg : args) {
+            if ("--rendu-logiciel".equalsIgnoreCase(arg)) renduLogiciel = true;
+        }
+        if (renduLogiciel) {
+            System.setProperty("prism.order", "sw");
+            System.setProperty("prism.verbose", "true");
+        }
         launch(args);
     }
 }

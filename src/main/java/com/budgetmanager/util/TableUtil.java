@@ -1,6 +1,7 @@
 package com.budgetmanager.util;
 
 import com.budgetmanager.model.User;
+import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -13,10 +14,22 @@ import javafx.scene.text.Text;
  * <p>Toutes les colonnes de montant de l'application passent par
  * {@link #formaterMontants} — changer le formatage ici suffit
  * pour que toute l'application soit cohérente.
+ *
+ * <p>La couleur est appliquée via des {@link PseudoClass} (et non {@code setStyle}),
+ * gérées nativement par le fichier style.css. Contrairement à {@code setStyle} qui
+ * force le moteur CSS à réanalyser une chaîne à chaque {@code updateItem} (donc à
+ * chaque scroll), l'état de pseudo-classe ne recalcule le rendu que lorsque la
+ * couleur change réellement — indispensable sur les tables de plusieurs centaines
+ * de lignes.
  */
 public final class TableUtil {
 
     private TableUtil() {}
+
+    /** Pseudo-classes de coloration des montants, définies dans style.css. */
+    private static final PseudoClass NEGATIF = PseudoClass.getPseudoClass("negatif");
+    private static final PseudoClass POSITIF = PseudoClass.getPseudoClass("positif");
+    private static final PseudoClass NEUTRE  = PseudoClass.getPseudoClass("neutre");
 
     /**
      * Applique un CellFactory qui :
@@ -34,6 +47,7 @@ public final class TableUtil {
                 if (vide || montant == null) {
                     setText(null);
                     setGraphic(null);
+                    pseudoClassStateChanged(NEGATIF, false);
                     return;
                 }
                 User utilisateur = SessionManager.getUtilisateurConnecte();
@@ -43,12 +57,8 @@ public final class TableUtil {
                 setText(CurrencyUtil.formater(montant, devise));
                 setAlignment(Pos.CENTER_RIGHT);
 
-                // Couleur selon le signe du montant.
-                if (montant < 0) {
-                    setStyle("-fx-text-fill: #d92d20;"); // rouge
-                } else {
-                    setStyle("");
-                }
+                // Couleur selon le signe du montant (gérée nativement par style.css).
+                pseudoClassStateChanged(NEGATIF, montant < 0);
             }
         });
     }
@@ -68,7 +78,9 @@ public final class TableUtil {
                 super.updateItem(montant, vide);
                 if (vide || montant == null) {
                     setText(null);
-                    setStyle("");
+                    pseudoClassStateChanged(POSITIF, false);
+                    pseudoClassStateChanged(NEGATIF, false);
+                    pseudoClassStateChanged(NEUTRE, false);
                     return;
                 }
                 User utilisateur = SessionManager.getUtilisateurConnecte();
@@ -78,16 +90,14 @@ public final class TableUtil {
                 setText(CurrencyUtil.formater(montant, devise));
                 setAlignment(Pos.CENTER_RIGHT);
 
-                // Couleur selon le type de l'opération.
+                // Couleur selon le type d'opération (cellules réutilisées : on réinitialise tout).
                 T item = getTableView().getItems().get(getIndex());
                 String type = typeExtracteur.apply(item);
-                if ("Revenu".equals(type)) {
-                    setStyle("-fx-text-fill: #12805c;"); // vert succès
-                } else if ("Dépense".equals(type)) {
-                    setStyle("-fx-text-fill: #d92d20;"); // rouge
-                } else {
-                    setStyle("-fx-text-fill: #1565c0;"); // bleu pour économies
-                }
+                boolean revenu  = "Revenu".equals(type);
+                boolean depense = "Dépense".equals(type);
+                pseudoClassStateChanged(POSITIF, revenu);
+                pseudoClassStateChanged(NEGATIF, depense);
+                pseudoClassStateChanged(NEUTRE, !revenu && !depense);
             }
         });
     }

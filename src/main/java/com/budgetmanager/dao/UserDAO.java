@@ -21,7 +21,7 @@ public class UserDAO {
         String sql = "INSERT INTO users (nom, prenom, email, pseudo, mot_de_passe, devise, question_securite, reponse_securite) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = DatabaseConnection.preparerAvecCleAuto(conn, sql)) {
 
             stmt.setString(1, user.getNom());
             stmt.setString(2, user.getPrenom());
@@ -49,9 +49,9 @@ public class UserDAO {
     /** Les comptes anciens ont un mot de passe en clair : on les convertit tous une fois pour toutes. */
     private void hacherLesMotsDePasseEnClair(Connection conn) throws SQLException {
         java.util.Map<Integer, String> enClair = new java.util.LinkedHashMap<>();
-        try (Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(
-                     "SELECT id_user, mot_de_passe FROM users WHERE mot_de_passe NOT LIKE 'pbkdf2$%'")) {
+        try (PreparedStatement st = DatabaseConnection.preparer(conn,
+                     "SELECT id_user, mot_de_passe FROM users WHERE mot_de_passe NOT LIKE 'pbkdf2$%'");
+             ResultSet rs = st.executeQuery()) {
             while (rs.next()) enClair.put(rs.getInt("id_user"), rs.getString("mot_de_passe"));
         }
         for (java.util.Map.Entry<Integer, String> e : enClair.entrySet()) {
@@ -71,7 +71,7 @@ public class UserDAO {
     public Optional<User> trouverParIdentifiant(String identifiant) {
         String sql = "SELECT * FROM users WHERE email = ? OR pseudo = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setString(1, identifiant);
             stmt.setString(2, identifiant);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -86,7 +86,7 @@ public class UserDAO {
     public boolean pseudoDejaUtilise(String pseudo, int idUserIgnore) {
         String sql = "SELECT 1 FROM users WHERE pseudo = ? AND id_user <> ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setString(1, pseudo);
             stmt.setInt(2, idUserIgnore);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -101,7 +101,7 @@ public class UserDAO {
     public Optional<User> trouverParEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return Optional.of(mapper(rs));
@@ -115,7 +115,7 @@ public class UserDAO {
     public Optional<User> trouverParId(int idUser) {
         String sql = "SELECT * FROM users WHERE id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return Optional.of(mapper(rs));
@@ -129,7 +129,7 @@ public class UserDAO {
     public boolean mettreAJour(User user) {
         String sql = "UPDATE users SET nom = ?, prenom = ?, email = ?, pseudo = ?, devise = ? WHERE id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setString(1, user.getNom());
             stmt.setString(2, user.getPrenom());
             stmt.setString(3, user.getEmail());
@@ -146,7 +146,7 @@ public class UserDAO {
     public boolean changerMotDePasse(int idUser, String nouveauMotDePasseHache) {
         String sql = "UPDATE users SET mot_de_passe = ? WHERE id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setString(1, nouveauMotDePasseHache);
             stmt.setInt(2, idUser);
             return stmt.executeUpdate() > 0;
@@ -159,7 +159,7 @@ public class UserDAO {
     public boolean definirQuestionSecurite(int idUser, String question, String reponseHachee) {
         String sql = "UPDATE users SET question_securite = ?, reponse_securite = ? WHERE id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setString(1, question);
             stmt.setString(2, reponseHachee);
             stmt.setInt(3, idUser);
@@ -174,18 +174,18 @@ public class UserDAO {
         try (Connection conn = DatabaseConnection.getConnection()) {
             DatabaseMetaData meta = conn.getMetaData();
             if (!colonneExiste(meta, conn.getCatalog(), "question_securite")) {
-                try (Statement st = conn.createStatement()) {
+                try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
                     st.executeUpdate("ALTER TABLE users ADD COLUMN question_securite VARCHAR(150) NULL");
                 }
             }
             if (!colonneExiste(meta, conn.getCatalog(), "pseudo")) {
-                try (Statement st = conn.createStatement()) {
+                try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
                     st.executeUpdate("ALTER TABLE users ADD COLUMN pseudo VARCHAR(30) NULL, "
                             + "ADD UNIQUE INDEX uq_users_pseudo (pseudo)");
                 }
             }
             if (!colonneExiste(meta, conn.getCatalog(), "reponse_securite")) {
-                try (Statement st = conn.createStatement()) {
+                try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
                     st.executeUpdate("ALTER TABLE users ADD COLUMN reponse_securite VARCHAR(255) NULL");
                 }
             }

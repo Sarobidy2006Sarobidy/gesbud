@@ -17,7 +17,7 @@ public class CategoryDAO {
     public boolean creer(Category categorie) {
         String sql = "INSERT INTO categories (id_user, nom, type) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = DatabaseConnection.preparerAvecCleAuto(conn, sql)) {
 
             stmt.setInt(1, categorie.getIdUser());
             stmt.setString(2, categorie.getNom());
@@ -40,7 +40,7 @@ public class CategoryDAO {
     public boolean modifier(Category categorie) {
         String sql = "UPDATE categories SET nom = ?, type = ? WHERE id_categorie = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
 
             stmt.setString(1, categorie.getNom());
             stmt.setString(2, categorie.getType().name());
@@ -57,7 +57,7 @@ public class CategoryDAO {
         String sql = "SELECT (SELECT COUNT(*) FROM incomes WHERE id_categorie = ?) "
                 + "+ (SELECT COUNT(*) FROM expenses WHERE id_categorie = ?) AS nb";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idCategorie);
             stmt.setInt(2, idCategorie);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -72,7 +72,7 @@ public class CategoryDAO {
     public boolean supprimer(int idCategorie) {
         String sql = "DELETE FROM categories WHERE id_categorie = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idCategorie);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -92,7 +92,7 @@ public class CategoryDAO {
     private List<Category> lister(String sql, int idUser, CategoryType type) {
         List<Category> categories = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
 
             stmt.setInt(1, idUser);
             if (type != null) stmt.setString(2, type.name());

@@ -6,6 +6,7 @@ import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.PasswordUtil;
 import com.budgetmanager.util.PseudoUtil;
+import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SecurityQuestions;
 import com.budgetmanager.util.SessionManager;
 import javafx.fxml.FXML;
@@ -17,7 +18,7 @@ import javafx.scene.paint.Color;
 
 import java.util.Optional;
 
-public class SettingsController {
+public class SettingsController implements RaccourcisClavier {
 
     @FXML private TextField champNom;
     @FXML private TextField champPrenom;
@@ -114,6 +115,10 @@ public class SettingsController {
             AlertUtil.afficherErreur("Erreur", "Impossible de mettre à jour le profil.");
         }
     }
+
+    /** Ctrl+S : même action que le bouton « Enregistrer » du profil. */
+    @Override
+    public void auRaccourciEnregistrer() { enregistrerProfil(); }
 
     @FXML
     public void changerMotDePasse() {

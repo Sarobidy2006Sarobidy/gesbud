@@ -63,4 +63,21 @@ public class AuthHeroController {
         for (Animation a : ANIMATIONS) a.stop();
         ANIMATIONS.clear();
     }
+
+    /**
+     * Suspend les animations sans les détruire (fenêtre minimisée) : zéro CPU/GPU
+     * consommé en arrière-plan, mais reprise identique au retour de l'utilisateur.
+     */
+    public static void suspendreAnimations() {
+        for (Animation a : ANIMATIONS) {
+            if (a.getStatus() == Animation.Status.RUNNING) a.pause();
+        }
+    }
+
+    /** Reprend les animations suspendues par {@link #suspendreAnimations()}. */
+    public static void reprendreAnimations() {
+        for (Animation a : ANIMATIONS) {
+            if (a.getStatus() == Animation.Status.PAUSED) a.play();
+        }
+    }
 }

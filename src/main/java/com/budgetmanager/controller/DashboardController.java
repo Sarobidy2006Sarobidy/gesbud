@@ -43,6 +43,18 @@ public class DashboardController {
         com.budgetmanager.util.ResponsiveGrid.appliquer(grilleCartes,
                 largeur -> largeur >= 1300 ? 5 : largeur >= 880 ? 4 : largeur >= 600 ? 3 : 2);
 
+        // Les cartes statistiques portent une ombre coûteuse (flou gaussien 14 px)
+        // mais ne changent que quand leurs labels sont remplis, une fois par
+        // chargement : leur bitmap est confié au cache GPU afin que ni les repaints
+        // voisins ni les survols ailleurs dans la scène ne re-calculent l'ombre.
+        // Volontairement PAS appliqué à la pilule de la sidebar (boutons :hover
+        // à l'intérieur) ni aux TableView (contenu dynamique) : le cache les
+        // ferait re-rastériser en continu, l'effet inverse de celui cherché.
+        for (javafx.scene.Node carte : grilleCartes.getChildren()) {
+            carte.setCache(true);
+            carte.setCacheHint(javafx.scene.CacheHint.SPEED);
+        }
+
         User utilisateur = SessionManager.getUtilisateurConnecte();
         if (utilisateur == null) return;
 

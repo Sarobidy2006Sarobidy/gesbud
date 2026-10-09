@@ -1,6 +1,9 @@
 package com.budgetmanager.util;
 
+import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Control;
+import javafx.scene.control.Tooltip;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,6 +72,35 @@ public final class ViewCache {
      * de l'utilisateur précédent — zéro fuite mémoire entre sessions.
      */
     public static void vider() {
+        for (Parent vue : CACHE.values()) {
+            detacherPopups(vue);
+        }
         CACHE.clear();
+    }
+
+    /**
+     * Masque et détache récursivement les info-bulles et menus contextuels
+     * d'une vue avant qu'elle ne soit retirée du cache. Une info-bulle encore
+     * affichée au moment de la déconnexion garde sa fenêtre pop-up vivante
+     * (elle n'appartient pas au nœud racine du FXML) — et avec elle tout le
+     * contrôleur et sa vue bloqués en RAM pour toujours. Le hide() et le
+     * détachement explicite coupent ce lien avant le CACHE.clear().
+     */
+    private static void detacherPopups(Node noeud) {
+        if (noeud instanceof Control controle) {
+            Tooltip info = controle.getTooltip();
+            if (info != null) {
+                info.hide();
+                controle.setTooltip(null);
+            }
+            if (controle.getContextMenu() != null) {
+                controle.getContextMenu().hide();
+            }
+        }
+        if (noeud instanceof Parent parent) {
+            for (Node enfant : parent.getChildrenUnmodifiable()) {
+                detacherPopups(enfant);
+            }
+        }
     }
 }

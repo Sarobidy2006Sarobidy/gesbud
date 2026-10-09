@@ -9,6 +9,7 @@ import com.budgetmanager.model.Income;
 import com.budgetmanager.model.User;
 import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.Icons;
+import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
 import com.budgetmanager.util.ListSyncUtil;
 import javafx.beans.value.WeakChangeListener;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 
-public class IncomeController {
+public class IncomeController implements RaccourcisClavier {
 
     private static final Logger log = LoggerFactory.getLogger(IncomeController.class);
 
@@ -245,6 +246,10 @@ public class IncomeController {
         }
     }
 
+    /** Ctrl+N : même action que le bouton « Ajouter ». */
+    @Override
+    public void auRaccourciAjouter() { ajouterRevenu(); }
+
     @FXML
     public void modifierRevenu() {
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
@@ -288,7 +293,7 @@ public class IncomeController {
                     suite.setFrequence(revenuSelectionne.getFrequence());
                     suite.setDateFin(dateFin);
                     revenuSelectionne.setDateFin(revenuSelectionne.getDerniereGeneration());
-                    if (incomeDAO.modifier(revenuSelectionne) && incomeDAO.creer(suite)) {
+                    if (incomeDAO.changerMontantRecurrent(revenuSelectionne, suite)) {
                         chargerRevenus();
                         viderFormulaire();
                     } else {

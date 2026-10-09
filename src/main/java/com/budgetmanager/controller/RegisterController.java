@@ -11,6 +11,7 @@ import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.PasswordUtil;
 import com.budgetmanager.util.PseudoUtil;
 import com.budgetmanager.util.SecurityQuestions;
+import com.budgetmanager.util.SessionManager;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -134,24 +135,34 @@ public class RegisterController {
 
         final String reponseFinale = reponse;
         final String motDePasseFinal = motDePasse;
-        Task<Boolean> tache = new Task<>() {
+        Task<User> tache = new Task<>() {
             @Override
-            protected Boolean call() {
+            protected User call() {
                 User u = new User(nom, prenom, email,
                         PasswordUtil.hacher(motDePasseFinal), devise);
                 u.setPseudo(pseudo);
                 u.setQuestionSecurite(question);
                 u.setReponseSecurite(PasswordUtil.hacherReponse(reponseFinale));
-                return userDAO.creer(u);
+                // creer() renseigne l'ID généré sur l'objet même.
+                return userDAO.creer(u) ? u : null;
             }
         };
         tache.setOnSucceeded(evt -> {
             boutonInscription.setDisable(false);
-            if (tache.getValue()) {
+            User compteCree = tache.getValue();
+            if (compteCree == null) {
+                AuthUi.erreur(labelMessage, "L'inscription a échoué. Veuillez réessayer.");
+                return;
+            }
+            // Connexion automatique : le mot de passe vient d'être saisi et
+            // confirmé deux fois, inutile de le redemander immédiatement.
+            SessionManager.connecter(compteCree);
+            try {
+                Main.changerScene("view/dashboard.fxml", 1140, 740);
+            } catch (IOException e) {
+                log.error("Navigation dashboard après inscription échouée", e);
                 FlashMessage.definir("Votre compte a été créé. Vous pouvez vous connecter.");
                 allerVersConnexion();
-            } else {
-                AuthUi.erreur(labelMessage, "L'inscription a échoué. Veuillez réessayer.");
             }
         });
         tache.setOnFailed(evt -> {

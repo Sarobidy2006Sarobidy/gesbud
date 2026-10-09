@@ -1,0 +1,13 @@
+# Binaires et rapports Maven
+target/
+
+# Configuration locale (identifiants de la base) — propre à chaque machine
+database.properties
+
+# Journaux applicatifs
+*.log
+
+# Fichiers d'IDE
+.idea/
+*.iml
+.vscode/

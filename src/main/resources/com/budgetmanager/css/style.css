@@ -408,6 +408,19 @@
     -fx-text-fill: #0f2a5c;
 }
 
+/* Coloration des montants pilotée par PseudoClass (voir TableUtil.java).
+   Remplace les anciens setStyle() inline : le rendu n'est recalculé qu'au
+   changement d'état, pas à chaque updateItem/scroll. */
+.table-cell:negatif { -fx-text-fill: #d92d20; }  /* rouge : dépense / montant négatif */
+.table-cell:positif { -fx-text-fill: #12805c; }  /* vert  : revenu */
+.table-cell:neutre  { -fx-text-fill: #1565c0; }  /* bleu  : économie */
+
+/* Conserver la couleur du montant même sur une ligne sélectionnée
+   (spécificité supérieure à .table-row-cell:selected .table-cell). */
+.table-row-cell:selected .table-cell:negatif { -fx-text-fill: #d92d20; }
+.table-row-cell:selected .table-cell:positif { -fx-text-fill: #12805c; }
+.table-row-cell:selected .table-cell:neutre  { -fx-text-fill: #1565c0; }
+
 /* =========================================================================
    Graphiques (statistiques) — palette bleue
    ========================================================================= */
@@ -848,31 +861,4 @@
     -fx-background-color: rgba(243, 247, 253, 0.85);
     -fx-background-radius: 12;
     -fx-padding: 32;
-}
-
-/* =========================================================================
-   Styles variables globales CSS (thème modifiable en une ligne sur .root)
-   Utilisez ces variables dans toute la CSS pour centraliser les couleurs.
-   Exemple : changer --primary à #7c3aed applique un thème violet partout.
-   ========================================================================= */
-.root {
-    /* Couleurs primaires */
-    --primary:        #1565c0;
-    --primary-light:  #1e88e5;
-    --primary-pale:   #e8f0fc;
-
-    /* Feedback */
-    --success:        #12805c;
-    --danger:         #d92d20;
-    --warning:        #b45309;
-
-    /* Texte */
-    --text-title:     #0f2a5c;
-    --text-body:      #35508a;
-    --text-muted:     #5b7099;
-
-    /* Fonds */
-    --bg-page:        #f3f7fd;
-    --bg-card:        #ffffff;
-    --border:         #d4e4fa;
 }

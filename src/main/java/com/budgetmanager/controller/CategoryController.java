@@ -6,6 +6,7 @@ import com.budgetmanager.model.CategoryType;
 import com.budgetmanager.model.User;
 import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.Icons;
+import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,7 +17,7 @@ import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CategoryController {
+public class CategoryController implements RaccourcisClavier {
 
     private static final Logger log = LoggerFactory.getLogger(CategoryController.class);
 
@@ -94,6 +95,10 @@ public class CategoryController {
             AlertUtil.afficherErreur("Erreur", "Impossible d'ajouter la catégorie.");
         }
     }
+
+    /** Ctrl+N : même action que le bouton « Ajouter ». */
+    @Override
+    public void auRaccourciAjouter() { ajouterCategorie(); }
 
     @FXML
     public void modifierCategorie() {

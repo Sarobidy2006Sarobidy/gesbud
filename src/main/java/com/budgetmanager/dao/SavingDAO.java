@@ -21,7 +21,7 @@ public class SavingDAO {
         String sql = "INSERT INTO savings (id_user, montant, description, date_economie, " +
                 "frequence, date_fin, derniere_generation) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = DatabaseConnection.preparerAvecCleAuto(conn, sql)) {
 
             stmt.setInt(1, economie.getIdUser());
             stmt.setDouble(2, economie.getMontant());
@@ -49,7 +49,7 @@ public class SavingDAO {
         String sql = "UPDATE savings SET montant = ?, description = ?, date_economie = ?, " +
                 "frequence = ?, date_fin = ?, derniere_generation = COALESCE(?, derniere_generation) WHERE id_economie = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
 
             stmt.setDouble(1, economie.getMontant());
             stmt.setString(2, economie.getDescription());
@@ -65,10 +65,64 @@ public class SavingDAO {
         }
     }
 
+    /**
+     * Clôture la récurrence {@code source} et démarre {@code suite} avec le nouveau montant,
+     * de façon atomique : les deux écritures passent ensemble ou aucune ne passe.
+     */
+    public boolean changerMontantRecurrent(Saving source, Saving suite) {
+        String majSql = "UPDATE savings SET montant = ?, description = ?, date_economie = ?, " +
+                "frequence = ?, date_fin = ?, derniere_generation = COALESCE(?, derniere_generation) WHERE id_economie = ?";
+        String insertionSql = "INSERT INTO savings (id_user, montant, description, date_economie, " +
+                "frequence, date_fin, derniere_generation) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            boolean autoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try (PreparedStatement maj = DatabaseConnection.preparer(conn, majSql);
+                 PreparedStatement insertion = DatabaseConnection.preparerAvecCleAuto(conn, insertionSql)) {
+
+                maj.setDouble(1, source.getMontant());
+                maj.setString(2, source.getDescription());
+                maj.setDate(3, Date.valueOf(source.getDateEconomie()));
+                maj.setString(4, source.getFrequence().name());
+                maj.setDate(5, source.getDateFin() == null ? null : Date.valueOf(source.getDateFin()));
+                maj.setDate(6, source.getDerniereGeneration() == null ? null : Date.valueOf(source.getDerniereGeneration()));
+                maj.setInt(7, source.getIdEconomie());
+
+                insertion.setInt(1, suite.getIdUser());
+                insertion.setDouble(2, suite.getMontant());
+                insertion.setString(3, suite.getDescription());
+                insertion.setDate(4, Date.valueOf(suite.getDateEconomie()));
+                insertion.setString(5, suite.getFrequence().name());
+                insertion.setDate(6, suite.getDateFin() == null ? null : Date.valueOf(suite.getDateFin()));
+                LocalDate derniere = suite.getFrequence().estRecurrent() ? suite.getDateEconomie() : null;
+                insertion.setDate(7, derniere == null ? null : Date.valueOf(derniere));
+
+                if (maj.executeUpdate() == 0 || insertion.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+                try (ResultSet rs = insertion.getGeneratedKeys()) {
+                    if (rs.next()) suite.setIdEconomie(rs.getInt(1));
+                }
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(autoCommit);
+            }
+        } catch (SQLException e) {
+            log.error("SavingDAO.changerMontantRecurrent() — {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
     public boolean supprimer(int idEconomie) {
         String sql = "DELETE FROM savings WHERE id_economie = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idEconomie);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -81,7 +135,7 @@ public class SavingDAO {
         String sql = "SELECT * FROM savings WHERE id_user = ? ORDER BY date_economie DESC, id_economie DESC";
         List<Saving> resultats = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) resultats.add(mapper(rs));
@@ -113,7 +167,7 @@ public class SavingDAO {
 
         List<Saving> resultats = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql.toString())) {
             for (int i = 0; i < params.size(); i++) stmt.setObject(i + 1, params.get(i));
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) resultats.add(mapper(rs));
@@ -128,7 +182,7 @@ public class SavingDAO {
         String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM savings WHERE id_user = ?"
                 + SqlUtil.jusquAujourdhui("date_economie");
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return rs.getDouble("total");
@@ -142,7 +196,7 @@ public class SavingDAO {
     public double totalAvantAnnee(int idUser, int annee) {
         String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM savings WHERE id_user = ? AND YEAR(date_economie) < ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             stmt.setInt(2, annee);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -157,7 +211,7 @@ public class SavingDAO {
     public int nombreParUser(int idUser) {
         String sql = "SELECT COUNT(*) AS nb FROM savings WHERE id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return rs.getInt("nb");
@@ -173,7 +227,7 @@ public class SavingDAO {
                 "WHERE id_user = ? AND YEAR(date_economie) = ? AND MONTH(date_economie) = ?"
                 + SqlUtil.jusquAujourdhui("date_economie");
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             stmt.setInt(2, mois.getYear());
             stmt.setInt(3, mois.getMonthValue());
@@ -196,7 +250,7 @@ public class SavingDAO {
         int crees = 0;
         try (Connection conn = DatabaseConnection.getConnection()) {
             List<Saving> sources = new ArrayList<>();
-            try (PreparedStatement stmt = conn.prepareStatement(selection)) {
+            try (PreparedStatement stmt = DatabaseConnection.preparer(conn, selection)) {
                 stmt.setInt(1, idUser);
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) sources.add(mapper(rs));
@@ -204,8 +258,8 @@ public class SavingDAO {
             }
             boolean autoCommit = conn.getAutoCommit();
             conn.setAutoCommit(false);
-            try (PreparedStatement ins = conn.prepareStatement(insertion);
-                 PreparedStatement maj = conn.prepareStatement(miseAJour)) {
+            try (PreparedStatement ins = DatabaseConnection.preparer(conn, insertion);
+                 PreparedStatement maj = DatabaseConnection.preparer(conn, miseAJour)) {
                 for (Saving source : sources) {
                     LocalDate limite = source.getDateFin() != null && source.getDateFin().isBefore(aujourdhui)
                             ? source.getDateFin() : aujourdhui;
@@ -243,7 +297,7 @@ public class SavingDAO {
 
     public void migrerSiNecessaire() {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            try (Statement st = conn.createStatement()) {
+            try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS savings (" +
                         "id_economie INT AUTO_INCREMENT PRIMARY KEY, " +
                         "id_user INT NOT NULL, " +

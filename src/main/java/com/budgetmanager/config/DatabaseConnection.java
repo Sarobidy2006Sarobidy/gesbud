@@ -6,7 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 /**
@@ -23,7 +25,8 @@ import java.util.Properties;
  *
  * Configuration lue (par ordre de priorité) :
  *   1. Variables d'environnement BUDGET_DB_URL / BUDGET_DB_USER / BUDGET_DB_PASSWORD
- *   2. Fichier database.properties à la racine (db.url / db.user / db.password)
+ *   2. Fichier database.properties à la racine (db.url / db.user / db.password) ;
+ *      chaque valeur peut être chiffrée (préfixe « aes: », voir {@link ConfigCrypto})
  *   3. Valeurs par défaut WampServer (root / vide / localhost)
  */
 public class DatabaseConnection {
@@ -34,6 +37,12 @@ public class DatabaseConnection {
             "jdbc:mysql://127.0.0.1:3306/gestionnaire_budget?useSSL=false&serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true";
     private static final String USER_DEFAUT   = "root";
     private static final String PASSWORD_DEFAUT = "";
+
+    /** Délai maximum d'une requête SQL avant annulation automatique (secondes). */
+    public static final int TIMEOUT_REQUETE = 3;
+
+    /** Délai des requêtes de migration (ALTER/CREATE), légitimement plus lentes. */
+    public static final int TIMEOUT_MIGRATION = 30;
 
     private static final Properties CONFIG = charger();
     private static volatile HikariDataSource pool;
@@ -60,7 +69,8 @@ public class DatabaseConnection {
     private static String valeur(String variableEnv, String cle, String defaut) {
         String env = System.getenv(variableEnv);
         if (env != null && !env.isEmpty()) return env;
-        return CONFIG.getProperty(cle, defaut);
+        // Les valeurs « aes:... » sont déchiffrées ici, en mémoire, à l'init du pool.
+        return ConfigCrypto.dechiffrer(CONFIG.getProperty(cle, defaut));
     }
 
     // ---------------------------------------------------------------------------
@@ -69,7 +79,7 @@ public class DatabaseConnection {
 
     private static HikariDataSource creerPool() {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(valeur("BUDGET_DB_URL",      "db.url",      URL_DEFAUT));
+        config.setJdbcUrl(avecTimeoutsReseau(valeur("BUDGET_DB_URL", "db.url", URL_DEFAUT)));
         config.setUsername(valeur("BUDGET_DB_USER",    "db.user",     USER_DEFAUT));
         config.setPassword(valeur("BUDGET_DB_PASSWORD","db.password", PASSWORD_DEFAUT));
 
@@ -113,6 +123,61 @@ public class DatabaseConnection {
             }
         }
         return pool.getConnection();
+    }
+
+    // ---------------------------------------------------------------------------
+    // Préparation des requêtes avec délai d'expiration
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Prépare une requête annulée automatiquement après
+     * {@value #TIMEOUT_REQUETE} secondes. Si MySQL ne répond pas (XAMPP
+     * planté, coupure réseau en pleine lecture socket), le pilote lève une
+     * SQLException propre au lieu de bloquer le thread db-worker à l'infini —
+     * la Task correspondante échoue et l'utilisateur reçoit une erreur claire.
+     */
+    public static PreparedStatement preparer(Connection conn, String sql) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setQueryTimeout(TIMEOUT_REQUETE);
+        return stmt;
+    }
+
+    /** Comme {@link #preparer}, mais l'INSERT retourne aussi sa clé générée. */
+    public static PreparedStatement preparerAvecCleAuto(Connection conn, String sql) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        stmt.setQueryTimeout(TIMEOUT_REQUETE);
+        return stmt;
+    }
+
+    /**
+     * Statement brut avec délai d'expiration personnalisé. Réservé aux
+     * migrations (ALTER TABLE, CREATE) qui peuvent dépasser les 3 secondes du
+     * timeout standard sur une grosse base.
+     */
+    public static Statement creerStatement(Connection conn, int timeoutSecondes) throws SQLException {
+        Statement stmt = conn.createStatement();
+        stmt.setQueryTimeout(timeoutSecondes);
+        return stmt;
+    }
+
+    /**
+     * Garantit que toute URL MySQL porte ses délais réseau : sans
+     * socketTimeout, un serveur MySQL mort en pleine lecture peut laisser le
+     * pilote JDBC bloqué sur le socket pour toujours — un thread perdu à
+     * chaque clic, jusqu'au plantage de la JVM. Le socketTimeout (10 s,
+     * filet de sécurité) reste supérieur au timeout de requête (3 s) pour que
+     * les erreurs normales viennent de setQueryTimeout avec un message clair.
+     */
+    private static String avecTimeoutsReseau(String url) {
+        if (!url.startsWith("jdbc:mysql")) return url;
+        StringBuilder u = new StringBuilder(url);
+        if (!url.contains("connectTimeout=")) {
+            u.append(u.indexOf("?") >= 0 ? "&" : "?").append("connectTimeout=5000");
+        }
+        if (!url.contains("socketTimeout=")) {
+            u.append(u.indexOf("?") >= 0 ? "&" : "?").append("socketTimeout=10000");
+        }
+        return u.toString();
     }
 
     /**

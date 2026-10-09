@@ -8,6 +8,7 @@ import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.CurrencyUtil;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.ListSyncUtil;
+import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SavingsCurve;
 import com.budgetmanager.util.SavingsCurve.Period;
 import com.budgetmanager.util.SessionManager;
@@ -31,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * (chaque jour, chaque semaine, chaque mois), total économisé et courbe
  * du cumul par jour, par semaine ou par mois.
  */
-public class SavingsController {
+public class SavingsController implements RaccourcisClavier {
 
     private static final Logger log = LoggerFactory.getLogger(SavingsController.class);
 
@@ -70,7 +71,8 @@ public class SavingsController {
 
     private final SavingDAO savingDAO = new SavingDAO();
     private final ObservableList<Saving> donnees = FXCollections.observableArrayList();
-    /** Toutes les économies : la courbe et les totaux ne dépendent jamais du filtre de recherche. */
+    /** Toutes les économies : la courbe et les totaux ne dépendent jamais du filtre de recherche.
+     *  Assigné uniquement sur le thread FX (dans le setOnSucceeded du chargement). */
     private List<Saving> toutes = List.of();
     private Saving economieSelectionnee;
 
@@ -132,20 +134,21 @@ public class SavingsController {
         String devise = utilisateur.getDevise();
 
         // Données calculées en arrière-plan pour ne pas bloquer l'UI.
-        Task<double[]> tacheStats = new Task<>() {
+        // La liste voyage dans la valeur de la Task : « toutes » n'est écrit que sur le thread FX.
+        Task<Chargement> tacheStats = new Task<>() {
             @Override
-            protected double[] call() {
+            protected Chargement call() {
                 savingDAO.genererRecurrences(idUser);
-                // On récupère la liste complète sur ce thread pour l'utiliser dans l'UI après.
-                toutes = savingDAO.listerParUser(idUser);
+                List<Saving> economies = savingDAO.listerParUser(idUser);
                 double total = savingDAO.totalParUser(idUser);
                 double mois  = savingDAO.totalParMois(idUser, YearMonth.now());
                 double solde = com.budgetmanager.util.BudgetUtil.soldeDisponible(idUser);
-                return new double[]{ total, mois, toutes.size(), solde };
+                return new Chargement(economies, total, mois, solde);
             }
         };
         tacheStats.setOnSucceeded(evt -> {
-            double[] v = tacheStats.getValue();
+            Chargement c = tacheStats.getValue();
+            toutes = c.economies();
             // Synchronisation intelligente — réutilise les instances existantes.
             ListSyncUtil.synchroniser(donnees, toutes,
                     Saving::getIdEconomie,
@@ -157,10 +160,10 @@ public class SavingsController {
                         existant.setDateFin(nouveau.getDateFin());
                         existant.setIdSource(nouveau.getIdSource());
                     });
-            labelTotal.setText(CurrencyUtil.formater(v[0], devise));
-            labelMois.setText(CurrencyUtil.formater(v[1], devise));
-            labelNombre.setText(String.valueOf((int) v[2]));
-            double solde = v[3];
+            labelTotal.setText(CurrencyUtil.formater(c.total(), devise));
+            labelMois.setText(CurrencyUtil.formater(c.mois(), devise));
+            labelNombre.setText(String.valueOf(c.economies().size()));
+            double solde = c.solde();
             labelAlerteSolde.setVisible(solde < 0);
             labelAlerteSolde.setManaged(solde < 0);
             if (solde < 0) {
@@ -238,6 +241,10 @@ public class SavingsController {
         }
     }
 
+    /** Ctrl+N : même action que le bouton « Ajouter ». */
+    @Override
+    public void auRaccourciAjouter() { ajouterEconomie(); }
+
     @FXML
     public void modifierEconomie() {
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
@@ -280,7 +287,7 @@ public class SavingsController {
                     suite.setFrequence(economieSelectionnee.getFrequence());
                     suite.setDateFin(dateFin);
                     economieSelectionnee.setDateFin(economieSelectionnee.getDerniereGeneration());
-                    if (savingDAO.modifier(economieSelectionnee) && savingDAO.creer(suite)) {
+                    if (savingDAO.changerMontantRecurrent(economieSelectionnee, suite)) {
                         chargerEconomies();
                         viderFormulaire();
                     } else {
@@ -341,11 +348,18 @@ public class SavingsController {
     @FXML
     public void rechercherEtFiltrer() {
         User utilisateur = SessionManager.getUtilisateurConnecte();
-        donnees.setAll(savingDAO.rechercher(
-                utilisateur.getIdUser(),
-                champRecherche.getText(),
-                champFiltreDateDebut.getValue(),
-                champFiltreDateFin.getValue()));
+        String motCle = champRecherche.getText();
+        LocalDate debut = champFiltreDateDebut.getValue();
+        LocalDate fin = champFiltreDateFin.getValue();
+        Task<List<Saving>> tache = new Task<>() {
+            @Override
+            protected List<Saving> call() {
+                return savingDAO.rechercher(utilisateur.getIdUser(), motCle, debut, fin);
+            }
+        };
+        tache.setOnSucceeded(evt -> donnees.setAll(tache.getValue()));
+        tache.setOnFailed(evt -> log.error("Recherche économies échouée", tache.getException()));
+        com.budgetmanager.util.DbExecutor.soumettre(tache);
     }
 
     @FXML
@@ -365,4 +379,7 @@ public class SavingsController {
         economieSelectionnee = null;
         tableEconomies.getSelectionModel().clearSelection();
     }
+
+    /** Résultat du chargement en arrière-plan : liste complète et totaux rapatriés ensemble sur le thread FX. */
+    private record Chargement(List<Saving> economies, double total, double mois, double solde) {}
 }

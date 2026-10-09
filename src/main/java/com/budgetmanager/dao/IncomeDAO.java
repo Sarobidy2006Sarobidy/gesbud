@@ -29,7 +29,7 @@ public class IncomeDAO {
         String sql = "INSERT INTO incomes (id_user, id_categorie, montant, description, date_revenu, " +
                 "frequence, date_fin, derniere_generation) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = DatabaseConnection.preparerAvecCleAuto(conn, sql)) {
 
             stmt.setInt(1, revenu.getIdUser());
             stmt.setInt(2, revenu.getIdCategorie());
@@ -59,7 +59,7 @@ public class IncomeDAO {
         String sql = "UPDATE incomes SET id_categorie = ?, montant = ?, description = ?, date_revenu = ?, " +
                 "frequence = ?, date_fin = ?, derniere_generation = COALESCE(?, derniere_generation) WHERE id_revenu = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
 
             stmt.setInt(1, revenu.getIdCategorie());
             stmt.setDouble(2, revenu.getMontant());
@@ -77,10 +77,66 @@ public class IncomeDAO {
         }
     }
 
+    /**
+     * Clôture la récurrence {@code source} et démarre {@code suite} avec le nouveau montant,
+     * de façon atomique : les deux écritures passent ensemble ou aucune ne passe.
+     */
+    public boolean changerMontantRecurrent(Income source, Income suite) {
+        String majSql = "UPDATE incomes SET id_categorie = ?, montant = ?, description = ?, date_revenu = ?, " +
+                "frequence = ?, date_fin = ?, derniere_generation = COALESCE(?, derniere_generation) WHERE id_revenu = ?";
+        String insertionSql = "INSERT INTO incomes (id_user, id_categorie, montant, description, date_revenu, " +
+                "frequence, date_fin, derniere_generation) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            boolean autoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try (PreparedStatement maj = DatabaseConnection.preparer(conn, majSql);
+                 PreparedStatement insertion = DatabaseConnection.preparerAvecCleAuto(conn, insertionSql)) {
+
+                maj.setInt(1, source.getIdCategorie());
+                maj.setDouble(2, source.getMontant());
+                maj.setString(3, source.getDescription());
+                maj.setDate(4, Date.valueOf(source.getDateRevenu()));
+                maj.setString(5, source.getFrequence().name());
+                maj.setDate(6, source.getDateFin() == null ? null : Date.valueOf(source.getDateFin()));
+                maj.setDate(7, source.getDerniereGeneration() == null ? null : Date.valueOf(source.getDerniereGeneration()));
+                maj.setInt(8, source.getIdRevenu());
+
+                insertion.setInt(1, suite.getIdUser());
+                insertion.setInt(2, suite.getIdCategorie());
+                insertion.setDouble(3, suite.getMontant());
+                insertion.setString(4, suite.getDescription());
+                insertion.setDate(5, Date.valueOf(suite.getDateRevenu()));
+                insertion.setString(6, suite.getFrequence().name());
+                insertion.setDate(7, suite.getDateFin() == null ? null : Date.valueOf(suite.getDateFin()));
+                LocalDate derniere = suite.getFrequence().estRecurrent() ? suite.getDateRevenu() : null;
+                insertion.setDate(8, derniere == null ? null : Date.valueOf(derniere));
+
+                if (maj.executeUpdate() == 0 || insertion.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+                try (ResultSet rs = insertion.getGeneratedKeys()) {
+                    if (rs.next()) suite.setIdRevenu(rs.getInt(1));
+                }
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(autoCommit);
+            }
+        } catch (SQLException e) {
+            log.error("IncomeDAO.changerMontantRecurrent() — {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
     public boolean supprimer(int idRevenu) {
         String sql = "DELETE FROM incomes WHERE id_revenu = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idRevenu);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -120,7 +176,7 @@ public class IncomeDAO {
 
         List<Income> resultats = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql.toString())) {
             for (int i = 0; i < params.size(); i++) stmt.setObject(i + 1, params.get(i));
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) resultats.add(mapper(rs));
@@ -140,7 +196,7 @@ public class IncomeDAO {
     public int nombreParUser(int idUser) {
         String sql = "SELECT COUNT(*) AS nb FROM incomes WHERE id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return rs.getInt("nb");
@@ -154,7 +210,7 @@ public class IncomeDAO {
     public double totalAvantAnnee(int idUser, int annee) {
         String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM incomes WHERE id_user = ? AND YEAR(date_revenu) < ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             stmt.setInt(2, annee);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -171,7 +227,7 @@ public class IncomeDAO {
                 "WHERE id_user = ? AND YEAR(date_revenu) = ? AND MONTH(date_revenu) = ?"
                 + SqlUtil.jusquAujourdhui("date_revenu");
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             stmt.setInt(2, mois.getYear());
             stmt.setInt(3, mois.getMonthValue());
@@ -191,7 +247,7 @@ public class IncomeDAO {
                 "WHERE c.id_user = ? AND c.type = 'REVENU' GROUP BY c.id_categorie, c.nom";
         List<Object[]> resultats = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) resultats.add(new Object[]{rs.getString("nom"), rs.getDouble("total")});
@@ -212,7 +268,7 @@ public class IncomeDAO {
         int crees = 0;
         try (Connection conn = DatabaseConnection.getConnection()) {
             List<Income> sources = new ArrayList<>();
-            try (PreparedStatement stmt = conn.prepareStatement(selection)) {
+            try (PreparedStatement stmt = DatabaseConnection.preparer(conn, selection)) {
                 stmt.setInt(1, idUser);
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) sources.add(mapper(rs));
@@ -220,8 +276,8 @@ public class IncomeDAO {
             }
             boolean autoCommit = conn.getAutoCommit();
             conn.setAutoCommit(false);
-            try (PreparedStatement ins = conn.prepareStatement(insertion);
-                 PreparedStatement maj = conn.prepareStatement(miseAJour)) {
+            try (PreparedStatement ins = DatabaseConnection.preparer(conn, insertion);
+                 PreparedStatement maj = DatabaseConnection.preparer(conn, miseAJour)) {
                 for (Income source : sources) {
                     LocalDate limite = source.getDateFin() != null && source.getDateFin().isBefore(aujourdhui)
                             ? source.getDateFin() : aujourdhui;
@@ -262,7 +318,7 @@ public class IncomeDAO {
         try (Connection conn = DatabaseConnection.getConnection()) {
             DatabaseMetaData meta = conn.getMetaData();
             if (!colonneExiste(meta, conn.getCatalog(), "frequence")) {
-                try (Statement st = conn.createStatement()) {
+                try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
                     st.executeUpdate("ALTER TABLE incomes " +
                             "ADD COLUMN frequence ENUM('PONCTUEL','QUOTIDIEN','HEBDOMADAIRE','MENSUEL') NOT NULL DEFAULT 'PONCTUEL', " +
                             "ADD COLUMN date_fin DATE NULL, " +
@@ -285,7 +341,7 @@ public class IncomeDAO {
 
     private double total(String sql, int idUser) {
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return rs.getDouble("total");
@@ -299,7 +355,7 @@ public class IncomeDAO {
     private List<Income> executer(String sql, int idUser) {
         List<Income> resultats = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) resultats.add(mapper(rs));

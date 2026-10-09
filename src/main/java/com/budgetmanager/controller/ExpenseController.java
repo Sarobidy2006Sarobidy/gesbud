@@ -10,6 +10,7 @@ import com.budgetmanager.model.User;
 import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.ListSyncUtil;
+import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 
-public class ExpenseController {
+public class ExpenseController implements RaccourcisClavier {
 
     private static final Logger log = LoggerFactory.getLogger(ExpenseController.class);
 
@@ -237,6 +238,10 @@ public class ExpenseController {
         }
     }
 
+    /** Ctrl+N : même action que le bouton « Ajouter ». */
+    @Override
+    public void auRaccourciAjouter() { ajouterDepense(); }
+
     @FXML
     public void modifierDepense() {
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
@@ -280,7 +285,7 @@ public class ExpenseController {
                     suite.setFrequence(depenseSelectionne.getFrequence());
                     suite.setDateFin(dateFin);
                     depenseSelectionne.setDateFin(depenseSelectionne.getDerniereGeneration());
-                    if (expenseDAO.modifier(depenseSelectionne) && expenseDAO.creer(suite)) {
+                    if (expenseDAO.changerMontantRecurrent(depenseSelectionne, suite)) {
                         chargerDepenses();
                         viderFormulaire();
                     } else {
