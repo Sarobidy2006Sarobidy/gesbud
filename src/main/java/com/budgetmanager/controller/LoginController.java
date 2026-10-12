@@ -40,22 +40,32 @@ public class LoginController {
     @FXML private StackPane     zoneLogo;
     @FXML private StackPane     zoneIconeEmail;
     @FXML private StackPane     zoneIconeMotDePasse;
+    @FXML private StackPane     zoneIconeSecurite;
     @FXML private StackPane     racine;
 
     private final UserDAO userDAO = new UserDAO();
 
     @FXML
     public void initialize() {
+        // Badge logo hexagonal
         zoneLogo.getChildren().add(Hexagon.badge(46, Icons::wallet, true));
-        zoneIconeEmail.getChildren().add(Icons.user(17, AuthUi.couleurIconeChamp()));
-        zoneIconeMotDePasse.getChildren().add(Icons.lock(17, AuthUi.couleurIconeChamp()));
-        AuthUi.activerFocusSurLignes(racine);
+
+        // Icônes champs — blanches pour le thème glassmorphism
+        javafx.scene.paint.Color couleurIcone = javafx.scene.paint.Color.web("#9dc8ff");
+        zoneIconeEmail.getChildren().add(Icons.user(17, couleurIcone));
+        zoneIconeMotDePasse.getChildren().add(Icons.lock(17, couleurIcone));
+
+        // Icône sécurité bas de carte
+        if (zoneIconeSecurite != null) {
+            zoneIconeSecurite.getChildren().add(Icons.shieldCheck(14, javafx.scene.paint.Color.web("#7eb8ff", 0.8)));
+        }
+
+        AuthUi.activerFocusSurLignesPremium(racine);
 
         AuthUi.effacer(labelMessage);
         String flash = FlashMessage.consommer();
         if (flash != null) AuthUi.succes(labelMessage, flash);
 
-        // Focus automatique sur le premier champ dès l'ouverture (Point 5).
         javafx.application.Platform.runLater(() -> champEmail.requestFocus());
     }
 

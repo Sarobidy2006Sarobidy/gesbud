@@ -1,14 +1,6 @@
 /* =========================================================================
    Thème « Gestionnaire de Budget Personnel » — bleu bancaire (100% JavaFX)
    =========================================================================
-   Inspiré de l'écran de connexion « S2Biz » :
-   - Fond bleu profond en dégradé, panneau de connexion bleu translucide.
-   - Champs blancs avec icône à gauche, bouton bleu ciel à plat, lien
-     « mot de passe oublié » aligné à droite sous les champs.
-   - Badges hexagonaux lumineux (dessinés en Java, voir util/Hexagon.java).
-   - Les écrans internes reprennent la même palette : barre latérale bleu
-     nuit, cartes blanches aux angles discrets, boutons bleus.
-
    Palette
      bleu nuit   #071a4a  #0b2a6b      bleu action  #1565c0  #1e88e5
      bleu ciel   #29b6f6  #7ec3ff      fond clair   #f3f7fd  #e6eefb
@@ -24,20 +16,16 @@
     -fx-font-family: "Inter";
     -fx-font-size: 13px;
     -fx-background-color: linear-gradient(to bottom right, #f3f7fd, #e6eefb);
-
     -fx-accent: #1e88e5;
     -fx-focus-color: #1e88e5;
     -fx-faint-focus-color: rgba(30,136,229,0.18);
     -fx-text-base-color: #0f2a5c;
 }
 
-.label {
-    -fx-text-fill: #35508a;
-}
+.label { -fx-text-fill: #35508a; }
 
 /* --- Fond général de chaque écran interne --- */
 .background-page {
-    /* Deux halos lumineux (ciel en haut à droite, indigo en bas à gauche) sur un dégradé bleu glacier */
     -fx-background-color:
         radial-gradient(focus-angle 0deg, focus-distance 0%, center 100% 0%, radius 55%,
                         rgba(41,182,246,0.28), rgba(41,182,246,0.0)),
@@ -47,21 +35,10 @@
     -fx-padding: 22;
 }
 
-.page-scroll, .page-scroll .viewport {
-    -fx-background-color: transparent;
-}
-.page-scroll {
-    -fx-padding: 0 0 0 22;
-}
-
-.page-content {
-    -fx-padding: 4 4 4 0;
-}
-
-/* Pages sans ScrollPane (revenus, dépenses, catégories, historique) : même marge que les autres */
-.page-content-flat {
-    -fx-padding: 4 4 4 22;
-}
+.page-scroll, .page-scroll .viewport { -fx-background-color: transparent; }
+.page-scroll { -fx-padding: 0 0 0 22; }
+.page-content { -fx-padding: 4 4 4 0; }
+.page-content-flat { -fx-padding: 4 4 4 22; }
 
 /* --- Cartes génériques --- */
 .card {
@@ -73,10 +50,7 @@
     -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.08), 18, 0, 0, 6);
 }
 
-.card-hint {
-    -fx-font-size: 12px;
-    -fx-text-fill: #5b7099;
-}
+.card-hint { -fx-font-size: 12px; -fx-text-fill: #5b7099; }
 
 /* =========================================================================
    Barre latérale « pilule » — bleu nuit
@@ -102,24 +76,16 @@
     -fx-cursor: hand;
 }
 
-.nav-circle:hover {
-    -fx-background-color: rgba(255,255,255,0.12);
-}
+.nav-circle:hover { -fx-background-color: rgba(255,255,255,0.12); }
 
 .nav-circle-active {
     -fx-background-color: white;
     -fx-effect: dropshadow(gaussian, rgba(0,12,50,0.35), 10, 0, 0, 3);
 }
 
-.nav-circle-active:hover {
-    -fx-background-color: white;
-}
+.nav-circle-active:hover { -fx-background-color: white; }
+.nav-circle-logout:hover { -fx-background-color: rgba(255,138,128,0.20); }
 
-.nav-circle-logout:hover {
-    -fx-background-color: rgba(255,138,128,0.20);
-}
-
-/* Infobulles (noms des sections, puisque la pilule n'affiche que des icônes) */
 .tooltip {
     -fx-background-color: #0b2a6b;
     -fx-text-fill: white;
@@ -152,7 +118,7 @@
 }
 
 /* =========================================================================
-   Cartes statistiques du tableau de bord — teinte + filet d'accent à gauche
+   Cartes statistiques du tableau de bord
    ========================================================================= */
 .stat-card {
     -fx-background-radius: 10;
@@ -162,21 +128,9 @@
     -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 14, 0, 0, 5);
 }
 
-.stat-label {
-    -fx-font-family: "Inter SemiBold";
-    -fx-font-size: 10.5px;
-    -fx-text-fill: #5b7099;
-}
+.stat-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 10.5px; -fx-text-fill: #5b7099; }
+.stat-value { -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 21px; -fx-text-fill: #0b2a6b; }
 
-.stat-value {
-    -fx-font-family: "Poppins";
-    -fx-font-weight: bold;
-    -fx-font-size: 21px;
-    -fx-text-fill: #0b2a6b;
-}
-
-/* Les noms de classes sont conservés (dashboard.fxml) ; leur teinte suit le sens :
-   teal = revenus (vert), coral = dépenses (rouge), violet = solde (bleu), sand/sky = compteurs. */
 .stat-card-teal   { -fx-background-color: #e4f6ee; -fx-border-color: #2fa876; }
 .stat-card-coral  { -fx-background-color: #fdeceb; -fx-border-color: #e5564b; }
 .stat-card-violet { -fx-background-color: #e3eeff; -fx-border-color: #1e6fe0; }
@@ -196,14 +150,8 @@
     -fx-cursor: hand;
     -fx-effect: dropshadow(gaussian, rgba(21,101,192,0.28), 10, 0, 0, 4);
 }
-
-.button-primary:hover {
-    -fx-background-color: linear-gradient(to right, #2b97f3, #1b72d4);
-}
-
-.button-primary:pressed {
-    -fx-background-color: #1259a8;
-}
+.button-primary:hover { -fx-background-color: linear-gradient(to right, #2b97f3, #1b72d4); }
+.button-primary:pressed { -fx-background-color: #1259a8; }
 
 .button-secondary {
     -fx-background-color: #e8f0fc;
@@ -214,10 +162,7 @@
     -fx-padding: 10 22;
     -fx-cursor: hand;
 }
-
-.button-secondary:hover {
-    -fx-background-color: #d8e5f9;
-}
+.button-secondary:hover { -fx-background-color: #d8e5f9; }
 
 .button-danger {
     -fx-background-color: #fde9e7;
@@ -228,10 +173,7 @@
     -fx-padding: 10 22;
     -fx-cursor: hand;
 }
-
-.button-danger:hover {
-    -fx-background-color: #fbd5d2;
-}
+.button-danger:hover { -fx-background-color: #fbd5d2; }
 
 /* =========================================================================
    Champs de formulaire (écrans internes)
@@ -245,118 +187,49 @@
     -fx-border-radius: 6;
     -fx-padding: 9;
 }
-
-.combo-box, .date-picker {
-    -fx-padding: 0;
-}
-
+.combo-box, .date-picker { -fx-padding: 0; }
 .text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
     -fx-border-color: #1e88e5;
     -fx-background-color: white;
 }
-
-/* Listes déroulantes (combos, sélecteur de date) */
 .combo-box-popup .list-view, .date-picker-popup {
     -fx-background-color: white;
     -fx-border-color: #d3e0f4;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
 }
-
-.list-cell {
-    -fx-font-family: "Inter";
-    -fx-text-fill: #0f2a5c;
-}
-
-.combo-box-popup .list-cell:filled:hover {
-    -fx-background-color: #e8f1ff;
-    -fx-text-fill: #0f2a5c;
-}
-
-.combo-box-popup .list-cell:filled:selected, .combo-box-popup .list-cell:filled:selected:hover {
-    -fx-background-color: #1565c0;
-    -fx-text-fill: white;
-}
-
-/* Valeur affichée dans la liste déroulante fermée : jamais en surbrillance */
+.list-cell { -fx-font-family: "Inter"; -fx-text-fill: #0f2a5c; }
+.combo-box-popup .list-cell:filled:hover { -fx-background-color: #e8f1ff; -fx-text-fill: #0f2a5c; }
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:hover { -fx-background-color: #1565c0; -fx-text-fill: white; }
 .combo-box .list-cell, .combo-box .list-cell:filled:selected {
-    -fx-background-color: transparent;
-    -fx-text-fill: #0f2a5c;
-    -fx-padding: 9 4 9 6;
+    -fx-background-color: transparent; -fx-text-fill: #0f2a5c; -fx-padding: 9 4 9 6;
 }
-
-.combo-box .arrow-button, .date-picker .arrow-button {
-    -fx-background-color: transparent;
-    -fx-background-radius: 0 6 6 0;
-}
-
-.combo-box .arrow, .date-picker .arrow-button .icon {
-    -fx-background-color: #5b7099;
-}
-
-/* Sélecteur de date : un seul cadre (celui du DatePicker), champ interne transparent */
+.combo-box .arrow-button, .date-picker .arrow-button { -fx-background-color: transparent; -fx-background-radius: 0 6 6 0; }
+.combo-box .arrow, .date-picker .arrow-button .icon { -fx-background-color: #5b7099; }
 .date-picker > .text-field, .date-picker > .text-field:focused {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-background-insets: 0;
     -fx-padding: 9 4 9 10;
 }
-
-.date-picker-popup .month-year-pane {
-    -fx-background-color: #0b2a6b;
-}
-
+.date-picker-popup .month-year-pane { -fx-background-color: #0b2a6b; }
 .date-picker-popup .spinner .button .left-arrow,
-.date-picker-popup .spinner .button .right-arrow {
-    -fx-background-color: white;
-}
-
-.date-picker-popup .spinner .label {
-    -fx-text-fill: white;
-}
-
-.date-picker-popup .day-cell:hover {
-    -fx-background-color: #e8f1ff;
-}
-
-.date-picker-popup .day-cell:selected {
-    -fx-background-color: #1565c0;
-    -fx-text-fill: white;
-}
+.date-picker-popup .spinner .button .right-arrow { -fx-background-color: white; }
+.date-picker-popup .spinner .label { -fx-text-fill: white; }
+.date-picker-popup .day-cell:hover { -fx-background-color: #e8f1ff; }
+.date-picker-popup .day-cell:selected { -fx-background-color: #1565c0; -fx-text-fill: white; }
 
 /* =========================================================================
-   Barres de défilement fines, dans la palette bleue
+   Barres de défilement fines
    ========================================================================= */
-.scroll-bar:vertical, .scroll-bar:horizontal {
-    -fx-background-color: transparent;
-    -fx-padding: 2;
-}
-
-.scroll-bar .track {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.scroll-bar .thumb {
-    -fx-background-color: #b9cdee;
-    -fx-background-radius: 6;
-    -fx-background-insets: 0;
-}
-
-.scroll-bar .thumb:hover {
-    -fx-background-color: #8fb0e8;
-}
-
-.scroll-bar > .increment-button, .scroll-bar > .decrement-button {
-    -fx-background-color: transparent;
-    -fx-padding: 0;
-}
-
+.scroll-bar:vertical, .scroll-bar:horizontal { -fx-background-color: transparent; -fx-padding: 2; }
+.scroll-bar .track { -fx-background-color: transparent; -fx-border-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: #b9cdee; -fx-background-radius: 6; -fx-background-insets: 0; }
+.scroll-bar .thumb:hover { -fx-background-color: #8fb0e8; }
+.scroll-bar > .increment-button, .scroll-bar > .decrement-button { -fx-background-color: transparent; -fx-padding: 0; }
 .scroll-bar > .increment-button > .increment-arrow,
-.scroll-bar > .decrement-button > .decrement-arrow {
-    -fx-padding: 0;
-    -fx-shape: " ";
-}
+.scroll-bar > .decrement-button > .decrement-arrow { -fx-padding: 0; -fx-shape: " "; }
 
 /* =========================================================================
    TableView
@@ -370,87 +243,30 @@
     -fx-padding: 4;
     -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 14, 0, 0, 5);
 }
-
-.table-view .column-header-background {
-    -fx-background-color: #eaf1fc;
-    -fx-background-radius: 8 8 0 0;
-}
-
-.table-view .column-header, .table-view .filler {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.table-view .column-header .label {
-    -fx-text-fill: #35508a;
-    -fx-font-family: "Inter SemiBold";
-    -fx-font-size: 11px;
-}
-
-.table-row-cell {
-    -fx-background-color: white;
-    -fx-border-color: transparent transparent #eef3fb transparent;
-}
-
-.table-row-cell:hover {
-    -fx-background-color: #f4f8ff;
-}
-
-.table-row-cell:selected {
-    -fx-background-color: #dbeafe;
-}
-
-.table-row-cell:selected .table-cell {
-    -fx-text-fill: #0b2a6b;
-}
-
-.table-cell {
-    -fx-text-fill: #0f2a5c;
-}
-
-/* Coloration des montants pilotée par PseudoClass (voir TableUtil.java).
-   Remplace les anciens setStyle() inline : le rendu n'est recalculé qu'au
-   changement d'état, pas à chaque updateItem/scroll. */
-.table-cell:negatif { -fx-text-fill: #d92d20; }  /* rouge : dépense / montant négatif */
-.table-cell:positif { -fx-text-fill: #12805c; }  /* vert  : revenu */
-.table-cell:neutre  { -fx-text-fill: #1565c0; }  /* bleu  : économie */
-
-/* Conserver la couleur du montant même sur une ligne sélectionnée
-   (spécificité supérieure à .table-row-cell:selected .table-cell). */
+.table-view .column-header-background { -fx-background-color: #eaf1fc; -fx-background-radius: 8 8 0 0; }
+.table-view .column-header, .table-view .filler { -fx-background-color: transparent; -fx-border-color: transparent; }
+.table-view .column-header .label { -fx-text-fill: #35508a; -fx-font-family: "Inter SemiBold"; -fx-font-size: 11px; }
+.table-row-cell { -fx-background-color: white; -fx-border-color: transparent transparent #eef3fb transparent; }
+.table-row-cell:hover { -fx-background-color: #f4f8ff; }
+.table-row-cell:selected { -fx-background-color: #dbeafe; }
+.table-row-cell:selected .table-cell { -fx-text-fill: #0b2a6b; }
+.table-cell { -fx-text-fill: #0f2a5c; }
+.table-cell:negatif { -fx-text-fill: #d92d20; }
+.table-cell:positif { -fx-text-fill: #12805c; }
+.table-cell:neutre  { -fx-text-fill: #1565c0; }
 .table-row-cell:selected .table-cell:negatif { -fx-text-fill: #d92d20; }
 .table-row-cell:selected .table-cell:positif { -fx-text-fill: #12805c; }
 .table-row-cell:selected .table-cell:neutre  { -fx-text-fill: #1565c0; }
 
 /* =========================================================================
-   Graphiques (statistiques) — palette bleue
+   Graphiques
    ========================================================================= */
-.chart-title {
-    -fx-font-family: "Poppins Medium";
-    -fx-font-size: 14px;
-    -fx-text-fill: #0b2a6b;
-}
-
-.axis {
-    -fx-tick-label-fill: #5b7099;
-    -fx-tick-label-font-size: 11px;
-}
-
-.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
-    -fx-stroke: #e6eefb;
-}
-
-.chart-plot-background {
-    -fx-background-color: #f7faff;
-}
-
-.chart-legend {
-    -fx-background-color: transparent;
-}
-
-.chart-pie-label {
-    -fx-fill: #0f2a5c;
-}
-
+.chart-title { -fx-font-family: "Poppins Medium"; -fx-font-size: 14px; -fx-text-fill: #0b2a6b; }
+.axis { -fx-tick-label-fill: #5b7099; -fx-tick-label-font-size: 11px; }
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines { -fx-stroke: #e6eefb; }
+.chart-plot-background { -fx-background-color: #f7faff; }
+.chart-legend { -fx-background-color: transparent; }
+.chart-pie-label { -fx-fill: #0f2a5c; }
 .default-color0.chart-pie { -fx-pie-color: #1e88e5; }
 .default-color1.chart-pie { -fx-pie-color: #26c6da; }
 .default-color2.chart-pie { -fx-pie-color: #5c6bc0; }
@@ -459,13 +275,10 @@
 .default-color5.chart-pie { -fx-pie-color: #ef5350; }
 .default-color6.chart-pie { -fx-pie-color: #8d6edb; }
 .default-color7.chart-pie { -fx-pie-color: #78909c; }
-
 .default-color0.chart-bar { -fx-bar-fill: #1e88e5; }
 .default-color1.chart-bar { -fx-bar-fill: #26c6da; }
-
 .default-color0.chart-series-line { -fx-stroke: #1e88e5; -fx-stroke-width: 2.5px; }
 .default-color0.chart-line-symbol { -fx-background-color: #1565c0, white; }
-
 .default-color0.chart-legend-item-symbol { -fx-background-color: #1e88e5; }
 .default-color1.chart-legend-item-symbol { -fx-background-color: #26c6da; }
 .default-color2.chart-legend-item-symbol { -fx-background-color: #5c6bc0; }
@@ -476,119 +289,82 @@
 .default-color7.chart-legend-item-symbol { -fx-background-color: #78909c; }
 
 /* =========================================================================
-   Boîtes de dialogue (AlertUtil)
+   Boîtes de dialogue
    ========================================================================= */
-.app-dialog {
-    -fx-background-color: white;
-    -fx-font-family: "Inter";
-}
-
-.app-dialog .header-panel {
-    -fx-background-color: linear-gradient(to right, #0b2a6b, #1565c0);
-    -fx-padding: 16 20;
-}
-
-.app-dialog .header-panel .label {
-    -fx-font-family: "Poppins Medium";
-    -fx-font-size: 16px;
-    -fx-text-fill: white;
-}
-
-.app-dialog .content.label {
-    -fx-text-fill: #0f2a5c;
-    -fx-font-size: 13.5px;
-    -fx-padding: 18 22 10 22;
-}
-
-.app-dialog .button-bar .container {
-    -fx-padding: 6 18 16 18;
-}
-
-.dialog-icon {
-    -fx-min-width: 40;
-    -fx-min-height: 40;
-    -fx-max-width: 40;
-    -fx-max-height: 40;
-    -fx-background-radius: 20;
-    -fx-background-color: white;
-}
-
+.app-dialog { -fx-background-color: white; -fx-font-family: "Inter"; }
+.app-dialog .header-panel { -fx-background-color: linear-gradient(to right, #0b2a6b, #1565c0); -fx-padding: 16 20; }
+.app-dialog .header-panel .label { -fx-font-family: "Poppins Medium"; -fx-font-size: 16px; -fx-text-fill: white; }
+.app-dialog .content.label { -fx-text-fill: #0f2a5c; -fx-font-size: 13.5px; -fx-padding: 18 22 10 22; }
+.app-dialog .button-bar .container { -fx-padding: 6 18 16 18; }
+.dialog-icon { -fx-min-width: 40; -fx-min-height: 40; -fx-max-width: 40; -fx-max-height: 40;
+               -fx-background-radius: 20; -fx-background-color: white; }
 .dialog-error-icon   { -fx-background-color: #fde9e7; }
 .dialog-success-icon { -fx-background-color: #e4f6ee; }
 .dialog-confirm-icon { -fx-background-color: #e3eeff; }
 
 /* =========================================================================
-   Connexion / Inscription / Mot de passe oublié
+   AUTH COMMUN — fond et panneau hero (inchangé pour register/forgot-password)
    ========================================================================= */
 .auth-container {
     -fx-background-color:
-        linear-gradient(to bottom right, #06174a 0%, #0a3a9c 55%, #0d52c9 100%),
-        radial-gradient(center 38% 42%, radius 42%, rgba(61,139,255,0.30), rgba(61,139,255,0));
+        radial-gradient(focus-angle 45deg, focus-distance 0%, center 15% 10%, radius 40%,
+                        rgba(61,139,255,0.25), rgba(61,139,255,0.0)),
+        radial-gradient(focus-angle 225deg, focus-distance 0%, center 85% 90%, radius 45%,
+                        rgba(147,51,234,0.20), rgba(147,51,234,0.0)),
+        radial-gradient(focus-angle 315deg, focus-distance 0%, center 90% 15%, radius 35%,
+                        rgba(0,200,255,0.18), rgba(0,200,255,0.0)),
+        linear-gradient(to bottom right, #050f2e 0%, #071a4a 35%, #0a2568 65%, #0d3a8e 100%);
 }
 
-/* Panneau décoratif de gauche */
-.auth-hero {
-    -fx-background-color: transparent;
-}
+/* Panneau hero gauche */
+.auth-hero { -fx-background-color: transparent; }
 
-.auth-hero-text {
-    -fx-padding: 0 70 54 64;
-}
+.auth-hero-text { -fx-padding: 0 70 54 64; }
 
 .auth-hero-title {
     -fx-font-family: "Poppins";
     -fx-font-weight: bold;
-    -fx-font-size: 31px;
+    -fx-font-size: 33px;
     -fx-text-fill: white;
     -fx-max-width: 460;
+    -fx-effect: dropshadow(gaussian, rgba(0,100,255,0.60), 20, 0.1, 0, 4);
 }
 
 .auth-hero-subtitle {
     -fx-font-family: "Inter";
-    -fx-font-size: 14px;
-    -fx-text-fill: #c7dcff;
+    -fx-font-size: 14.5px;
+    -fx-text-fill: #9dc8ff;
     -fx-max-width: 440;
 }
 
-/* Colonne de droite + panneau translucide */
+/* =========================================================================
+   PAGE DE CONNEXION — DESIGN PREMIUM
+   ========================================================================= */
+
+/* Panneau côté droit */
 .auth-side {
     -fx-background-color: transparent;
     -fx-padding: 28 40 28 0;
 }
 
-.auth-scroll, .auth-scroll > .viewport {
-    -fx-background-color: transparent;
+/* ── Carte glassmorphism ── */
+.auth-card-premium {
+    /* Fond : blanc très translucide + légère teinte bleue — simule le verre */
+    -fx-background-color: linear-gradient(
+        to bottom right,
+        rgba(255,255,255,0.13),
+        rgba(200,225,255,0.09));
+    -fx-background-radius: 20;
+    /* Bordure lumineuse (filet blanc semi-transparent) */
+    -fx-border-color: rgba(255,255,255,0.22);
+    -fx-border-radius: 20;
+    -fx-border-width: 1.5;
+    -fx-padding: 36 40;
+    /* Ombre profonde pour l'effet de profondeur */
+    -fx-effect: dropshadow(gaussian, rgba(0,8,40,0.65), 48, 0.05, 0, 16);
 }
 
-.auth-scroll {
-    -fx-padding: 0;
-}
-
-.auth-scroll-content {
-    -fx-padding: 4 0 4 0;
-}
-
-.auth-scroll .scroll-bar:vertical {
-    -fx-background-color: transparent;
-    -fx-pref-width: 8;
-}
-
-.auth-scroll .scroll-bar:vertical .track {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.auth-scroll .scroll-bar:vertical .thumb {
-    -fx-background-color: rgba(255,255,255,0.35);
-    -fx-background-radius: 4;
-}
-
-.auth-scroll .scroll-bar .increment-button, .auth-scroll .scroll-bar .decrement-button {
-    -fx-padding: 0;
-    -fx-pref-height: 0;
-    -fx-opacity: 0;
-}
-
+/* ── Ancienne carte (gardée pour register/forgot) ── */
 .auth-card {
     -fx-background-color: linear-gradient(to bottom, rgba(33,111,214,0.90), rgba(15,68,160,0.93));
     -fx-background-radius: 6;
@@ -597,45 +373,216 @@
     -fx-padding: 30 36;
     -fx-effect: dropshadow(gaussian, rgba(0,10,50,0.50), 34, 0, 0, 12);
 }
+.auth-card .label { -fx-text-fill: white; }
 
-.auth-card .label {
-    -fx-text-fill: white;
-}
-
-.auth-brand {
+/* ── Marque / brand ── */
+.auth-brand-premium {
     -fx-font-family: "Poppins";
     -fx-font-weight: bold;
-    -fx-font-size: 18px;
+    -fx-font-size: 16px;
     -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(93,170,255,0.80), 8, 0.1, 0, 0);
 }
 
-.auth-title {
+.auth-brand-sub {
+    -fx-font-family: "Inter";
+    -fx-font-size: 11px;
+    -fx-text-fill: rgba(180,210,255,0.80);
+}
+
+/* ── Ligne décorative sous le logo ── */
+.auth-divider-line {
+    -fx-background-color: linear-gradient(
+        to right,
+        rgba(255,255,255,0.0),
+        rgba(255,255,255,0.35),
+        rgba(255,255,255,0.0));
+    -fx-pref-height: 1;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+}
+
+/* ── Titre connexion ── */
+.auth-title-premium {
     -fx-font-family: "Poppins";
     -fx-font-weight: bold;
-    -fx-font-size: 25px;
+    -fx-font-size: 28px;
     -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(93,170,255,0.50), 10, 0.05, 0, 2);
 }
 
-.auth-tagline {
+.auth-tagline-premium {
     -fx-font-family: "Inter";
-    -fx-text-fill: #d3e5ff;
-    -fx-font-size: 12.5px;
+    -fx-font-size: 13px;
+    -fx-text-fill: rgba(180,210,255,0.85);
 }
 
-.auth-footer-text {
-    -fx-font-family: "Inter";
-    -fx-text-fill: #cfe3ff;
-    -fx-font-size: 12.5px;
-}
-
-.auth-section-label {
+/* ── Labels de champ ── */
+.auth-field-label {
     -fx-font-family: "Inter SemiBold";
-    -fx-font-size: 11.5px;
-    -fx-text-fill: #bfdcff;
-    -fx-padding: 4 0 0 0;
+    -fx-font-size: 10.5px;
+    -fx-text-fill: rgba(160,200,255,0.90);
+    -fx-padding: 0 0 0 2;
 }
 
-/* Ligne de saisie blanche : [ icône | champ ] */
+/* ── Conteneur input glassmorphism ── */
+.auth-input-premium {
+    -fx-background-color: rgba(255,255,255,0.10);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255,255,255,0.20);
+    -fx-border-radius: 10;
+    -fx-border-width: 1.5;
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-max-height: 48;
+    -fx-effect: dropshadow(gaussian, rgba(0,30,100,0.30), 10, 0, 0, 3);
+}
+
+/* Hover sur les inputs — lueur bleue */
+.auth-input-premium:hover {
+    -fx-background-color: rgba(255,255,255,0.14);
+    -fx-border-color: rgba(93,170,255,0.55);
+    -fx-effect: dropshadow(gaussian, rgba(93,170,255,0.40), 14, 0.05, 0, 0);
+}
+
+/* ── Zone icône à gauche du champ ── */
+.auth-input-icon-premium {
+    -fx-pref-width: 46;
+    -fx-min-width: 46;
+    -fx-max-width: 46;
+    -fx-background-color: rgba(255,255,255,0.07);
+    -fx-background-radius: 8 0 0 8;
+    -fx-border-color: transparent rgba(255,255,255,0.15) transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+/* ── TextField transparent dans le conteneur glass ── */
+.auth-textfield-premium, .auth-textfield-premium:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0 14 0 12;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(150,185,230,0.65);
+    -fx-font-family: "Inter";
+    -fx-font-size: 14px;
+    -fx-pref-height: 46;
+    -fx-effect: none;
+}
+
+/* ── Bouton SE CONNECTER ── */
+.auth-button-premium {
+    -fx-background-color: linear-gradient(to right, #1e88e5 0%, #00b4d8 50%, #0077b6 100%);
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+    -fx-font-family: "Poppins Medium";
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 14 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,150,255,0.55), 20, 0.1, 0, 5);
+}
+
+.auth-button-premium:hover {
+    -fx-background-color: linear-gradient(to right, #2b97f3 0%, #0dcaf0 50%, #0090cc 100%);
+    -fx-effect: dropshadow(gaussian, rgba(0,180,255,0.75), 28, 0.12, 0, 6);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.auth-button-premium:pressed {
+    -fx-background-color: #1259a8;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+    -fx-effect: dropshadow(gaussian, rgba(0,100,200,0.40), 10, 0, 0, 2);
+}
+
+/* ── Séparateur "ou" ── */
+.auth-separator-text {
+    -fx-font-family: "Inter";
+    -fx-font-size: 11.5px;
+    -fx-text-fill: rgba(150,185,230,0.70);
+}
+
+/* ── Texte pied de carte ── */
+.auth-footer-text-premium {
+    -fx-font-family: "Inter";
+    -fx-text-fill: rgba(180,210,255,0.80);
+    -fx-font-size: 13px;
+}
+
+/* ── Lien "Créer un compte" ── */
+.auth-link-register, .auth-link-register:visited {
+    -fx-text-fill: #5daaff;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 13px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-underline: false;
+}
+
+.auth-link-register:hover {
+    -fx-text-fill: white;
+    -fx-underline: true;
+    -fx-effect: dropshadow(gaussian, rgba(93,170,255,0.80), 8, 0.2, 0, 0);
+}
+
+/* ── Lien "Oublié ?" ── */
+.auth-link-forgot, .auth-link-forgot:visited {
+    -fx-text-fill: rgba(150,200,255,0.75);
+    -fx-font-family: "Inter";
+    -fx-font-size: 11.5px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.auth-link-forgot:hover {
+    -fx-text-fill: #7ec3ff;
+    -fx-underline: true;
+}
+
+/* ── Bandeau sécurité bas de carte ── */
+.auth-security-row {
+    -fx-background-color: rgba(0,30,100,0.35);
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(255,255,255,0.10);
+    -fx-border-radius: 8;
+    -fx-padding: 8 12;
+}
+
+.auth-security-icon {
+    -fx-pref-width: 18;
+    -fx-min-width: 18;
+    -fx-max-width: 18;
+}
+
+.auth-security-label {
+    -fx-font-family: "Inter";
+    -fx-font-size: 10.5px;
+    -fx-text-fill: rgba(150,185,230,0.75);
+}
+
+/* =========================================================================
+   AUTH COMMUN (register, forgot-password) — conservé
+   ========================================================================= */
+.auth-scroll, .auth-scroll > .viewport { -fx-background-color: transparent; }
+.auth-scroll { -fx-padding: 0; }
+.auth-scroll-content { -fx-padding: 4 0 4 0; }
+.auth-scroll .scroll-bar:vertical { -fx-background-color: transparent; -fx-pref-width: 8; }
+.auth-scroll .scroll-bar:vertical .track { -fx-background-color: transparent; -fx-border-color: transparent; }
+.auth-scroll .scroll-bar:vertical .thumb { -fx-background-color: rgba(255,255,255,0.35); -fx-background-radius: 4; }
+.auth-scroll .scroll-bar .increment-button, .auth-scroll .scroll-bar .decrement-button {
+    -fx-padding: 0; -fx-pref-height: 0; -fx-opacity: 0;
+}
+
+.auth-brand { -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: white; }
+.auth-title { -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 25px; -fx-text-fill: white; }
+.auth-tagline { -fx-font-family: "Inter"; -fx-text-fill: #d3e5ff; -fx-font-size: 12.5px; }
+.auth-footer-text { -fx-font-family: "Inter"; -fx-text-fill: #cfe3ff; -fx-font-size: 12.5px; }
+.auth-section-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 11.5px; -fx-text-fill: #bfdcff; -fx-padding: 4 0 0 0; }
+
 .auth-input {
     -fx-background-color: white;
     -fx-background-radius: 3;
@@ -647,10 +594,7 @@
     -fx-max-height: 44;
 }
 
-.auth-input-focused {
-    -fx-border-color: #7ec3ff;
-    -fx-effect: dropshadow(gaussian, rgba(126,195,255,0.65), 12, 0.1, 0, 0);
-}
+.auth-input-focused { -fx-border-color: #7ec3ff; -fx-effect: dropshadow(gaussian, rgba(126,195,255,0.65), 12, 0.1, 0, 0); }
 
 .auth-input-icon {
     -fx-pref-width: 44;
@@ -683,68 +627,30 @@
     -fx-pref-height: 42;
     -fx-effect: none;
 }
+.auth-combo .list-cell { -fx-text-fill: #0f2a5c; -fx-font-family: "Inter"; -fx-font-size: 14px; -fx-padding: 0 8 0 12; -fx-background-color: transparent; }
+.auth-combo .list-cell.auth-combo-prompt { -fx-text-fill: #9bb0d3; }
+.auth-combo .arrow-button { -fx-background-color: transparent; -fx-padding: 0 14 0 8; }
+.auth-combo .arrow { -fx-background-color: #6f8fc9; }
 
-.auth-combo .list-cell {
-    -fx-text-fill: #0f2a5c;
-    -fx-font-family: "Inter";
-    -fx-font-size: 14px;
-    -fx-padding: 0 8 0 12;
-    -fx-background-color: transparent;
-}
-
-.auth-combo .list-cell.auth-combo-prompt {
-    -fx-text-fill: #9bb0d3;
-}
-
-.auth-combo .arrow-button {
-    -fx-background-color: transparent;
-    -fx-padding: 0 14 0 8;
-}
-
-.auth-combo .arrow {
-    -fx-background-color: #6f8fc9;
-}
-
-/* Liens */
 .auth-link-light, .auth-link-light:visited {
-    -fx-text-fill: #cfe3ff;
-    -fx-font-family: "Inter";
-    -fx-font-size: 12.5px;
-    -fx-border-color: transparent;
-    -fx-padding: 0;
-    -fx-cursor: hand;
+    -fx-text-fill: #cfe3ff; -fx-font-family: "Inter"; -fx-font-size: 12.5px;
+    -fx-border-color: transparent; -fx-padding: 0; -fx-cursor: hand;
 }
-
-.auth-link-light:hover {
-    -fx-text-fill: white;
-    -fx-underline: true;
-}
+.auth-link-light:hover { -fx-text-fill: white; -fx-underline: true; }
 
 .auth-link-strong, .auth-link-strong:visited {
-    -fx-text-fill: white;
-    -fx-font-family: "Inter SemiBold";
-    -fx-font-size: 12.5px;
-    -fx-border-color: transparent;
-    -fx-padding: 0;
-    -fx-cursor: hand;
+    -fx-text-fill: white; -fx-font-family: "Inter SemiBold"; -fx-font-size: 12.5px;
+    -fx-border-color: transparent; -fx-padding: 0; -fx-cursor: hand;
 }
+.auth-link-strong:hover { -fx-text-fill: #bfe0ff; -fx-underline: true; }
 
-.auth-link-strong:hover {
-    -fx-text-fill: #bfe0ff;
-    -fx-underline: true;
-}
+.auth-card .hyperlink:focused { -fx-border-color: transparent; }
 
-.auth-card .hyperlink:focused {
-    -fx-border-color: transparent;
-}
-
-/* Séparateur fin sous les champs */
 .auth-separator .line {
     -fx-border-color: rgba(255,255,255,0.35) transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
 }
 
-/* Bouton principal : bleu ciel, à plat */
 .auth-button {
     -fx-background-color: linear-gradient(to right, #1e88e5, #00b0ff);
     -fx-background-radius: 2;
@@ -755,108 +661,55 @@
     -fx-cursor: hand;
     -fx-graphic-text-gap: 8;
 }
+.auth-button:hover { -fx-background-color: linear-gradient(to right, #3b9bf0, #33c0ff); -fx-effect: dropshadow(gaussian, rgba(0,176,255,0.45), 14, 0, 0, 3); }
+.auth-button:pressed { -fx-background-color: #1673c8; }
 
-.auth-button:hover {
-    -fx-background-color: linear-gradient(to right, #3b9bf0, #33c0ff);
-    -fx-effect: dropshadow(gaussian, rgba(0,176,255,0.45), 14, 0, 0, 3);
+.auth-message { -fx-font-family: "Inter"; -fx-font-size: 12.5px; -fx-padding: 10 12; -fx-background-radius: 3; -fx-graphic-text-gap: 9; }
+.auth-card .auth-message-error { -fx-background-color: #fff1f0; -fx-text-fill: #b42318; }
+.auth-card .auth-message-success { -fx-background-color: #e8f8ef; -fx-text-fill: #0b6b45; }
+
+/* Messages dans la carte premium */
+.auth-card-premium .auth-message-error {
+    -fx-background-color: rgba(220,30,30,0.20);
+    -fx-text-fill: #ff8080;
+    -fx-border-color: rgba(255,80,80,0.35);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
 }
 
-.auth-button:pressed {
-    -fx-background-color: #1673c8;
+.auth-card-premium .auth-message-success {
+    -fx-background-color: rgba(20,150,80,0.20);
+    -fx-text-fill: #5fffaa;
+    -fx-border-color: rgba(50,200,100,0.35);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
 }
 
-/* Bandeau de message (erreur / succès), affiché en ligne dans la carte */
-.auth-message {
-    -fx-font-family: "Inter";
-    -fx-font-size: 12.5px;
-    -fx-padding: 10 12;
-    -fx-background-radius: 3;
-    -fx-graphic-text-gap: 9;
-}
-
-.auth-card .auth-message-error {
-    -fx-background-color: #fff1f0;
-    -fx-text-fill: #b42318;
-}
-
-.auth-card .auth-message-success {
-    -fx-background-color: #e8f8ef;
-    -fx-text-fill: #0b6b45;
-}
-
-/* Mot de passe oublié : étapes + question */
 .auth-step {
-    -fx-min-width: 30;
-    -fx-min-height: 30;
-    -fx-max-width: 30;
-    -fx-max-height: 30;
-    -fx-alignment: center;
-    -fx-background-radius: 15;
-    -fx-border-color: rgba(255,255,255,0.55);
-    -fx-border-radius: 15;
-    -fx-border-width: 2;
-    -fx-font-family: "Inter SemiBold";
-    -fx-font-size: 12.5px;
+    -fx-min-width: 30; -fx-min-height: 30; -fx-max-width: 30; -fx-max-height: 30;
+    -fx-alignment: center; -fx-background-radius: 15; -fx-border-color: rgba(255,255,255,0.55);
+    -fx-border-radius: 15; -fx-border-width: 2; -fx-font-family: "Inter SemiBold"; -fx-font-size: 12.5px;
 }
-
-.auth-card .auth-step {
-    -fx-text-fill: rgba(255,255,255,0.8);
-}
-
-.auth-card .auth-step-active {
-    -fx-background-color: white;
-    -fx-border-color: white;
-    -fx-text-fill: #0b2a6b;
-}
-
-.auth-card .auth-step-done {
-    -fx-background-color: #9fd0ff;
-    -fx-border-color: #9fd0ff;
-}
-
-.auth-step-line {
-    -fx-min-height: 2;
-    -fx-pref-height: 2;
-    -fx-max-height: 2;
-    -fx-background-color: rgba(255,255,255,0.35);
-}
-
-.auth-step-hint {
-    -fx-font-family: "Inter";
-    -fx-font-size: 12.5px;
-    -fx-text-fill: #d3e5ff;
-}
-
+.auth-card .auth-step { -fx-text-fill: rgba(255,255,255,0.8); }
+.auth-card .auth-step-active { -fx-background-color: white; -fx-border-color: white; -fx-text-fill: #0b2a6b; }
+.auth-card .auth-step-done { -fx-background-color: #9fd0ff; -fx-border-color: #9fd0ff; }
+.auth-step-line { -fx-min-height: 2; -fx-pref-height: 2; -fx-max-height: 2; -fx-background-color: rgba(255,255,255,0.35); }
+.auth-step-hint { -fx-font-family: "Inter"; -fx-font-size: 12.5px; -fx-text-fill: #d3e5ff; }
 .auth-question {
-    -fx-font-family: "Poppins Medium";
-    -fx-font-size: 15px;
-    -fx-background-color: rgba(255,255,255,0.14);
-    -fx-border-color: rgba(255,255,255,0.32);
-    -fx-border-radius: 3;
-    -fx-background-radius: 3;
-    -fx-padding: 14 16;
+    -fx-font-family: "Poppins Medium"; -fx-font-size: 15px;
+    -fx-background-color: rgba(255,255,255,0.14); -fx-border-color: rgba(255,255,255,0.32);
+    -fx-border-radius: 3; -fx-background-radius: 3; -fx-padding: 14 16;
 }
-
 
 /* =========================================================================
-   Indicateur de chargement (ProgressIndicator) et overlay
+   ProgressIndicator et overlay
    ========================================================================= */
+.progress-indicator > .indicator { -fx-background-color: transparent; }
+.progress-indicator > .indicator > .progress { -fx-background-color: #1e88e5; }
+.progress-indicator .percentage { -fx-fill: transparent; -fx-font-size: 0; }
 
-/* Spinner circulaire — couleur bleue cohérente avec la palette */
-.progress-indicator > .indicator {
-    -fx-background-color: transparent;
-}
-
-.progress-indicator > .indicator > .progress {
-    -fx-background-color: #1e88e5;
-}
-
-.progress-indicator .percentage {
-    -fx-fill: transparent;
-    -fx-font-size: 0;
-}
-
-/* Overlay translucide affiché pendant les Task async */
 .overlay-chargement {
     -fx-background-color: rgba(243, 247, 253, 0.85);
     -fx-background-radius: 12;

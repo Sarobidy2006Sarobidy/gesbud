@@ -9,7 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 /**
- * Petits utilitaires partagés par les écrans d'authentification
+ * Utilitaires partagés par les écrans d'authentification
  * (connexion, inscription, mot de passe oublié).
  */
 public final class AuthUi {
@@ -18,16 +18,15 @@ public final class AuthUi {
 
     private AuthUi() {}
 
-    /** Icône des champs : bleu-gris doux, lisible sur le fond blanc des champs. */
+    /** Couleur des icônes de champ (bleu-gris, sur fond blanc). */
     public static Color couleurIconeChamp() {
         return ICONE_CHAMP;
     }
 
     /**
-     * Les champs de l'écran d'authentification sont des lignes blanches
-     * (icône + champ de saisie). JavaFX n'a pas de ":focus-within" : on
-     * recopie donc l'état de focus du champ vers sa ligne (classe
-     * {@code auth-input-focused}) pour afficher le liseré lumineux.
+     * Active l'effet focus sur les conteneurs {@code .auth-input} :
+     * JavaFX ne possède pas de ":focus-within", on recopie manuellement
+     * l'état focus du champ interne vers la ligne parente.
      */
     public static void activerFocusSurLignes(Node racine) {
         for (Node ligne : racine.lookupAll(".auth-input")) {
@@ -37,6 +36,31 @@ public final class AuthUi {
                     enfant.focusedProperty().addListener((obs, avant, apres) -> {
                         if (apres) ligne.getStyleClass().add("auth-input-focused");
                         else ligne.getStyleClass().remove("auth-input-focused");
+                    });
+                }
+            }
+        }
+    }
+
+    /**
+     * Même principe que {@link #activerFocusSurLignes} mais pour les inputs
+     * glassmorphism premium ({@code .auth-input-premium}) — lueur bleue au focus.
+     */
+    public static void activerFocusSurLignesPremium(Node racine) {
+        activerFocusSurLignes(racine);
+        for (Node ligne : racine.lookupAll(".auth-input-premium")) {
+            if (!(ligne instanceof Pane)) continue;
+            for (Node enfant : ((Pane) ligne).getChildren()) {
+                if (enfant instanceof TextInputControl || enfant instanceof ComboBox) {
+                    enfant.focusedProperty().addListener((obs, avant, apres) -> {
+                        if (apres) {
+                            ligne.setStyle(
+                                "-fx-background-color: rgba(255,255,255,0.16);" +
+                                "-fx-border-color: rgba(93,170,255,0.75);" +
+                                "-fx-effect: dropshadow(gaussian, rgba(93,170,255,0.55), 18, 0.08, 0, 0);");
+                        } else {
+                            ligne.setStyle("");
+                        }
                     });
                 }
             }
@@ -63,7 +87,7 @@ public final class AuthUi {
         });
     }
 
-    /* ----------------------- Bandeau de message en ligne ----------------------- */
+    /* ──────────────────── Bandeau de message en ligne ──────────────────── */
 
     public static void erreur(Label bandeau, String texte) {
         bandeau.setGraphic(Icons.alertCircle(16, Color.web("#b42318")));
