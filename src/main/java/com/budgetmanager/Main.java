@@ -30,6 +30,10 @@ public class Main extends Application {
     public static final int LARGEUR_AUTH = 1040;
     public static final int HAUTEUR_AUTH = 720;
 
+    /** Taille commune des écrans internes, choisis pour laisser la barre latérale respirer. */
+    public static final int LARGEUR_APP = 1220;
+    public static final int HAUTEUR_APP = 760;
+
     private static final String DOSSIER_POLICES = "fonts/";
     private static final String[] POLICES_A_CHARGER = {
             "Poppins-Regular.ttf",
@@ -155,6 +159,7 @@ public class Main extends Application {
         if (depuisCache) {
             // Vue déjà chargée : récupération instantanée — zéro fuite mémoire.
             racine = com.budgetmanager.util.ViewCache.obtenir(fxml, Main.class);
+            detacherDeSonAncienneScene(racine);
         } else {
             // Première visite : chargement avec factory d'injection.
             FXMLLoader loader = new FXMLLoader(Main.class.getResource(fxml));
@@ -202,6 +207,20 @@ public class Main extends Application {
         fondu.setFromValue(0);
         fondu.setToValue(1);
         fondu.play();
+    }
+
+    /**
+     * Une vue rendue du cache est encore déclarée racine de la Scene qui l'a portée :
+     * JavaFX refuse de la repartager (IllegalArgumentException « already set as root of
+     * another scene »), ce qui rendait les clics de navigation sans effet. On la détache
+     * de son ancienne Scene avant de la réafficher.
+     */
+    private static void detacherDeSonAncienneScene(Parent racine) {
+        if (racine == null) return;
+        Scene ancienne = racine.getScene();
+        if (ancienne != null && ancienne.getRoot() == racine) {
+            ancienne.setRoot(new javafx.scene.layout.Pane());
+        }
     }
 
     public static Stage getStagePrincipal() {

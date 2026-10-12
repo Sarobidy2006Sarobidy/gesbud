@@ -6,6 +6,7 @@ database.properties
 
 # Journaux applicatifs
 *.log
+*.log.gz
 
 # Fichiers d'IDE
 .idea/

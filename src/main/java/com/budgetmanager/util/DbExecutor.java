@@ -1,6 +1,8 @@
 package com.budgetmanager.util;
 
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,12 +45,30 @@ public final class DbExecutor {
     /**
      * Soumet une Task à l'exécuteur unique.
      * La Task sera exécutée après toutes celles déjà en attente.
+     *
+     * <p>Les handlers posés par le contrôleur juste avant l'appel
+     * (navigation, rafraîchissement des labels) sont <b>chaînés</b> et non
+     * remplacés : setOnSucceeded écrase le handler précédent, et sans ce
+     * chaînage la vue ne réagissait jamais à la fin de la tâche (bouton
+     * bloqué, app figée).</p>
      */
     public static void soumettre(Task<?> tache) {
         TACHES_ACTIVES.incrementAndGet();
-        tache.setOnSucceeded(e -> TACHES_ACTIVES.decrementAndGet());
-        tache.setOnFailed(e  -> TACHES_ACTIVES.decrementAndGet());
-        tache.setOnCancelled(e -> TACHES_ACTIVES.decrementAndGet());
+        EventHandler<WorkerStateEvent> succesExistant = tache.getOnSucceeded();
+        EventHandler<WorkerStateEvent> echecExistant  = tache.getOnFailed();
+        EventHandler<WorkerStateEvent> annulExistant  = tache.getOnCancelled();
+        tache.setOnSucceeded(e -> {
+            TACHES_ACTIVES.decrementAndGet();
+            if (succesExistant != null) succesExistant.handle(e);
+        });
+        tache.setOnFailed(e -> {
+            TACHES_ACTIVES.decrementAndGet();
+            if (echecExistant != null) echecExistant.handle(e);
+        });
+        tache.setOnCancelled(e -> {
+            TACHES_ACTIVES.decrementAndGet();
+            if (annulExistant != null) annulExistant.handle(e);
+        });
         EXECUTOR.submit(tache);
     }
 
