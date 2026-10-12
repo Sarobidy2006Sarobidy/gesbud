@@ -1,25 +1,31 @@
 package com.budgetmanager.controller;
 
 import com.budgetmanager.Main;
+import com.budgetmanager.model.User;
 import com.budgetmanager.util.AlertUtil;
+import com.budgetmanager.util.Hexagon;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 import java.io.IOException;
 
 /**
  * Contrôleur de la barre latérale (sidebar.fxml), incluse dans chaque écran
- * principal via &lt;fx:include&gt;. Centralise la navigation et le dessin
- * des icônes pour éviter de dupliquer ce code dans les 7 écrans.
+ * principal via &lt;fx:include&gt;. Centralise la navigation et le dessin des
+ * icônes pour éviter de dupliquer ce code dans les 7 écrans.
  *
- * Chaque écran appelle {@link #setActive(String)} dans son initialize()
- * pour indiquer quel élément du menu doit être mis en surbrillance.
+ * Chaque écran appelle {@link #setActive(String)} dans son initialize() pour
+ * mettre en surbrillance l'entrée du menu correspondante.
  */
 public class SidebarController {
+
+    @FXML private StackPane zoneLogo;
+    @FXML private Label labelSousTitre;
 
     @FXML private Button boutonDashboard;
     @FXML private Button boutonRevenus;
@@ -27,80 +33,69 @@ public class SidebarController {
     @FXML private Button boutonEconomies;
     @FXML private Button boutonCategories;
     @FXML private Button boutonHistorique;
-    @FXML private Button boutonStatistiques;
     @FXML private Button boutonParametres;
     @FXML private Button boutonDeconnexion;
 
-    private static final Color COULEUR_INACTIVE = Color.web("#8fb0e8");
-    /** Le cercle actif a un fond blanc (.nav-circle-active) : l'icône doit donc être foncée pour rester lisible. */
-    private static final Color COULEUR_ACTIVE = Color.web("#1565c0");
-    private static final Color COULEUR_DECONNEXION = Color.web("#ff8a80");
+    private static final Color ICONE_INACTIVE = Color.web("#5b7099");
+    /** L'entrée active a un fond bleu très clair : l'icône prend la couleur d'action. */
+    private static final Color ICONE_ACTIVE = Color.web("#1565c0");
+    private static final Color ICONE_DECONNEXION = Color.web("#c62828");
+    private static final double TAILLE_ICONE = 17;
 
     private Button[] boutonsMenu;
     private String[] clesMenu;
+    private Icons.IconFactory[] fabriques;
 
     @FXML
     public void initialize() {
-        boutonDashboard.setGraphic(Icons.dashboard(19, COULEUR_INACTIVE));
-        boutonRevenus.setGraphic(Icons.trendingUp(19, COULEUR_INACTIVE));
-        boutonDepenses.setGraphic(Icons.trendingDown(19, COULEUR_INACTIVE));
-        boutonEconomies.setGraphic(Icons.wallet(19, COULEUR_INACTIVE));
-        boutonCategories.setGraphic(Icons.tag(19, COULEUR_INACTIVE));
-        boutonHistorique.setGraphic(Icons.clock(19, COULEUR_INACTIVE));
-        boutonStatistiques.setGraphic(Icons.barChart(19, COULEUR_INACTIVE));
-        boutonParametres.setGraphic(Icons.settings(19, COULEUR_INACTIVE));
-        boutonDeconnexion.setGraphic(Icons.logOut(18, COULEUR_DECONNEXION));
+        zoneLogo.getChildren().add(Hexagon.badge(34, Icons::wallet, true));
 
-        // setTooltip (et non Tooltip.install) : l'info-bulle reste la propriété
-        // du bouton, donc découvrable via getTooltip() par le nettoyage explicite
-        // de ViewCache.vider() à la déconnexion — sinon sa fenêtre pop-up garde
-        // le contrôleur et sa vue FXML bloqués en RAM.
-        boutonDashboard.setTooltip(new Tooltip("Tableau de bord"));
-        boutonRevenus.setTooltip(new Tooltip("Revenus"));
-        boutonDepenses.setTooltip(new Tooltip("Dépenses"));
-        boutonEconomies.setTooltip(new Tooltip("Économies"));
-        boutonCategories.setTooltip(new Tooltip("Catégories"));
-        boutonHistorique.setTooltip(new Tooltip("Historique"));
-        boutonStatistiques.setTooltip(new Tooltip("Statistiques"));
-        boutonParametres.setTooltip(new Tooltip("Paramètres"));
-        boutonDeconnexion.setTooltip(new Tooltip("Déconnexion"));
+        User utilisateur = SessionManager.getUtilisateurConnecte();
+        labelSousTitre.setText(utilisateur == null
+                ? "Gestion personnelle" : "Devise : " + utilisateur.getDevise());
 
         boutonsMenu = new Button[]{ boutonDashboard, boutonRevenus, boutonDepenses,
-                boutonEconomies, boutonCategories, boutonHistorique, boutonStatistiques, boutonParametres };
+                boutonEconomies, boutonCategories, boutonHistorique, boutonParametres };
         clesMenu = new String[]{ "dashboard", "revenus", "depenses",
-                "economies", "categories", "historique", "statistiques", "parametres" };
+                "economies", "categories", "historique", "parametres" };
+        fabriques = new Icons.IconFactory[]{
+                Icons::dashboard, Icons::trendingUp, Icons::trendingDown,
+                Icons::wallet, Icons::tag, Icons::clock, Icons::settings };
+
+        boutonDashboard.setGraphic(Icons.dashboard(TAILLE_ICONE, ICONE_INACTIVE));
+        boutonRevenus.setGraphic(Icons.trendingUp(TAILLE_ICONE, ICONE_INACTIVE));
+        boutonDepenses.setGraphic(Icons.trendingDown(TAILLE_ICONE, ICONE_INACTIVE));
+        boutonEconomies.setGraphic(Icons.wallet(TAILLE_ICONE, ICONE_INACTIVE));
+        boutonCategories.setGraphic(Icons.tag(TAILLE_ICONE, ICONE_INACTIVE));
+        boutonHistorique.setGraphic(Icons.clock(TAILLE_ICONE, ICONE_INACTIVE));
+        boutonParametres.setGraphic(Icons.settings(TAILLE_ICONE, ICONE_INACTIVE));
+        boutonDeconnexion.setGraphic(Icons.logOut(TAILLE_ICONE, ICONE_DECONNEXION));
     }
 
     /**
-     * Met en surbrillance l'élément de menu correspondant à l'écran affiché
-     * et redessine son icône en blanc (les autres restent gris doux).
+     * Met en surbrillance l'élément de menu correspondant à l'écran affiché.
      * @param cle une des valeurs : "dashboard", "revenus", "depenses",
-     *            "economies", "categories", "historique", "statistiques", "parametres".
+     *            "economies", "categories", "historique", "parametres".
      */
     public void setActive(String cle) {
-        Icons.IconFactory[] fabriques = {
-                Icons::dashboard, Icons::trendingUp, Icons::trendingDown,
-                Icons::wallet, Icons::tag, Icons::clock, Icons::barChart, Icons::settings
-        };
-
         for (int i = 0; i < boutonsMenu.length; i++) {
+            Button bouton = boutonsMenu[i];
             boolean actif = clesMenu[i].equals(cle);
-            boutonsMenu[i].getStyleClass().remove("nav-circle-active");
-            boutonsMenu[i].setGraphic(fabriques[i].create(19, actif ? COULEUR_ACTIVE : COULEUR_INACTIVE));
+            bouton.getStyleClass().remove("nav-item-active");
+            bouton.setGraphic(fabriques[i].create(TAILLE_ICONE, actif ? ICONE_ACTIVE : ICONE_INACTIVE));
             if (actif) {
-                boutonsMenu[i].getStyleClass().add("nav-circle-active");
+                bouton.getStyleClass().add("nav-item-active");
             }
         }
     }
 
-    @FXML public void allerVersDashboard()    { naviguer("view/dashboard.fxml"); }
-    @FXML public void allerVersRevenus()      { naviguer("view/income.fxml"); }
-    @FXML public void allerVersDepenses()     { naviguer("view/expense.fxml"); }
-    @FXML public void allerVersEconomies()    { naviguer("view/savings.fxml"); }
-    @FXML public void allerVersCategories()   { naviguer("view/category.fxml"); }
-    @FXML public void allerVersHistorique()   { naviguer("view/history.fxml"); }
-    @FXML public void allerVersStatistiques() { naviguer("view/statistics.fxml"); }
-    @FXML public void allerVersParametres()   { naviguer("view/settings.fxml"); }
+    @FXML public void allerVersDashboard()  { naviguer("view/dashboard.fxml"); }
+    @FXML public void allerVersRevenus()    { naviguer("view/income.fxml"); }
+    @FXML public void allerVersDepenses()   { naviguer("view/expense.fxml"); }
+    @FXML public void allerVersEconomies()  { naviguer("view/savings.fxml"); }
+    @FXML public void allerVersCategories() { naviguer("view/category.fxml"); }
+    @FXML public void allerVersHistorique() { naviguer("view/history.fxml"); }
+    @FXML public void allerVersParametres() { naviguer("view/settings.fxml"); }
 
     @FXML
     public void seDeconnecter() {
@@ -112,7 +107,7 @@ public class SidebarController {
 
     private void naviguer(String fxml) {
         try {
-            Main.changerScene(fxml, 1140, 740);
+            Main.changerScene(fxml, Main.LARGEUR_APP, Main.HAUTEUR_APP);
         } catch (IOException e) {
             AlertUtil.afficherErreur("Erreur", "Impossible de charger la page demandée.");
         }

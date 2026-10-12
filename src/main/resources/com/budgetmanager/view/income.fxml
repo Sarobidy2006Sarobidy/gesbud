@@ -11,6 +11,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -25,54 +26,126 @@
     <center>
         <StackPane>
             <ScrollPane fitToWidth="true" styleClass="page-scroll">
-            <VBox spacing="16" styleClass="page-content">
-                <Label text="Gestion des revenus" styleClass="page-title"/>
+            <VBox spacing="18" styleClass="page-content">
 
-                <VBox styleClass="card" spacing="12">
-                    <Label text="Ajouter / Modifier un revenu" styleClass="card-title"/>
+                <!-- ===== En-tête : titre + total à l'écran ===== -->
+                <HBox alignment="CENTER_LEFT" spacing="14">
+                    <VBox spacing="3" HBox.hgrow="ALWAYS">
+                        <Label text="Gestion des revenus" styleClass="page-title"/>
+                        <Label text="Salaires, missions et rentrées récurrentes"
+                               wrapText="true" maxWidth="560" styleClass="page-subtitle"/>
+                    </VBox>
+                    <VBox spacing="1" alignment="CENTER_RIGHT" styleClass="chip-droite">
+                        <Label text="TOTAL AFFICHÉ" styleClass="chip-label"/>
+                        <Label fx:id="labelTotalAffiche" text="0" styleClass="chip-value"/>
+                    </VBox>
+                </HBox>
+
+                <!-- ===== Formulaire ===== -->
+                <VBox styleClass="form-card" spacing="14">
+                    <VBox spacing="2">
+                        <Label text="Ajouter / Modifier un revenu" styleClass="form-card-title"/>
+                        <Label text="Sélectionnez une ligne du tableau pour la modifier."
+                               styleClass="form-card-sub"/>
+                    </VBox>
+
                     <HBox spacing="12">
-                        <TextField fx:id="champMontant" promptText="Montant" HBox.hgrow="ALWAYS"/>
-                        <ComboBox fx:id="comboCategorie" promptText="Catégorie" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                        <DatePicker fx:id="champDate" promptText="Date (début)" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Montant" styleClass="form-label"/>
+                            <TextField fx:id="champMontant" promptText="0"/>
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Catégorie" styleClass="form-label"/>
+                            <ComboBox fx:id="comboCategorie" promptText="Choisir" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Date" styleClass="form-label"/>
+                            <DatePicker fx:id="champDate" maxWidth="Infinity"/>
+                        </VBox>
                     </HBox>
-                    <TextField fx:id="champDescription" promptText="Description"/>
+
+                    <VBox spacing="5">
+                        <Label text="Description" styleClass="form-label"/>
+                        <TextField fx:id="champDescription" promptText="Libellé de l'opération"/>
+                    </VBox>
+
                     <HBox spacing="12">
-                        <ComboBox fx:id="comboFrequence" promptText="Fréquence" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                        <DatePicker fx:id="champDateFin" promptText="Jusqu'au (facultatif)" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Fréquence" styleClass="form-label"/>
+                            <ComboBox fx:id="comboFrequence" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Jusqu'au (facultatif)" styleClass="form-label"/>
+                            <DatePicker fx:id="champDateFin" maxWidth="Infinity"/>
+                        </VBox>
                     </HBox>
+
                     <Label fx:id="labelAideFrequence" styleClass="page-subtitle" wrapText="true"/>
-                    <HBox spacing="10" alignment="CENTER_LEFT">
+
+                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="form-actions">
                         <Button fx:id="boutonAjouter" text="Ajouter" styleClass="button-primary" onAction="#ajouterRevenu" contentDisplay="LEFT"/>
                         <Button fx:id="boutonModifier" text="Modifier" styleClass="button-secondary" onAction="#modifierRevenu" contentDisplay="LEFT"/>
                         <Button fx:id="boutonSupprimer" text="Supprimer" styleClass="button-danger" onAction="#supprimerRevenu" contentDisplay="LEFT"/>
-                        <ProgressIndicator fx:id="indicateurChargement" prefWidth="24" prefHeight="24" visible="false"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <ProgressIndicator fx:id="indicateurChargement" prefWidth="22" prefHeight="22" visible="false"/>
                     </HBox>
                 </VBox>
 
-                <VBox styleClass="card" spacing="12">
-                    <Label text="Rechercher et filtrer" styleClass="card-title"/>
+                <!-- ===== Filtres ===== -->
+                <VBox styleClass="form-card" spacing="14">
+                    <VBox spacing="2">
+                        <Label text="Rechercher et filtrer" styleClass="form-card-title"/>
+                        <Label text="Le filtrage se fait sur les opérations déjà chargées."
+                               styleClass="form-card-sub"/>
+                    </VBox>
                     <HBox spacing="12">
-                        <TextField fx:id="champRecherche" promptText="Rechercher une description" HBox.hgrow="ALWAYS"/>
-                        <ComboBox fx:id="comboFiltreCategorie" promptText="Catégorie" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Description" styleClass="form-label"/>
+                            <TextField fx:id="champRecherche" promptText="Rechercher une description"/>
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Catégorie" styleClass="form-label"/>
+                            <ComboBox fx:id="comboFiltreCategorie" promptText="Toutes" maxWidth="Infinity"/>
+                        </VBox>
                     </HBox>
-                    <HBox spacing="12">
-                        <DatePicker fx:id="champFiltreDateDebut" promptText="Du" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        <DatePicker fx:id="champFiltreDateFin" promptText="Au" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="boutonFiltrer" minWidth="-Infinity" text="Filtrer" styleClass="button-primary" onAction="#rechercherEtFiltrer" contentDisplay="LEFT"/>
-                        <Button fx:id="boutonReinitialiser" minWidth="-Infinity" text="Réinitialiser" styleClass="button-secondary" onAction="#reinitialiserFiltres" contentDisplay="LEFT"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Du" styleClass="form-label"/>
+                            <DatePicker fx:id="champFiltreDateDebut" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Au" styleClass="form-label"/>
+                            <DatePicker fx:id="champFiltreDateFin" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="5">
+                            <Label text=" " styleClass="form-label"/>
+                            <HBox spacing="10">
+                                <Button fx:id="boutonFiltrer" minWidth="-Infinity" text="Filtrer" styleClass="button-primary" onAction="#rechercherEtFiltrer" contentDisplay="LEFT"/>
+                                <Button fx:id="boutonReinitialiser" minWidth="-Infinity" text="Réinitialiser" styleClass="button-secondary" onAction="#reinitialiserFiltres" contentDisplay="LEFT"/>
+                            </HBox>
+                        </VBox>
                     </HBox>
                 </VBox>
 
-                <TableView fx:id="tableRevenus" VBox.vgrow="ALWAYS">
-                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-                    <columns>
-                        <TableColumn fx:id="colonneCategorie" text="Catégorie" prefWidth="150"/>
-                        <TableColumn fx:id="colonneMontant" text="Montant" prefWidth="120"/>
-                        <TableColumn fx:id="colonneDescription" text="Description" prefWidth="250"/>
-                        <TableColumn fx:id="colonneDate" text="Date" prefWidth="120"/>
-                        <TableColumn fx:id="colonneFrequence" text="Fréquence" prefWidth="170"/>
-                    </columns>
-                </TableView>
+                <!-- ===== Tableau ===== -->
+                <VBox styleClass="table-card" spacing="10" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="Vos revenus" styleClass="table-card-title"/>
+                        <Label fx:id="pastilleNombre" text="0" styleClass="pill-count"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Tri en cliquant sur un en-tête de colonne" styleClass="form-card-sub"/>
+                    </HBox>
+                    <TableView fx:id="tableRevenus" styleClass="table-embed" VBox.vgrow="ALWAYS" minHeight="220">
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                        <columns>
+                            <TableColumn fx:id="colonneCategorie" text="Catégorie" prefWidth="150"/>
+                            <TableColumn fx:id="colonneMontant" text="Montant" prefWidth="130" minWidth="130"/>
+                            <TableColumn fx:id="colonneDescription" text="Description" prefWidth="250"/>
+                            <TableColumn fx:id="colonneDate" text="Date" prefWidth="120" minWidth="95"/>
+                            <TableColumn fx:id="colonneFrequence" text="Fréquence" prefWidth="170" minWidth="110"/>
+                        </columns>
+                    </TableView>
+                </VBox>
             </VBox>
             </ScrollPane>
 

@@ -8,6 +8,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane styleClass="background-page" xmlns="http://javafx.com/javafx"
@@ -19,38 +20,82 @@
     </left>
 
     <center>
-        <VBox spacing="16" styleClass="page-content, page-content-flat">
-            <Label text="Gestion des catégories" styleClass="page-title"/>
+        <VBox spacing="18" styleClass="page-content, page-content-flat">
 
-            <VBox styleClass="card" spacing="12">
-                <Label text="Ajouter / Modifier une catégorie" styleClass="card-title"/>
+            <!-- ===== En-tête ===== -->
+            <HBox alignment="CENTER_LEFT" spacing="14">
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label text="Gestion des catégories" styleClass="page-title"/>
+                    <Label text="Elles classent vos revenus et vos dépenses"
+                           wrapText="true" maxWidth="560" styleClass="page-subtitle"/>
+                </VBox>
+                <VBox spacing="1" alignment="CENTER_RIGHT" styleClass="chip-droite">
+                    <Label text="CATÉGORIES" styleClass="chip-label"/>
+                    <Label fx:id="pastilleNombre" text="0" styleClass="chip-value"/>
+                </VBox>
+            </HBox>
+
+            <!-- ===== Formulaire ===== -->
+            <VBox styleClass="form-card" spacing="14">
+                <VBox spacing="2">
+                    <Label text="Ajouter / Modifier une catégorie" styleClass="form-card-title"/>
+                    <Label text="Une catégorie utilisée par une opération ne peut plus être supprimée."
+                           styleClass="form-card-sub"/>
+                </VBox>
                 <HBox spacing="12">
-                    <TextField fx:id="champNom" promptText="Nom de la catégorie" HBox.hgrow="ALWAYS"/>
-                    <ComboBox fx:id="comboType" promptText="Type" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Nom" styleClass="form-label"/>
+                        <TextField fx:id="champNom" promptText="ex. : Salaire, Loyer, Transport"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Type" styleClass="form-label"/>
+                        <ComboBox fx:id="comboType" promptText="Choisir" maxWidth="Infinity"/>
+                    </VBox>
                 </HBox>
-                <HBox spacing="10">
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="form-actions">
                     <Button fx:id="boutonAjouter" text="Ajouter" styleClass="button-primary" onAction="#ajouterCategorie" contentDisplay="LEFT"/>
                     <Button fx:id="boutonModifier" text="Modifier" styleClass="button-secondary" onAction="#modifierCategorie" contentDisplay="LEFT"/>
                     <Button fx:id="boutonSupprimer" text="Supprimer" styleClass="button-danger" onAction="#supprimerCategorie" contentDisplay="LEFT"/>
                 </HBox>
             </VBox>
 
-            <VBox styleClass="card" spacing="12">
-                <Label text="Rechercher une catégorie" styleClass="card-title"/>
-                <TextField fx:id="champRecherche" promptText="Nom de la catégorie..." HBox.hgrow="ALWAYS"/>
-                <HBox spacing="10">
-                    <Button fx:id="boutonFiltrer" text="Filtrer" styleClass="button-primary" onAction="#rechercherEtFiltrer" contentDisplay="LEFT"/>
-                    <Button fx:id="boutonReinitialiser" text="Réinitialiser" styleClass="button-secondary" onAction="#reinitialiserFiltres" contentDisplay="LEFT"/>
+            <!-- ===== Filtre ===== -->
+            <VBox styleClass="form-card" spacing="14">
+                <VBox spacing="2">
+                    <Label text="Rechercher une catégorie" styleClass="form-card-title"/>
+                    <Label text="Le filtrage se fait sur les catégories déjà chargées."
+                           styleClass="form-card-sub"/>
+                </VBox>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Nom" styleClass="form-label"/>
+                        <TextField fx:id="champRecherche" promptText="Nom de la catégorie…"/>
+                    </VBox>
+                    <VBox spacing="5">
+                        <Label text=" " styleClass="form-label"/>
+                        <HBox spacing="10">
+                            <Button fx:id="boutonFiltrer" minWidth="-Infinity" text="Filtrer" styleClass="button-primary" onAction="#rechercherEtFiltrer" contentDisplay="LEFT"/>
+                            <Button fx:id="boutonReinitialiser" minWidth="-Infinity" text="Réinitialiser" styleClass="button-secondary" onAction="#reinitialiserFiltres" contentDisplay="LEFT"/>
+                        </HBox>
+                    </VBox>
                 </HBox>
             </VBox>
 
-            <TableView fx:id="tableCategories" VBox.vgrow="ALWAYS">
-                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-                <columns>
-                    <TableColumn fx:id="colonneNom" text="Nom" prefWidth="250"/>
-                    <TableColumn fx:id="colonneType" text="Type" prefWidth="150"/>
-                </columns>
-            </TableView>
+            <!-- ===== Tableau ===== -->
+            <VBox styleClass="table-card" spacing="10" VBox.vgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Vos catégories" styleClass="table-card-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Tri en cliquant sur un en-tête de colonne" styleClass="form-card-sub"/>
+                </HBox>
+                <TableView fx:id="tableCategories" styleClass="table-embed" VBox.vgrow="ALWAYS" minHeight="200">
+                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="colonneNom" text="Nom" prefWidth="250"/>
+                        <TableColumn fx:id="colonneType" text="Type" prefWidth="150"/>
+                    </columns>
+                </TableView>
+            </VBox>
         </VBox>
     </center>
 </BorderPane>

@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane styleClass="background-page" xmlns="http://javafx.com/javafx"
@@ -17,63 +26,173 @@
 
     <center>
         <ScrollPane fitToWidth="true" styleClass="page-scroll">
-            <VBox spacing="22" styleClass="page-content">
+            <VBox spacing="20" styleClass="page-content">
 
-                <VBox spacing="2">
-                    <Label fx:id="labelBienvenue" text="Bienvenue" styleClass="page-title"/>
-                    <Label fx:id="labelDevise" text="Devise" styleClass="page-subtitle"/>
-                    <Label text="Solde disponible = revenus − dépenses − économies" styleClass="page-subtitle"/>
-                    <Label fx:id="labelAlerteSolde" visible="false" managed="false" wrapText="true"
-                           style="-fx-text-fill: #c62828; -fx-font-weight: bold;"/>
+                <!-- ===== En-tête : titre + période analysée ===== -->
+                <HBox alignment="CENTER_LEFT" spacing="16">
+                    <VBox spacing="3" HBox.hgrow="ALWAYS">
+                        <Label text="Tableau de bord" styleClass="page-title"/>
+                        <Label text="Solde disponible = revenus − dépenses − économies"
+                               wrapText="true" maxWidth="520" styleClass="page-subtitle"/>
+                    </VBox>
+                    <VBox spacing="4" alignment="TOP_RIGHT">
+                        <Label text="Mois analysé" styleClass="field-caption"/>
+                        <ComboBox fx:id="comboPeriode" styleClass="period-select" prefWidth="200"/>
+                    </VBox>
+                </HBox>
+
+                <!-- ===== Bandeau solde ===== -->
+                <VBox styleClass="hero-card">
+                    <!-- Sans prefColumns, la largeur minimale du TilePane vaut une tuile :
+                         il peut donc se replier au lieu de faire déborder la page. -->
+                    <TilePane fx:id="bandeauHero" hgap="26" vgap="14" tileAlignment="TOP_LEFT">
+                        <VBox spacing="4">
+                            <Label text="SOLDE DISPONIBLE" styleClass="hero-label"/>
+                            <Label fx:id="labelSolde" text="0" styleClass="hero-value"/>
+                            <Label fx:id="labelAlerteSolde" text="" visible="false" managed="false"
+                                   wrapText="true" styleClass="hero-alerte"/>
+                            <Label fx:id="labelBienvenue" text="Bienvenue" styleClass="hero-detail"/>
+                        </VBox>
+
+                        <VBox spacing="7">
+                            <Label text="DEPUIS L'ORIGINE" styleClass="hero-section"/>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Region styleClass="pastille, pastille-teal"/>
+                                <Label text="Revenus" styleClass="hero-line"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelTotalRevenus" text="0" styleClass="hero-line-value"/>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Region styleClass="pastille, pastille-coral"/>
+                                <Label text="Dépenses" styleClass="hero-line"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelTotalDepenses" text="0" styleClass="hero-line-value"/>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Region styleClass="pastille, pastille-sky"/>
+                                <Label text="Économies" styleClass="hero-line"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelTotalEconomies" text="0" styleClass="hero-line-value"/>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Region styleClass="pastille, pastille-violet"/>
+                                <Label text="Taux d'épargne" styleClass="hero-line"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelTauxEpargne" text="0 %" styleClass="hero-line-value"/>
+                            </HBox>
+                        </VBox>
+
+                        <VBox spacing="7">
+                            <Label text="NOMBRE D'OPÉRATIONS" styleClass="hero-section"/>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="Revenus" styleClass="hero-line"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelNombreRevenus" text="0" styleClass="compteur"/>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="Dépenses" styleClass="hero-line"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelNombreDepenses" text="0" styleClass="compteur"/>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="Économies" styleClass="hero-line"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelNombreEconomies" text="0" styleClass="compteur"/>
+                            </HBox>
+                        </VBox>
+                    </TilePane>
                 </VBox>
 
+                <!-- ===== Indicateurs du mois sélectionné ===== -->
                 <GridPane fx:id="grilleCartes" hgap="16" vgap="16">
                     <columnConstraints>
-                        <ColumnConstraints percentWidth="20"/>
-                        <ColumnConstraints percentWidth="20"/>
-                        <ColumnConstraints percentWidth="20"/>
-                        <ColumnConstraints percentWidth="20"/>
-                        <ColumnConstraints percentWidth="20"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
                     </columnConstraints>
 
-                    <VBox styleClass="stat-card, stat-card-teal" spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                        <Label text="TOTAL REVENUS" styleClass="stat-label"/>
-                        <Label fx:id="labelTotalRevenus" text="0" styleClass="stat-value"/>
+                    <VBox styleClass="kpi-card, kpi-revenus" spacing="6"
+                          GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="Revenus" styleClass="kpi-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="badgeRevenus" text="−" styleClass="tendance"/>
+                        </HBox>
+                        <Label fx:id="labelRevenusMois" text="0" styleClass="kpi-value"/>
+                        <Label fx:id="detailRevenusMois" text="" styleClass="kpi-detail"/>
                     </VBox>
 
-                    <VBox styleClass="stat-card, stat-card-coral" spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <Label text="TOTAL DEPENSES" styleClass="stat-label"/>
-                        <Label fx:id="labelTotalDepenses" text="0" styleClass="stat-value"/>
+                    <VBox styleClass="kpi-card, kpi-depenses" spacing="6"
+                          GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="Dépenses" styleClass="kpi-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="badgeDepenses" text="−" styleClass="tendance"/>
+                        </HBox>
+                        <Label fx:id="labelDepensesMois" text="0" styleClass="kpi-value"/>
+                        <Label fx:id="detailDepensesMois" text="" styleClass="kpi-detail"/>
                     </VBox>
 
-                    <VBox styleClass="stat-card, stat-card-violet" spacing="8" GridPane.columnIndex="2" GridPane.rowIndex="0">
-                        <Label text="SOLDE DISPONIBLE" styleClass="stat-label"/>
-                        <Label fx:id="labelSolde" text="0" styleClass="stat-value"/>
+                    <VBox styleClass="kpi-card, kpi-economies" spacing="6"
+                          GridPane.columnIndex="2" GridPane.rowIndex="0">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="Économies" styleClass="kpi-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="badgeEconomies" text="−" styleClass="tendance"/>
+                        </HBox>
+                        <Label fx:id="labelEconomiesMois" text="0" styleClass="kpi-value"/>
+                        <Label fx:id="detailEconomiesMois" text="" styleClass="kpi-detail"/>
                     </VBox>
 
-                    <VBox styleClass="stat-card, stat-card-sand" spacing="8" GridPane.columnIndex="3" GridPane.rowIndex="0">
-                        <Label text="ÉCONOMIES" styleClass="stat-label"/>
-                        <Label fx:id="labelTotalEconomies" text="0" styleClass="stat-value"/>
+                    <VBox styleClass="kpi-card, kpi-solde" spacing="6"
+                          GridPane.columnIndex="3" GridPane.rowIndex="0">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="Solde du mois" styleClass="kpi-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="badgeSolde" text="−" styleClass="tendance"/>
+                        </HBox>
+                        <Label fx:id="labelSoldeMois" text="0" styleClass="kpi-value"/>
+                        <Label fx:id="detailSoldeMois" text="" styleClass="kpi-detail"/>
+                    </VBox>
+                </GridPane>
+
+                <!-- ===== Graphiques de l'année ===== -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label fx:id="labelAnnee" text="Analyse de l'année" styleClass="section-title"/>
+                </HBox>
+
+                <GridPane fx:id="grilleGraphiques" hgap="16" vgap="16">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="50"/>
+                    </columnConstraints>
+
+                    <VBox styleClass="chart-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <PieChart fx:id="pieRevenus" legendVisible="true" prefHeight="280"/>
+                    </VBox>
+                    <VBox styleClass="chart-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <PieChart fx:id="pieDepenses" legendVisible="true" prefHeight="280"/>
                     </VBox>
 
-                    <VBox styleClass="stat-card, stat-card-sky" spacing="8" GridPane.columnIndex="4" GridPane.rowIndex="0">
-                        <Label text="TAUX D'ÉPARGNE" styleClass="stat-label"/>
-                        <Label fx:id="labelTauxEpargne" text="0 %" styleClass="stat-value"/>
+                    <VBox styleClass="chart-card" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <BarChart fx:id="barRevenusMensuels" styleClass="bars-revenus" legendVisible="false" prefHeight="280">
+                            <xAxis><CategoryAxis/></xAxis>
+                            <yAxis><NumberAxis/></yAxis>
+                        </BarChart>
+                    </VBox>
+                    <VBox styleClass="chart-card" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <BarChart fx:id="barDepensesMensuelles" styleClass="bars-depenses" legendVisible="false" prefHeight="280">
+                            <xAxis><CategoryAxis/></xAxis>
+                            <yAxis><NumberAxis/></yAxis>
+                        </BarChart>
                     </VBox>
 
-                    <VBox styleClass="stat-card, stat-card-teal" spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                        <Label text="NB. REVENUS" styleClass="stat-label"/>
-                        <Label fx:id="labelNombreRevenus" text="0" styleClass="stat-value"/>
-                    </VBox>
-
-                    <VBox styleClass="stat-card, stat-card-coral" spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                        <Label text="NB. DEPENSES" styleClass="stat-label"/>
-                        <Label fx:id="labelNombreDepenses" text="0" styleClass="stat-value"/>
-                    </VBox>
-
-                    <VBox styleClass="stat-card, stat-card-violet" spacing="8" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                        <Label text="NB. ÉCONOMIES" styleClass="stat-label"/>
-                        <Label fx:id="labelNombreEconomies" text="0" styleClass="stat-value"/>
+                    <VBox styleClass="chart-card" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                        <LineChart fx:id="lineSolde" styleClass="courbe-solde" prefHeight="320">
+                            <xAxis><CategoryAxis/></xAxis>
+                            <yAxis><NumberAxis/></yAxis>
+                        </LineChart>
                     </VBox>
                 </GridPane>
 

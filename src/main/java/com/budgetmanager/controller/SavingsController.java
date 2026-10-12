@@ -46,6 +46,8 @@ public class SavingsController implements RaccourcisClavier {
     @FXML private Label labelTotal;
     @FXML private Label labelMois;
     @FXML private Label labelNombre;
+    @FXML private Label pastilleNombre;
+    @FXML private javafx.scene.layout.GridPane grilleCartes;
     @FXML private Label labelAlerteSolde;
     @FXML private ComboBox<Period> comboPeriode;
     @FXML private LineChart<String, Number> courbeEconomies;
@@ -80,6 +82,10 @@ public class SavingsController implements RaccourcisClavier {
     public void initialize() {
         sidebarController.setActive("economies");
 
+        // Deux cartes côte à côte dès qu'elles gardent ~280 px chacune.
+        com.budgetmanager.util.ResponsiveGrid.appliquer(grilleCartes,
+                largeur -> largeur >= 560 ? 2 : 1);
+
         boutonAjouter.setGraphic(Icons.plusCircle(15, Color.WHITE));
         boutonModifier.setGraphic(Icons.edit(15, Color.web("#374151")));
         boutonSupprimer.setGraphic(Icons.trash(15, Color.web("#b91c1c")));
@@ -96,6 +102,10 @@ public class SavingsController implements RaccourcisClavier {
         champMontant.setTextFormatter(com.budgetmanager.util.NumberFieldFormatter.creer());
         tableEconomies.setItems(donnees);
 
+        // La pastille de la carte-tableau suit les lignes réellement visibles.
+        pastilleNombre.textProperty().bind(
+                javafx.beans.binding.Bindings.size(tableEconomies.getItems()).asString());
+
         comboFrequence.setItems(FXCollections.observableArrayList(Frequency.values()));
         comboFrequence.setValue(Frequency.PONCTUEL);
         comboFrequence.valueProperty().addListener((obs, ancien, nouveau) -> mettreAJourFormulaireFrequence());
@@ -107,6 +117,8 @@ public class SavingsController implements RaccourcisClavier {
 
         courbeEconomies.setLegendVisible(false);
         courbeEconomies.setAnimated(false);
+        ((javafx.scene.chart.NumberAxis) courbeEconomies.getYAxis())
+                .setTickLabelFormatter(com.budgetmanager.util.CurrencyUtil.compact());
 
         tableEconomies.getSelectionModel().selectedItemProperty().addListener((obs, ancien, nouveau) -> {
             economieSelectionnee = nouveau;

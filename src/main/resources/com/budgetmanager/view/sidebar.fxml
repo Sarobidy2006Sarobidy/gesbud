@@ -1,32 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox styleClass="sidebar-pill" alignment="TOP_CENTER" spacing="10"
-      xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+<VBox styleClass="sidebar" spacing="3" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.budgetmanager.controller.SidebarController">
 
-    <Button fx:id="boutonDashboard" styleClass="nav-circle" onAction="#allerVersDashboard"
-            contentDisplay="GRAPHIC_ONLY"/>
-    <Button fx:id="boutonRevenus" styleClass="nav-circle" onAction="#allerVersRevenus"
-            contentDisplay="GRAPHIC_ONLY"/>
-    <Button fx:id="boutonDepenses" styleClass="nav-circle" onAction="#allerVersDepenses"
-            contentDisplay="GRAPHIC_ONLY"/>
-    <Button fx:id="boutonEconomies" styleClass="nav-circle" onAction="#allerVersEconomies"
-            contentDisplay="GRAPHIC_ONLY"/>
-    <Button fx:id="boutonCategories" styleClass="nav-circle" onAction="#allerVersCategories"
-            contentDisplay="GRAPHIC_ONLY"/>
-    <Button fx:id="boutonHistorique" styleClass="nav-circle" onAction="#allerVersHistorique"
-            contentDisplay="GRAPHIC_ONLY"/>
-    <Button fx:id="boutonStatistiques" styleClass="nav-circle" onAction="#allerVersStatistiques"
-            contentDisplay="GRAPHIC_ONLY"/>
-    <Button fx:id="boutonParametres" styleClass="nav-circle" onAction="#allerVersParametres"
-            contentDisplay="GRAPHIC_ONLY"/>
+    <HBox styleClass="sidebar-brand" alignment="CENTER_LEFT" spacing="10">
+        <StackPane fx:id="zoneLogo" styleClass="sidebar-brand-logo"/>
+        <VBox spacing="1">
+            <Label text="Mon budget" styleClass="sidebar-brand-name"/>
+            <Label fx:id="labelSousTitre" text="Gestion personnelle" styleClass="sidebar-brand-sub"/>
+        </VBox>
+    </HBox>
+
+    <Label text="Pilotage" styleClass="sidebar-group"/>
+    <Button fx:id="boutonDashboard" styleClass="nav-item" text="Tableau de bord"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersDashboard"/>
+
+    <Label text="Opérations" styleClass="sidebar-group"/>
+    <Button fx:id="boutonRevenus" styleClass="nav-item" text="Revenus"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersRevenus"/>
+    <Button fx:id="boutonDepenses" styleClass="nav-item" text="Dépenses"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersDepenses"/>
+    <Button fx:id="boutonEconomies" styleClass="nav-item" text="Économies"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersEconomies"/>
+
+    <Label text="Suivi" styleClass="sidebar-group"/>
+    <Button fx:id="boutonCategories" styleClass="nav-item" text="Catégories"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersCategories"/>
+    <Button fx:id="boutonHistorique" styleClass="nav-item" text="Historique"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersHistorique"/>
+
+    <Label text="Système" styleClass="sidebar-group"/>
+    <Button fx:id="boutonParametres" styleClass="nav-item" text="Paramètres"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersParametres"/>
 
     <Region VBox.vgrow="ALWAYS"/>
 
-    <Button fx:id="boutonDeconnexion" styleClass="nav-circle,nav-circle-logout" onAction="#seDeconnecter"
-            contentDisplay="GRAPHIC_ONLY"/>
+    <Button fx:id="boutonDeconnexion" styleClass="nav-item,nav-item-logout" text="Déconnexion"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#seDeconnecter"/>
 </VBox>

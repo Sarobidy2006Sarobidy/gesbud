@@ -40,51 +40,58 @@
 .page-content { -fx-padding: 4 4 4 0; }
 .page-content-flat { -fx-padding: 4 4 4 22; }
 
-/* --- Cartes génériques --- */
-.card {
-    -fx-background-color: white;
-    -fx-background-radius: 10;
-    -fx-border-color: #e1e9f7;
-    -fx-border-radius: 10;
-    -fx-padding: 22;
-    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.08), 18, 0, 0, 6);
-}
-
-.card-hint { -fx-font-size: 12px; -fx-text-fill: #5b7099; }
+/* --- Cartes génériques : voir « Pages premium » plus bas --- */
 
 /* =========================================================================
-   Barre latérale « pilule » — bleu nuit
+   Barre latérale — panneau blanc large avec libellés
    ========================================================================= */
-.sidebar-pill {
-    -fx-background-color: linear-gradient(to bottom, #0f3a8f, #071d52);
-    -fx-background-radius: 30;
-    -fx-padding: 22 11;
-    -fx-pref-width: 64;
-    -fx-min-width: 64;
-    -fx-max-width: 64;
-    -fx-effect: dropshadow(gaussian, rgba(7,26,74,0.35), 22, 0, 0, 10);
-}
-
-.nav-circle {
-    -fx-background-color: transparent;
-    -fx-background-radius: 22;
-    -fx-min-width: 42;
-    -fx-min-height: 42;
-    -fx-max-width: 42;
-    -fx-max-height: 42;
-    -fx-padding: 0;
-    -fx-cursor: hand;
-}
-
-.nav-circle:hover { -fx-background-color: rgba(255,255,255,0.12); }
-
-.nav-circle-active {
+.sidebar {
     -fx-background-color: white;
-    -fx-effect: dropshadow(gaussian, rgba(0,12,50,0.35), 10, 0, 0, 3);
+    -fx-background-radius: 16;
+    -fx-border-color: #e2ebf8;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-padding: 18 12 16 12;
+    -fx-pref-width: 226;
+    -fx-min-width: 226;
+    -fx-max-width: 226;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.10), 24, 0, 0, 10);
 }
 
-.nav-circle-active:hover { -fx-background-color: white; }
-.nav-circle-logout:hover { -fx-background-color: rgba(255,138,128,0.20); }
+.sidebar-brand { -fx-padding: 2 6 14 6; }
+.sidebar-brand-logo { -fx-min-width: 34; -fx-pref-width: 34; -fx-max-width: 34; }
+.sidebar-brand-name {
+    -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 14.5px;
+    -fx-text-fill: #0b2a6b;
+}
+.sidebar-brand-sub {
+    -fx-font-family: "Inter"; -fx-font-size: 11px; -fx-text-fill: #7d90b5;
+}
+
+.sidebar-group {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 10px;
+    -fx-text-fill: #9aabcb; -fx-padding: 12 6 4 12;
+}
+
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-padding: 9 12;
+    -fx-graphic-text-gap: 11;
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 13px;
+    -fx-text-fill: #35508a;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+}
+.nav-item:hover { -fx-background-color: #f0f6ff; -fx-text-fill: #0b2a6b; }
+
+.nav-item-active, .nav-item-active:hover {
+    -fx-background-color: linear-gradient(to right, #e6f1ff, #f2f8ff);
+    -fx-text-fill: #0b2a6b;
+}
+
+.nav-item-logout, .nav-item-logout:hover { -fx-text-fill: #c62828; }
+.nav-item-logout:hover { -fx-background-color: #fdeceb; }
 
 .tooltip {
     -fx-background-color: #0b2a6b;
@@ -111,31 +118,197 @@
     -fx-text-fill: #1e88e5;
 }
 
-.card-title {
-    -fx-font-family: "Poppins Medium";
-    -fx-font-size: 15px;
-    -fx-text-fill: #0b2a6b;
+/* =========================================================================
+   Tableau de bord premium
+   ========================================================================= */
+.field-caption {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 10.5px; -fx-text-fill: #7d90b5;
 }
+
+.period-select { -fx-background-radius: 10; -fx-border-radius: 10; }
+.period-select > .list-cell {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 13px; -fx-text-fill: #0b2a6b;
+    -fx-background-color: transparent; -fx-padding: 8 12;
+}
+
+.section-title {
+    -fx-font-family: "Poppins Medium"; -fx-font-size: 17px; -fx-text-fill: #0b2a6b;
+}
+
+/* --- Bandeau solde --- */
+.hero-card {
+    -fx-background-color: linear-gradient(to right, #ffffff, #f4f9ff);
+    -fx-background-radius: 16;
+    -fx-border-color: #e2ebf8; -fx-border-radius: 16;
+    -fx-padding: 22 26;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.10), 26, 0, 0, 10);
+}
+.hero-label {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 11px; -fx-text-fill: #7d90b5;
+}
+.hero-value {
+    -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 34px; -fx-text-fill: #0b2a6b;
+}
+.hero-alerte { -fx-font-family: "Inter SemiBold"; -fx-font-size: 12px; -fx-text-fill: #c62828; }
+.hero-detail { -fx-font-family: "Inter"; -fx-font-size: 12px; -fx-text-fill: #5b7099; }
+.hero-section {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 10px; -fx-text-fill: #9aabcb;
+}
+.hero-line { -fx-font-family: "Inter"; -fx-font-size: 12.5px; -fx-text-fill: #5b7099; }
+.hero-line-value {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 12.5px; -fx-text-fill: #0b2a6b;
+}
+.compteur {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 12.5px; -fx-text-fill: #0b2a6b;
+    -fx-background-color: #eef4fd; -fx-background-radius: 20; -fx-padding: 2 10;
+}
+
+.pastille { -fx-min-width: 9; -fx-pref-width: 9; -fx-max-width: 9;
+            -fx-min-height: 9; -fx-pref-height: 9; -fx-max-height: 9;
+            -fx-background-radius: 5; }
+.pastille-teal   { -fx-background-color: #2fa876; }
+.pastille-coral  { -fx-background-color: #e5564b; }
+.pastille-sky    { -fx-background-color: #1fa7d4; }
+.pastille-violet { -fx-background-color: #6559d6; }
+
+/* --- Cartes d'indicateurs du mois --- */
+.kpi-card {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-color: #e6eefb; -fx-border-radius: 14;
+    -fx-border-width: 0 0 0 4;
+    -fx-padding: 16 18;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 18, 0, 0, 6);
+}
+.kpi-revenus   { -fx-border-color: #2fa876; }
+.kpi-depenses  { -fx-border-color: #e5564b; }
+.kpi-economies { -fx-border-color: #1fa7d4; }
+.kpi-solde     { -fx-border-color: #1e6fe0; }
+
+.kpi-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 12px; -fx-text-fill: #5b7099; }
+.kpi-value { -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #0b2a6b; }
+.kpi-detail { -fx-font-family: "Inter"; -fx-font-size: 11px; -fx-text-fill: #9aabcb; }
+
+.tendance {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 11px;
+    -fx-background-radius: 20; -fx-padding: 3 9;
+}
+.tendance-hausse  { -fx-background-color: #e4f6ee; -fx-text-fill: #12805c; }
+.tendance-baisse  { -fx-background-color: #fdeceb; -fx-text-fill: #c62828; }
+.tendance-neutre  { -fx-background-color: #eef2f9; -fx-text-fill: #7d90b5; }
+
+/* --- Cartes de graphiques --- */
+.chart-card {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-color: #e6eefb; -fx-border-radius: 14;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 18, 0, 0, 6);
+}
+
+.chart-title { -fx-font-family: "Poppins Medium"; -fx-font-size: 13.5px; -fx-text-fill: #0b2a6b; }
+.chart-legend { -fx-background-color: transparent; }
+.chart-legend-label { -fx-font-family: "Inter"; -fx-font-size: 11.5px; -fx-text-fill: #5b7099; }
+.axis-label { -fx-font-family: "Inter"; -fx-font-size: 11px; -fx-text-fill: #7d90b5; }
+.axis { -fx-tick-label-fill: #7d90b5; -fx-tick-label-font-size: 11px; -fx-axis-length: 0; }
+.chart-vertical-grid-lines { -fx-stroke: #eef3fb; }
+.chart-horizontal-grid-lines { -fx-stroke: #eef3fb; }
+.chart-alternative-row-fill { -fx-fill: transparent; -fx-stroke: transparent; }
+.chart-plot-background { -fx-background-color: transparent; }
+.pie-label { -fx-font-family: "Inter"; -fx-font-size: 11px; -fx-fill: #0b2a6b; }
+
+/* Une série par histogramme : la couleur se porte sur le chart, pas sur
+   default-colorN, sinon les deux graphiques héritent du même bleu. */
+.bars-revenus .chart-bar   { -fx-bar-fill: #2fa876; }
+.bars-depenses .chart-bar  { -fx-bar-fill: #e5564b; }
+.bars-revenus .chart-bar, .bars-depenses .chart-bar {
+    -fx-background-radius: 5 5 0 0;
+    -fx-border-color: transparent;
+}
+.bars-revenus .chart-bar:hover, .bars-depenses .chart-bar:hover { -fx-bar-fill: #1565c0; }
+
+/* Courbe : les points de série portent la classe chart-line-symbol, et leur
+   couleur doit suivre celle du trait, sinon la légende ment. */
+.courbe-solde .chart-series-line { -fx-stroke-width: 2.4px; }
+.default-color1.chart-series-line { -fx-stroke: #26c6da; }
+.default-color0.chart-line-symbol { -fx-background-color: #1e88e5, white; }
+.default-color1.chart-line-symbol { -fx-background-color: #26c6da, white; }
 
 /* =========================================================================
-   Cartes statistiques du tableau de bord
+   Pages premium — en-tête, cartes de formulaire, tableaux, pagination
    ========================================================================= */
-.stat-card {
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-width: 0 0 0 4;
-    -fx-padding: 18;
-    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 14, 0, 0, 5);
+
+/* --- Puces de l'en-tête (total et nombre d'opérations) --- */
+.chip-droite {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-color: #e6eefb; -fx-border-radius: 14;
+    -fx-padding: 9 16;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.06), 14, 0, 0, 5);
+}
+.chip-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 10px; -fx-text-fill: #9aabcb; }
+.chip-value { -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #0b2a6b; }
+
+/* --- Cartes de formulaire et de filtres --- */
+.form-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-border-color: #e6eefb; -fx-border-radius: 16;
+    -fx-padding: 18 22 20 22;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 20, 0, 0, 7);
+}
+.form-card-title { -fx-font-family: "Poppins Medium"; -fx-font-size: 15px; -fx-text-fill: #0b2a6b; }
+.form-card-sub { -fx-font-family: "Inter"; -fx-font-size: 11.5px; -fx-text-fill: #7d90b5; }
+.form-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 10.5px; -fx-text-fill: #7d90b5; }
+.form-actions {
+    -fx-border-color: #eef3fb transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 14 0 0 0;
 }
 
-.stat-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 10.5px; -fx-text-fill: #5b7099; }
-.stat-value { -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 21px; -fx-text-fill: #0b2a6b; }
+/* --- Cartes de tableau --- */
+.table-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-border-color: #e6eefb; -fx-border-radius: 16;
+    -fx-padding: 16 16 14 16;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.07), 20, 0, 0, 7);
+}
+.table-card-title { -fx-font-family: "Poppins Medium"; -fx-font-size: 14.5px; -fx-text-fill: #0b2a6b; }
+.pill-count {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 11.5px; -fx-text-fill: #1565c0;
+    -fx-background-color: #e3eeff; -fx-background-radius: 20; -fx-padding: 3 11;
+}
+/* Le tableau vit dans une .table-card : il ne doit pas redrawer sa propre carte. */
+.table-embed, .table-embed:focused {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-effect: none;
+    -fx-padding: 0;
+}
+.table-embed .column-header-background { -fx-background-color: #f2f7ff; -fx-background-radius: 10 10 0 0; }
+.table-embed .column-header .label { -fx-text-fill: #35508a; -fx-font-family: "Inter SemiBold"; -fx-font-size: 11.5px; }
+.table-row-cell { -fx-cell-size: 34; }
 
-.stat-card-teal   { -fx-background-color: #e4f6ee; -fx-border-color: #2fa876; }
-.stat-card-coral  { -fx-background-color: #fdeceb; -fx-border-color: #e5564b; }
-.stat-card-violet { -fx-background-color: #e3eeff; -fx-border-color: #1e6fe0; }
-.stat-card-sand   { -fx-background-color: #e0f4fb; -fx-border-color: #1fa7d4; }
-.stat-card-sky    { -fx-background-color: #ebe9fb; -fx-border-color: #6559d6; }
+/* --- Barre de pagination --- */
+.pagination-bar {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-color: #e6eefb; -fx-border-radius: 14;
+    -fx-padding: 10 16;
+    -fx-effect: dropshadow(gaussian, rgba(11,42,107,0.05), 14, 0, 0, 5);
+}
+.bouton-page {
+    -fx-background-color: #f2f7ff;
+    -fx-text-fill: #1565c0;
+    -fx-font-family: "Inter SemiBold";
+    -fx-background-radius: 9;
+    -fx-padding: 7 12;
+    -fx-cursor: hand;
+}
+.bouton-page:hover { -fx-background-color: #e3eeff; }
+.bouton-page:disabled { -fx-opacity: 0.45; }
 
 /* =========================================================================
    Boutons d'action
@@ -145,8 +318,8 @@
     -fx-text-fill: white;
     -fx-font-family: "Inter SemiBold";
     -fx-graphic-text-gap: 8;
-    -fx-background-radius: 6;
-    -fx-padding: 10 22;
+    -fx-background-radius: 10;
+    -fx-padding: 10 20;
     -fx-cursor: hand;
     -fx-effect: dropshadow(gaussian, rgba(21,101,192,0.28), 10, 0, 0, 4);
 }
@@ -158,8 +331,8 @@
     -fx-text-fill: #374151;
     -fx-font-family: "Inter SemiBold";
     -fx-graphic-text-gap: 8;
-    -fx-background-radius: 6;
-    -fx-padding: 10 22;
+    -fx-background-radius: 10;
+    -fx-padding: 10 20;
     -fx-cursor: hand;
 }
 .button-secondary:hover { -fx-background-color: #d8e5f9; }
@@ -169,8 +342,8 @@
     -fx-text-fill: #b91c1c;
     -fx-font-family: "Inter SemiBold";
     -fx-graphic-text-gap: 8;
-    -fx-background-radius: 6;
-    -fx-padding: 10 22;
+    -fx-background-radius: 10;
+    -fx-padding: 10 20;
     -fx-cursor: hand;
 }
 .button-danger:hover { -fx-background-color: #fbd5d2; }
@@ -181,17 +354,22 @@
 .text-field, .password-field, .combo-box, .date-picker {
     -fx-font-family: "Inter";
     -fx-text-fill: #0f2a5c;
-    -fx-background-color: #f6f9fe;
-    -fx-background-radius: 6;
-    -fx-border-color: #d3e0f4;
-    -fx-border-radius: 6;
+    -fx-background-color: #f8fbff;
+    -fx-background-radius: 10;
+    -fx-border-color: #dbe6f7;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
     -fx-padding: 9;
+}
+.text-field:hover, .password-field:hover, .combo-box:hover, .date-picker:hover {
+    -fx-border-color: #bcd2f3;
 }
 .combo-box, .date-picker { -fx-padding: 0; }
 .text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
     -fx-border-color: #1e88e5;
     -fx-background-color: white;
 }
+.text-field .prompt-text, .password-field .prompt-text { -fx-fill: #9aabcb; }
 .combo-box-popup .list-view, .date-picker-popup {
     -fx-background-color: white;
     -fx-border-color: #d3e0f4;
@@ -259,13 +437,9 @@
 .table-row-cell:selected .table-cell:neutre  { -fx-text-fill: #1565c0; }
 
 /* =========================================================================
-   Graphiques
+   Graphiques — palette par série (le typographie/couleurs sont dans le
+   bloc « Tableau de bord premium » plus haut)
    ========================================================================= */
-.chart-title { -fx-font-family: "Poppins Medium"; -fx-font-size: 14px; -fx-text-fill: #0b2a6b; }
-.axis { -fx-tick-label-fill: #5b7099; -fx-tick-label-font-size: 11px; }
-.chart-vertical-grid-lines, .chart-horizontal-grid-lines { -fx-stroke: #e6eefb; }
-.chart-plot-background { -fx-background-color: #f7faff; }
-.chart-legend { -fx-background-color: transparent; }
 .chart-pie-label { -fx-fill: #0f2a5c; }
 .default-color0.chart-pie { -fx-pie-color: #1e88e5; }
 .default-color1.chart-pie { -fx-pie-color: #26c6da; }
@@ -275,8 +449,6 @@
 .default-color5.chart-pie { -fx-pie-color: #ef5350; }
 .default-color6.chart-pie { -fx-pie-color: #8d6edb; }
 .default-color7.chart-pie { -fx-pie-color: #78909c; }
-.default-color0.chart-bar { -fx-bar-fill: #1e88e5; }
-.default-color1.chart-bar { -fx-bar-fill: #26c6da; }
 .default-color0.chart-series-line { -fx-stroke: #1e88e5; -fx-stroke-width: 2.5px; }
 .default-color0.chart-line-symbol { -fx-background-color: #1565c0, white; }
 .default-color0.chart-legend-item-symbol { -fx-background-color: #1e88e5; }
@@ -335,6 +507,49 @@
     -fx-font-size: 14.5px;
     -fx-text-fill: #9dc8ff;
     -fx-max-width: 440;
+}
+
+/* =========================================================================
+   COMBO BOX AVEC BOUTON AJOUTER
+   ========================================================================= */
+
+.add-button-combo {
+    -fx-background-color: rgba(255,255,255,0.10);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255,255,255,0.20);
+    -fx-border-radius: 10;
+    -fx-border-width: 1.5;
+}
+
+.add-button-combo-box {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 4 0 8;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(150,185,230,0.65);
+    -fx-font-family: "Inter";
+    -fx-font-size: 14px;
+    -fx-pref-height: 40;
+}
+
+.add-button-combo-box:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.add-button-combo-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.add-button-combo-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.15);
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.4), 8, 0.1, 0, 0);
+}
+
+.add-button-combo-btn:pressed {
+    -fx-background-color: rgba(255,255,255,0.25);
 }
 
 /* =========================================================================
@@ -715,3 +930,11 @@
     -fx-background-radius: 12;
     -fx-padding: 32;
 }
+
+/* =========================================================================
+   Bouton « œil » des champs de mot de passe (afficher / masquer)
+   Doit rester en fin de fichier : meme specificite que .auth-textfield*,
+   c'est la derniere regle qui gagne pour -fx-padding.
+   ========================================================================= */
+.oeil-mot-de-passe { -fx-cursor: hand; }
+.champ-avec-oeil, .champ-avec-oeil:focused { -fx-padding: 9 34 9 12; }

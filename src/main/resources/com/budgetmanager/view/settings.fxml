@@ -21,72 +21,96 @@
 
     <center>
         <ScrollPane fitToWidth="true" styleClass="page-scroll">
-            <VBox spacing="20" styleClass="page-content">
-                <Label text="Paramètres" styleClass="page-title"/>
+            <VBox spacing="18" styleClass="page-content">
 
-                <FlowPane hgap="20" vgap="20">
+                <!-- ===== En-tête ===== -->
+                <HBox alignment="CENTER_LEFT" spacing="14">
+                    <VBox spacing="3" HBox.hgrow="ALWAYS">
+                        <Label text="Paramètres" styleClass="page-title"/>
+                        <Label text="Votre identité, votre mot de passe et votre question de sécurité"
+                               wrapText="true" maxWidth="620" styleClass="page-subtitle"/>
+                    </VBox>
+                </HBox>
 
-                <VBox styleClass="card" spacing="12" prefWidth="370" maxWidth="440">
-                    <Label text="Informations du profil" styleClass="card-title"/>
-                    <HBox spacing="10">
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Nom"/>
+                <FlowPane hgap="18" vgap="18">
+
+                <VBox styleClass="form-card" spacing="14" prefWidth="370" maxWidth="440">
+                    <VBox spacing="2">
+                        <Label text="Informations du profil" styleClass="form-card-title"/>
+                        <Label text="Nom, pseudo de connexion et devise d'affichage."
+                               styleClass="form-card-sub" wrapText="true"/>
+                    </VBox>
+                    <HBox spacing="12">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Nom" styleClass="form-label"/>
                             <TextField fx:id="champNom"/>
                         </VBox>
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Prénom"/>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Prénom" styleClass="form-label"/>
                             <TextField fx:id="champPrenom"/>
                         </VBox>
                     </HBox>
-                    <VBox spacing="6">
-                        <Label text="Pseudo (pour se connecter)"/>
+                    <VBox spacing="5">
+                        <Label text="Pseudo (pour se connecter)" styleClass="form-label"/>
                         <TextField fx:id="champPseudo"/>
                     </VBox>
-                    <VBox spacing="6">
-                        <Label text="Email"/>
-                        <TextField fx:id="champEmail"/>
+                    <VBox spacing="5">
+                        <Label text="Email" styleClass="form-label"/>
+                        <TextField fx:id="champEmail" promptText="nom@exemple.mg"/>
                     </VBox>
-                    <VBox spacing="6">
-                        <Label text="Devise"/>
+                    <VBox spacing="5">
+                        <Label text="Devise" styleClass="form-label"/>
                         <ComboBox fx:id="comboDevise" maxWidth="Infinity"/>
                     </VBox>
-                    <Button fx:id="boutonEnregistrerProfil" text="Enregistrer le profil" styleClass="button-primary" onAction="#enregistrerProfil" contentDisplay="LEFT"/>
+                    <VBox spacing="10" styleClass="form-actions">
+                        <Button fx:id="boutonEnregistrerProfil" text="Enregistrer le profil" maxWidth="Infinity" styleClass="button-primary" onAction="#enregistrerProfil" contentDisplay="LEFT"/>
+                    </VBox>
                 </VBox>
 
-                <VBox styleClass="card" spacing="12" prefWidth="370" maxWidth="440">
-                    <Label text="Changer le mot de passe" styleClass="card-title"/>
-                    <VBox spacing="6">
-                        <Label text="Ancien mot de passe"/>
+                <VBox styleClass="form-card" spacing="14" prefWidth="370" maxWidth="440">
+                    <VBox spacing="2">
+                        <Label text="Changer le mot de passe" styleClass="form-card-title"/>
+                        <Label text="Confirmez d'abord le mot de passe en cours."
+                               styleClass="form-card-sub" wrapText="true"/>
+                    </VBox>
+                    <VBox spacing="5">
+                        <Label text="Ancien mot de passe" styleClass="form-label"/>
                         <PasswordField fx:id="champAncienMotDePasse"/>
                     </VBox>
-                    <VBox spacing="6">
-                        <Label text="Nouveau mot de passe"/>
+                    <VBox spacing="5">
+                        <Label text="Nouveau mot de passe" styleClass="form-label"/>
                         <PasswordField fx:id="champNouveauMotDePasse"/>
                     </VBox>
-                    <VBox spacing="6">
-                        <Label text="Confirmer le nouveau mot de passe"/>
+                    <VBox spacing="5">
+                        <Label text="Confirmer le nouveau mot de passe" styleClass="form-label"/>
                         <PasswordField fx:id="champConfirmationMotDePasse"/>
                     </VBox>
-                    <Button fx:id="boutonChangerMotDePasse" text="Changer le mot de passe" styleClass="button-primary" onAction="#changerMotDePasse" contentDisplay="LEFT"/>
+                    <VBox spacing="10" styleClass="form-actions">
+                        <Button fx:id="boutonChangerMotDePasse" text="Changer le mot de passe" maxWidth="Infinity" styleClass="button-primary" onAction="#changerMotDePasse" contentDisplay="LEFT"/>
+                    </VBox>
                 </VBox>
 
-                <VBox styleClass="card" spacing="12" prefWidth="370" maxWidth="440">
-                    <Label text="Question de sécurité" styleClass="card-title"/>
-                    <Label text="Elle sert à récupérer votre compte si vous oubliez votre mot de passe."
-                           styleClass="card-hint" wrapText="true"/>
-                    <VBox spacing="6">
-                        <Label text="Question"/>
+                <VBox styleClass="form-card" spacing="14" prefWidth="370" maxWidth="440">
+                    <VBox spacing="2">
+                        <Label text="Question de sécurité" styleClass="form-card-title"/>
+                        <Label text="Elle sert à récupérer votre compte si vous oubliez votre mot de passe."
+                               styleClass="form-card-sub" wrapText="true"/>
+                    </VBox>
+                    <VBox spacing="5">
+                        <Label text="Question" styleClass="form-label"/>
                         <ComboBox fx:id="comboQuestion" promptText="Choisissez une question" maxWidth="Infinity"/>
                     </VBox>
-                    <VBox spacing="6">
-                        <Label text="Réponse"/>
+                    <VBox spacing="5">
+                        <Label text="Réponse" styleClass="form-label"/>
                         <TextField fx:id="champReponse"/>
                     </VBox>
-                    <VBox spacing="6">
-                        <Label text="Mot de passe actuel (confirmation)"/>
+                    <VBox spacing="5">
+                        <Label text="Mot de passe actuel (confirmation)" styleClass="form-label"/>
                         <PasswordField fx:id="champMotDePasseQuestion"/>
                     </VBox>
-                    <Button fx:id="boutonEnregistrerQuestion" text="Enregistrer la question" styleClass="button-primary" onAction="#enregistrerQuestionSecurite" contentDisplay="LEFT"/>
+                    <VBox spacing="10" styleClass="form-actions">
+                        <Button fx:id="boutonEnregistrerQuestion" text="Enregistrer la question" maxWidth="Infinity" styleClass="button-primary" onAction="#enregistrerQuestionSecurite" contentDisplay="LEFT"/>
+                    </VBox>
                 </VBox>
                 </FlowPane>
             </VBox>

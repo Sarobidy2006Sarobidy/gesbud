@@ -37,6 +37,8 @@ public class ExpenseController implements RaccourcisClavier {
     @FXML private ComboBox<Frequency> comboFrequence;
     @FXML private DatePicker champDateFin;
     @FXML private Label labelAideFrequence;
+    @FXML private Label labelTotalAffiche;
+    @FXML private Label pastilleNombre;
 
     @FXML private TextField champRecherche;
     @FXML private ComboBox<Category> comboFiltreCategorie;
@@ -102,6 +104,17 @@ public class ExpenseController implements RaccourcisClavier {
         SortedList<Expense> donneeTriees = new SortedList<>(donneesFiltrees);
         donneeTriees.comparatorProperty().bind(tableDepenses.comparatorProperty());
         tableDepenses.setItems(donneeTriees);
+
+        // Puces d'en-tête : elles suivent ce que le filtre laisse voir, pas la DB.
+        pastilleNombre.textProperty().bind(
+                javafx.beans.binding.Bindings.size(tableDepenses.getItems()).asString());
+        String devise = utilisateur == null ? "Ar" : utilisateur.getDevise();
+        labelTotalAffiche.textProperty().bind(
+                javafx.beans.binding.Bindings.createObjectBinding(
+                        () -> com.budgetmanager.util.CurrencyUtil.formater(
+                                tableDepenses.getItems().stream().mapToDouble(Expense::getMontant).sum(),
+                                devise),
+                        tableDepenses.getItems()));
 
         tableDepenses.getSelectionModel().selectedItemProperty()
                 .addListener(new WeakChangeListener<>(listenerSelection));

@@ -62,4 +62,31 @@ public final class CurrencyUtil {
     public static String formaterSansSymbole(double montant) {
         return String.format(Locale.FRANCE, "%,.2f", montant);
     }
+
+    /**
+     * Convertisseur pour les axes de graphiques : « 1 250 000 » y est illisible,
+     * on l'affiche en milliers ou millions (« 750 k », « 1 M »).
+     */
+    public static javafx.util.StringConverter<Number> compact() {
+        return new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Number valeur) {
+                if (valeur == null) return "";
+                double v = valeur.doubleValue();
+                if (Math.abs(v) >= 1_000_000) {
+                    return String.format(Locale.FRANCE, "%.1f M", v / 1_000_000)
+                            .replace(",0 M", " M");
+                }
+                if (Math.abs(v) >= 1_000) {
+                    return String.format(Locale.FRANCE, "%.0f k", v / 1_000);
+                }
+                return String.valueOf(valeur.intValue());
+            }
+
+            @Override
+            public Number fromString(String texte) {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
 }

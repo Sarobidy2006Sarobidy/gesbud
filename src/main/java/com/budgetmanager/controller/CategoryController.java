@@ -22,6 +22,7 @@ public class CategoryController implements RaccourcisClavier {
     private static final Logger log = LoggerFactory.getLogger(CategoryController.class);
 
     @FXML private TextField champNom;
+    @FXML private Label pastilleNombre;
     @FXML private ComboBox<CategoryType> comboType;
     @FXML private TableView<Category> tableCategories;
     @FXML private TableColumn<Category, String> colonneNom;
@@ -53,6 +54,10 @@ public class CategoryController implements RaccourcisClavier {
         colonneNom.setCellValueFactory(cellData -> cellData.getValue().nomProperty());
         colonneType.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
         tableCategories.setItems(donnees);
+
+        // La puce de l'en-tête compte les catégories réellement affichées.
+        pastilleNombre.textProperty().bind(
+                javafx.beans.binding.Bindings.size(tableCategories.getItems()).asString());
 
         tableCategories.getSelectionModel().selectedItemProperty().addListener((obs, ancien, nouveau) -> {
             categorieSelectionnee = nouveau;

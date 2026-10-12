@@ -74,6 +74,7 @@ public class HistoryController {
     @FXML private Button boutonSuivante;
     @FXML private Button boutonDerniere;
     @FXML private Label  labelPagination;
+    @FXML private Label  pastilleNombre;
 
     // --- Boutons filtre ---
     @FXML private Button boutonFiltrer;
@@ -196,9 +197,9 @@ public class HistoryController {
 
         donnees.setAll(toutesOperations.subList(debut, fin));
 
+        pastilleNombre.setText(String.valueOf(total));
         labelPagination.setText(
-                "Page " + (pageCourante + 1) + " / " + totalPages
-                + "  (" + total + " opération" + (total > 1 ? "s" : "") + ")");
+                "Page " + (pageCourante + 1) + " / " + totalPages);
 
         boutonPremiere.setDisable(pageCourante == 0);
         boutonPrecedente.setDisable(pageCourante == 0);
