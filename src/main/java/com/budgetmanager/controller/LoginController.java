@@ -161,10 +161,23 @@ public class LoginController {
 
     @FXML
     public void allerVersInscription() {
+        log.info("Navigation vers inscription demandée");
         try {
             Main.changerScene("view/register.fxml", Main.LARGEUR_AUTH, Main.HAUTEUR_AUTH);
         } catch (IOException e) {
+            log.error("Impossible d'ouvrir la page d'inscription", e);
             AuthUi.erreur(labelMessage, "Impossible d'ouvrir la page d'inscription.");
+        }
+    }
+
+    @FXML
+    public void allerVersConnexion() {
+        log.info("Navigation vers connexion demandée");
+        try {
+            Main.changerScene("view/login.fxml", Main.LARGEUR_AUTH, Main.HAUTEUR_AUTH);
+        } catch (IOException e) {
+            log.error("Impossible d'ouvrir la page de connexion", e);
+            AuthUi.erreur(labelMessage, "Impossible d'ouvrir la page de connexion.");
         }
     }
 }
