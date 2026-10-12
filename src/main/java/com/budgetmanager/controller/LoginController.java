@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Optional;
 
-/** Écran de connexion : pseudo ou email + mot de passe. */
 public class LoginController {
 
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
@@ -47,20 +46,17 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        // Badge logo hexagonal
-        zoneLogo.getChildren().add(Hexagon.badge(46, Icons::wallet, true));
-
-        // Icônes champs — blanches pour le thème glassmorphism
-        javafx.scene.paint.Color couleurIcone = javafx.scene.paint.Color.web("#9dc8ff");
-        zoneIconeEmail.getChildren().add(Icons.user(17, couleurIcone));
-        zoneIconeMotDePasse.getChildren().add(Icons.lock(17, couleurIcone));
-
-        // Icône sécurité bas de carte
-        if (zoneIconeSecurite != null) {
-            zoneIconeSecurite.getChildren().add(Icons.shieldCheck(14, javafx.scene.paint.Color.web("#7eb8ff", 0.8)));
+        try {
+            zoneLogo.getChildren().add(Hexagon.badge(46, Icons::wallet, true));
+            javafx.scene.paint.Color couleurIcone = javafx.scene.paint.Color.web("#9dc8ff");
+            zoneIconeEmail.getChildren().add(Icons.user(17, couleurIcone));
+            zoneIconeMotDePasse.getChildren().add(Icons.lock(17, couleurIcone));
+            if (zoneIconeSecurite != null) {
+                zoneIconeSecurite.getChildren().add(Icons.shieldCheck(14, javafx.scene.paint.Color.web("#7eb8ff", 0.8)));
+            }
+        } catch (Exception e) {
+            log.error("Erreur initialize UI", e);
         }
-
-        AuthUi.activerFocusSurLignesPremium(racine);
 
         AuthUi.effacer(labelMessage);
         String flash = FlashMessage.consommer();
@@ -86,12 +82,9 @@ public class LoginController {
             return;
         }
 
-        // Désactiver le bouton pendant la vérification async.
         boutonConnexion.setDisable(true);
         AuthUi.effacer(labelMessage);
 
-        // Point 4 : vérification DB + hachage PBKDF2 exécutés en arrière-plan
-        // pour ne pas figer l'animation de l'écran de connexion.
         Task<Optional<User>> tache = new Task<>() {
             @Override
             protected Optional<User> call() {
@@ -99,11 +92,9 @@ public class LoginController {
                 if (utilisateur.isEmpty()) return Optional.empty();
 
                 User user = utilisateur.get();
-                // Vérification PBKDF2 (CPU-intensive) sur le thread de fond.
                 if (!PasswordUtil.verifier(motDePasse, user.getMotDePasse())) {
                     return Optional.empty();
                 }
-                // Re-hachage si nécessaire (aussi CPU-intensive).
                 if (PasswordUtil.doitEtreRehache(user.getMotDePasse())) {
                     String hash = PasswordUtil.hacher(motDePasse);
                     if (userDAO.changerMotDePasse(user.getIdUser(), hash)) {
@@ -119,10 +110,8 @@ public class LoginController {
             Optional<User> resultat = tache.getValue();
 
             if (resultat.isEmpty()) {
-                // Distinguer DB éteinte de mauvais identifiants.
                 if (!userDAO.baseAccessible()) {
-                    AuthUi.erreur(labelMessage,
-                            "Base de données inaccessible. Vérifiez que MySQL (WampServer) est démarré.");
+                    AuthUi.erreur(labelMessage, "Base de données inaccessible. Vérifiez que MySQL (WampServer) est démarré.");
                 } else {
                     LoginGuard.PARTAGE.echec(identifiant);
                     AuthUi.erreur(labelMessage, "Pseudo, email ou mot de passe incorrect.");
@@ -161,22 +150,18 @@ public class LoginController {
 
     @FXML
     public void allerVersInscription() {
-        log.info("Navigation vers inscription demandée");
         try {
             Main.changerScene("view/register.fxml", Main.LARGEUR_AUTH, Main.HAUTEUR_AUTH);
         } catch (IOException e) {
-            log.error("Impossible d'ouvrir la page d'inscription", e);
             AuthUi.erreur(labelMessage, "Impossible d'ouvrir la page d'inscription.");
         }
     }
 
     @FXML
     public void allerVersConnexion() {
-        log.info("Navigation vers connexion demandée");
         try {
             Main.changerScene("view/login.fxml", Main.LARGEUR_AUTH, Main.HAUTEUR_AUTH);
         } catch (IOException e) {
-            log.error("Impossible d'ouvrir la page de connexion", e);
             AuthUi.erreur(labelMessage, "Impossible d'ouvrir la page de connexion.");
         }
     }
