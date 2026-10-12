@@ -8,6 +8,7 @@ import com.budgetmanager.util.DbExecutor;
 import com.budgetmanager.util.FlashMessage;
 import com.budgetmanager.util.Hexagon;
 import com.budgetmanager.util.Icons;
+import com.budgetmanager.util.OeilMotDePasse;
 import com.budgetmanager.util.PasswordUtil;
 import com.budgetmanager.util.PseudoUtil;
 import com.budgetmanager.util.SecurityQuestions;
@@ -70,6 +71,8 @@ public class RegisterController {
         zoneIconeDevise.getChildren().add(Icons.dollar(17, AuthUi.couleurIconeChamp()));
         zoneIconeQuestion.getChildren().add(Icons.helpCircle(17, AuthUi.couleurIconeChamp()));
         zoneIconeReponse.getChildren().add(Icons.shield(17, AuthUi.couleurIconeChamp()));
+        OeilMotDePasse.installer(champMotDePasse);
+        OeilMotDePasse.installer(champConfirmationMotDePasse);
         AuthUi.activerFocusSurLignes(racine);
 
         comboDevise.getItems().addAll("Ar", "EUR", "USD", "GBP");
@@ -158,7 +161,7 @@ public class RegisterController {
             // confirmé deux fois, inutile de le redemander immédiatement.
             SessionManager.connecter(compteCree);
             try {
-                Main.changerScene("view/dashboard.fxml", 1140, 740);
+                Main.changerScene("view/dashboard.fxml", Main.LARGEUR_APP, Main.HAUTEUR_APP);
             } catch (IOException e) {
                 log.error("Navigation dashboard après inscription échouée", e);
                 FlashMessage.definir("Votre compte a été créé. Vous pouvez vous connecter.");

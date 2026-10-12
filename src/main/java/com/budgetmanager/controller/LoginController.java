@@ -8,6 +8,7 @@ import com.budgetmanager.util.DbExecutor;
 import com.budgetmanager.util.FlashMessage;
 import com.budgetmanager.util.Hexagon;
 import com.budgetmanager.util.Icons;
+import com.budgetmanager.util.OeilMotDePasse;
 import com.budgetmanager.util.LoginGuard;
 import com.budgetmanager.util.PasswordUtil;
 import com.budgetmanager.util.SessionManager;
@@ -51,6 +52,7 @@ public class LoginController {
             javafx.scene.paint.Color couleurIcone = javafx.scene.paint.Color.web("#9dc8ff");
             zoneIconeEmail.getChildren().add(Icons.user(17, couleurIcone));
             zoneIconeMotDePasse.getChildren().add(Icons.lock(17, couleurIcone));
+            OeilMotDePasse.installer(champMotDePasse);
             if (zoneIconeSecurite != null) {
                 zoneIconeSecurite.getChildren().add(Icons.shieldCheck(14, javafx.scene.paint.Color.web("#7eb8ff", 0.8)));
             }
@@ -87,9 +89,17 @@ public class LoginController {
 
         Task<Optional<User>> tache = new Task<>() {
             @Override
-            protected Optional<User> call() {
+            protected Optional<User> call() throws Exception {
                 Optional<User> utilisateur = userDAO.trouverParIdentifiant(identifiant);
-                if (utilisateur.isEmpty()) return Optional.empty();
+                if (utilisateur.isEmpty()) {
+                    // Test réseau effectué ici (thread de fond) : isValid()
+                    // peut attendre plusieurs secondes, jamais sur l'UI thread.
+                    if (!userDAO.baseAccessible()) {
+                        throw new IllegalStateException(
+                                "Base de données inaccessible. Vérifiez que MySQL (WampServer) est démarré.");
+                    }
+                    return Optional.empty();
+                }
 
                 User user = utilisateur.get();
                 if (!PasswordUtil.verifier(motDePasse, user.getMotDePasse())) {
@@ -110,20 +120,16 @@ public class LoginController {
             Optional<User> resultat = tache.getValue();
 
             if (resultat.isEmpty()) {
-                if (!userDAO.baseAccessible()) {
-                    AuthUi.erreur(labelMessage, "Base de données inaccessible. Vérifiez que MySQL (WampServer) est démarré.");
-                } else {
-                    LoginGuard.PARTAGE.echec(identifiant);
-                    AuthUi.erreur(labelMessage, "Pseudo, email ou mot de passe incorrect.");
-                    champMotDePasse.clear();
-                }
+                LoginGuard.PARTAGE.echec(identifiant);
+                AuthUi.erreur(labelMessage, "Pseudo, email ou mot de passe incorrect.");
+                champMotDePasse.clear();
                 return;
             }
 
             LoginGuard.PARTAGE.reussite(identifiant);
             SessionManager.connecter(resultat.get());
             try {
-                Main.changerScene("view/dashboard.fxml", 1140, 740);
+                Main.changerScene("view/dashboard.fxml", Main.LARGEUR_APP, Main.HAUTEUR_APP);
             } catch (IOException e) {
                 AuthUi.erreur(labelMessage, "Impossible d'ouvrir le tableau de bord.");
                 log.error("Navigation dashboard échouée", e);
@@ -132,8 +138,13 @@ public class LoginController {
 
         tache.setOnFailed(evt -> {
             boutonConnexion.setDisable(false);
-            log.error("Connexion échouée", tache.getException());
-            AuthUi.erreur(labelMessage, "Une erreur inattendue s'est produite. Veuillez réessayer.");
+            Throwable erreur = tache.getException();
+            if (erreur instanceof IllegalStateException) {
+                AuthUi.erreur(labelMessage, erreur.getMessage());
+            } else {
+                log.error("Connexion échouée", erreur);
+                AuthUi.erreur(labelMessage, "Une erreur inattendue s'est produite. Veuillez réessayer.");
+            }
         });
 
         DbExecutor.soumettre(tache);

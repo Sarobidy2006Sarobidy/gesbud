@@ -7,6 +7,7 @@ import com.budgetmanager.util.AuthUi;
 import com.budgetmanager.util.FlashMessage;
 import com.budgetmanager.util.Hexagon;
 import com.budgetmanager.util.Icons;
+import com.budgetmanager.util.OeilMotDePasse;
 import com.budgetmanager.util.PasswordUtil;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -81,6 +82,8 @@ public class ForgotPasswordController {
         zoneIconeNouveau.getChildren().add(Icons.lock(17, AuthUi.couleurIconeChamp()));
         zoneIconeConfirmation.getChildren().add(Icons.lock(17, AuthUi.couleurIconeChamp()));
         lienRetour.setGraphic(Icons.arrowLeft(15, Color.web("#bfdcff")));
+        OeilMotDePasse.installer(champNouveauMotDePasse);
+        OeilMotDePasse.installer(champConfirmation);
         AuthUi.activerFocusSurLignes(racine);
 
         AuthUi.effacer(labelMessage);

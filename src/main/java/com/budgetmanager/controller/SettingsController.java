@@ -4,6 +4,7 @@ import com.budgetmanager.dao.UserDAO;
 import com.budgetmanager.model.User;
 import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.Icons;
+import com.budgetmanager.util.OeilMotDePasse;
 import com.budgetmanager.util.PasswordUtil;
 import com.budgetmanager.util.PseudoUtil;
 import com.budgetmanager.util.RaccourcisClavier;
@@ -46,6 +47,11 @@ public class SettingsController implements RaccourcisClavier {
     @FXML
     public void initialize() {
         sidebarController.setActive("parametres");
+
+        OeilMotDePasse.installer(champAncienMotDePasse);
+        OeilMotDePasse.installer(champNouveauMotDePasse);
+        OeilMotDePasse.installer(champConfirmationMotDePasse);
+        OeilMotDePasse.installer(champMotDePasseQuestion);
 
         boutonEnregistrerProfil.setGraphic(Icons.save(15, Color.WHITE));
         boutonChangerMotDePasse.setGraphic(Icons.key(15, Color.WHITE));

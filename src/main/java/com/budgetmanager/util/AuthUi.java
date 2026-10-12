@@ -8,6 +8,9 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Utilitaires partagés par les écrans d'authentification
  * (connexion, inscription, mot de passe oublié).
@@ -31,13 +34,11 @@ public final class AuthUi {
     public static void activerFocusSurLignes(Node racine) {
         for (Node ligne : racine.lookupAll(".auth-input")) {
             if (!(ligne instanceof Pane)) continue;
-            for (Node enfant : ((Pane) ligne).getChildren()) {
-                if (enfant instanceof TextInputControl || enfant instanceof ComboBox) {
-                    enfant.focusedProperty().addListener((obs, avant, apres) -> {
-                        if (apres) ligne.getStyleClass().add("auth-input-focused");
-                        else ligne.getStyleClass().remove("auth-input-focused");
-                    });
-                }
+            for (Node champ : saisiesDe((Pane) ligne)) {
+                champ.focusedProperty().addListener((obs, avant, apres) -> {
+                    if (apres) ligne.getStyleClass().add("auth-input-focused");
+                    else ligne.getStyleClass().remove("auth-input-focused");
+                });
             }
         }
     }
@@ -50,20 +51,36 @@ public final class AuthUi {
         activerFocusSurLignes(racine);
         for (Node ligne : racine.lookupAll(".auth-input-premium")) {
             if (!(ligne instanceof Pane)) continue;
-            for (Node enfant : ((Pane) ligne).getChildren()) {
-                if (enfant instanceof TextInputControl || enfant instanceof ComboBox) {
-                    enfant.focusedProperty().addListener((obs, avant, apres) -> {
-                        if (apres) {
-                            ligne.setStyle(
-                                "-fx-background-color: rgba(255,255,255,0.16);" +
-                                "-fx-border-color: rgba(93,170,255,0.75);" +
-                                "-fx-effect: dropshadow(gaussian, rgba(93,170,255,0.55), 18, 0.08, 0, 0);");
-                        } else {
-                            ligne.setStyle("");
-                        }
-                    });
-                }
+            for (Node champ : saisiesDe((Pane) ligne)) {
+                champ.focusedProperty().addListener((obs, avant, apres) -> {
+                    if (apres) {
+                        ligne.setStyle(
+                            "-fx-background-color: rgba(255,255,255,0.16);" +
+                            "-fx-border-color: rgba(93,170,255,0.75);" +
+                            "-fx-effect: dropshadow(gaussian, rgba(93,170,255,0.55), 18, 0.08, 0, 0);");
+                    } else {
+                        ligne.setStyle("");
+                    }
+                });
             }
+        }
+    }
+
+    /**
+     * Champs de saisie d'une ligne, y compris ceux enfermés dans un conteneur
+     * intermédiaire (le StackPane ajouté par {@link OeilMotDePasse} autour du
+     * mot de passe).
+     */
+    private static List<Node> saisiesDe(Pane conteneur) {
+        List<Node> saisies = new ArrayList<>();
+        collecterSaisies(conteneur, saisies);
+        return saisies;
+    }
+
+    private static void collecterSaisies(Pane conteneur, List<Node> saisies) {
+        for (Node enfant : conteneur.getChildren()) {
+            if (enfant instanceof TextInputControl || enfant instanceof ComboBox) saisies.add(enfant);
+            if (enfant instanceof Pane) collecterSaisies((Pane) enfant, saisies);
         }
     }
 
