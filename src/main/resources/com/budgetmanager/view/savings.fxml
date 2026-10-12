@@ -89,7 +89,7 @@
                     </HBox>
                 </VBox>
 
-                <TableView fx:id="tableEconomies" prefHeight="320" minHeight="220">
+                <TableView fx:id="tableEconomies" VBox.vgrow="ALWAYS">
                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
                     <columns>
                         <TableColumn fx:id="colonneMontant" text="Montant" prefWidth="140"/>

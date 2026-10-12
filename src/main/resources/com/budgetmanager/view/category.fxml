@@ -35,7 +35,16 @@
                 </HBox>
             </VBox>
 
-            <TableView fx:id="tableCategories" VBox.vgrow="ALWAYS" minHeight="220">
+            <VBox styleClass="card" spacing="12">
+                <Label text="Rechercher une catégorie" styleClass="card-title"/>
+                <TextField fx:id="champRecherche" promptText="Nom de la catégorie..." HBox.hgrow="ALWAYS"/>
+                <HBox spacing="10">
+                    <Button fx:id="boutonFiltrer" text="Filtrer" styleClass="button-primary" onAction="#rechercherEtFiltrer" contentDisplay="LEFT"/>
+                    <Button fx:id="boutonReinitialiser" text="Réinitialiser" styleClass="button-secondary" onAction="#reinitialiserFiltres" contentDisplay="LEFT"/>
+                </HBox>
+            </VBox>
+
+            <TableView fx:id="tableCategories" VBox.vgrow="ALWAYS">
                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
                 <columns>
                     <TableColumn fx:id="colonneNom" text="Nom" prefWidth="250"/>

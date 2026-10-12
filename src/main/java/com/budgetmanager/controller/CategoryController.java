@@ -30,6 +30,9 @@ public class CategoryController implements RaccourcisClavier {
     @FXML private Button boutonAjouter;
     @FXML private Button boutonModifier;
     @FXML private Button boutonSupprimer;
+    @FXML private TextField champRecherche;
+    @FXML private Button boutonFiltrer;
+    @FXML private Button boutonReinitialiser;
 
     /** Contrôleur de la barre latérale incluse (fx:id="sidebar" -> champ "sidebarController"). */
     @FXML private SidebarController sidebarController;
@@ -58,6 +61,13 @@ public class CategoryController implements RaccourcisClavier {
                 comboType.setValue(nouveau.getType());
             }
         });
+
+        // Initialisation des boutons de filtre
+        boutonFiltrer.setGraphic(Icons.filter(15, Color.WHITE));
+        boutonReinitialiser.setGraphic(Icons.rotateCcw(15, Color.web("#374151")));
+
+        // Focus automatique sur le premier champ
+        javafx.application.Platform.runLater(() -> champNom.requestFocus());
 
         chargerCategories();
     }
@@ -147,6 +157,23 @@ public class CategoryController implements RaccourcisClavier {
         comboType.setValue(null);
         categorieSelectionnee = null;
         tableCategories.getSelectionModel().clearSelection();
+    }
+
+    @FXML
+    public void rechercherEtFiltrer() {
+        String terme = champRecherche.getText().trim().toLowerCase();
+        if (terme.isEmpty()) {
+            chargerCategories();
+            return;
+        }
+        // Filtre en mémoire sur les catégories chargées
+        donnees.removeIf(c -> !c.getNom().toLowerCase().contains(terme));
+    }
+
+    @FXML
+    public void reinitialiserFiltres() {
+        champRecherche.clear();
+        chargerCategories();
     }
 
 }
