@@ -22,10 +22,10 @@
     <HBox>
         <fx:include source="auth-hero.fxml" HBox.hgrow="ALWAYS"/>
 
-        <StackPane styleClass="auth-side" minWidth="560" prefWidth="560" maxWidth="560">
+        <StackPane styleClass="auth-side" minWidth="620" prefWidth="620" maxWidth="620">
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="auth-scroll">
                 <StackPane styleClass="auth-scroll-content">
-                    <VBox styleClass="auth-card-premium" spacing="10" maxWidth="480" alignment="TOP_CENTER" style="-fx-padding: 28 40;">
+                    <VBox styleClass="auth-card-premium" spacing="10" maxWidth="520" alignment="TOP_CENTER" style="-fx-padding: 28 40;">
 
                         <!-- Logo + marque -->
                         <HBox alignment="CENTER_LEFT" spacing="14">

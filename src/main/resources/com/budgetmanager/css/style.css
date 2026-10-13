@@ -597,10 +597,10 @@
    PAGES D'AUTHENTIFICATION — DESIGN PREMIUM
    ========================================================================= */
 
-/* Panneau côté droit */
+/* Panneau côté droit — la carte est centrée dans cette colonne */
 .auth-side {
     -fx-background-color: transparent;
-    -fx-padding: 28 40 28 0;
+    -fx-padding: 48 64 48 0;
 }
 
 /* ── Carte glassmorphism ── */
@@ -608,16 +608,16 @@
     /* Fond : blanc très translucide + légère teinte bleue — simule le verre */
     -fx-background-color: linear-gradient(
         to bottom right,
-        rgba(255,255,255,0.13),
-        rgba(200,225,255,0.09));
-    -fx-background-radius: 20;
+        rgba(255,255,255,0.16),
+        rgba(170,205,255,0.07));
+    -fx-background-radius: 24;
     /* Bordure lumineuse (filet blanc semi-transparent) */
-    -fx-border-color: rgba(255,255,255,0.22);
-    -fx-border-radius: 20;
+    -fx-border-color: rgba(255,255,255,0.24);
+    -fx-border-radius: 24;
     -fx-border-width: 1.5;
-    -fx-padding: 36 40;
+    -fx-padding: 40 44;
     /* Ombre profonde pour l'effet de profondeur */
-    -fx-effect: dropshadow(gaussian, rgba(0,8,40,0.65), 48, 0.05, 0, 16);
+    -fx-effect: dropshadow(gaussian, rgba(0,8,40,0.65), 52, 0.05, 0, 18);
 }
 
 /* ── Marque / brand ── */
@@ -651,36 +651,36 @@
 .auth-title-premium {
     -fx-font-family: "Poppins";
     -fx-font-weight: bold;
-    -fx-font-size: 28px;
+    -fx-font-size: 30px;
     -fx-text-fill: white;
     -fx-effect: dropshadow(gaussian, rgba(93,170,255,0.50), 10, 0.05, 0, 2);
 }
 
 .auth-tagline-premium {
     -fx-font-family: "Inter";
-    -fx-font-size: 13px;
+    -fx-font-size: 13.5px;
     -fx-text-fill: rgba(180,210,255,0.85);
 }
 
 /* ── Labels de champ ── */
 .auth-field-label {
     -fx-font-family: "Inter SemiBold";
-    -fx-font-size: 10.5px;
-    -fx-text-fill: rgba(160,200,255,0.90);
+    -fx-font-size: 11.5px;
+    -fx-text-fill: rgba(175,212,255,0.95);
     -fx-padding: 0 0 0 2;
 }
 
 /* ── Conteneur input glassmorphism ── */
 .auth-input-premium {
     -fx-background-color: rgba(255,255,255,0.10);
-    -fx-background-radius: 10;
-    -fx-border-color: rgba(255,255,255,0.20);
-    -fx-border-radius: 10;
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(255,255,255,0.22);
+    -fx-border-radius: 14;
     -fx-border-width: 1.5;
-    -fx-min-height: 48;
-    -fx-pref-height: 48;
-    -fx-max-height: 48;
-    -fx-effect: dropshadow(gaussian, rgba(0,30,100,0.30), 10, 0, 0, 3);
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-effect: dropshadow(gaussian, rgba(0,30,100,0.30), 12, 0, 0, 3);
 }
 
 /* Hover sur les inputs — lueur bleue */
@@ -692,11 +692,11 @@
 
 /* ── Zone icône à gauche du champ ── */
 .auth-input-icon-premium {
-    -fx-pref-width: 46;
-    -fx-min-width: 46;
-    -fx-max-width: 46;
+    -fx-pref-width: 56;
+    -fx-min-width: 56;
+    -fx-max-width: 56;
     -fx-background-color: rgba(255,255,255,0.07);
-    -fx-background-radius: 8 0 0 8;
+    -fx-background-radius: 12 0 0 12;
     -fx-border-color: transparent rgba(255,255,255,0.15) transparent transparent;
     -fx-border-width: 0 1 0 0;
 }
@@ -706,26 +706,26 @@
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-border-color: transparent;
-    -fx-padding: 0 14 0 12;
+    -fx-padding: 0 16 0 14;
     -fx-text-fill: white;
-    -fx-prompt-text-fill: rgba(150,185,230,0.65);
+    -fx-prompt-text-fill: rgba(160,195,240,0.70);
     -fx-font-family: "Inter";
-    -fx-font-size: 14px;
-    -fx-pref-height: 46;
+    -fx-font-size: 15px;
+    -fx-pref-height: 52;
     -fx-effect: none;
 }
 
 /* ── Bouton SE CONNECTER ── */
 .auth-button-premium {
     -fx-background-color: linear-gradient(to right, #1e88e5 0%, #00b4d8 50%, #0077b6 100%);
-    -fx-background-radius: 10;
+    -fx-background-radius: 14;
     -fx-text-fill: white;
     -fx-font-family: "Poppins Medium";
-    -fx-font-size: 15px;
+    -fx-font-size: 15.5px;
     -fx-font-weight: bold;
-    -fx-padding: 14 20;
+    -fx-padding: 16 20;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0,150,255,0.55), 20, 0.1, 0, 5);
+    -fx-effect: dropshadow(gaussian, rgba(0,150,255,0.55), 22, 0.1, 0, 6);
 }
 
 .auth-button-premium:hover {
@@ -761,7 +761,21 @@
     -fx-text-fill: #ff9c9c;
 }
 
-/* ── Séparateur "ou" ── */.auth-separator-text {
+/* ── Séparateur "ou" ── */
+/* Filet de 1 px : sans min/max, un Region s'étire sur toute la hauteur de la
+   ligne et rend une barre grise épaisse au lieu d'un trait. */
+.auth-separator-line {
+    -fx-background-color: linear-gradient(
+        to right,
+        rgba(255,255,255,0.03),
+        rgba(255,255,255,0.26),
+        rgba(255,255,255,0.03));
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+}
+
+.auth-separator-text {
     -fx-font-family: "Inter";
     -fx-font-size: 11.5px;
     -fx-text-fill: rgba(150,185,230,0.70);
@@ -809,10 +823,10 @@
 /* ── Bandeau sécurité bas de carte ── */
 .auth-security-row {
     -fx-background-color: rgba(0,30,100,0.35);
-    -fx-background-radius: 8;
+    -fx-background-radius: 10;
     -fx-border-color: rgba(255,255,255,0.10);
-    -fx-border-radius: 8;
-    -fx-padding: 8 12;
+    -fx-border-radius: 10;
+    -fx-padding: 10 14;
 }
 
 .auth-security-icon {

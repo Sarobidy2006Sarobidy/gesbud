@@ -26,10 +26,12 @@
         <fx:include source="auth-hero.fxml" HBox.hgrow="ALWAYS"/>
 
         <!-- ══════════════════  PANNEAU DROIT CONNEXION  ══════════════════ -->
-        <StackPane styleClass="auth-side" minWidth="480" prefWidth="480" maxWidth="480">
-            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="auth-scroll">
+        <!-- Colonne large et carte centrée verticalement : en plein écran, une carte
+             collée en haut laissait la moitié basse de l'écran vide. -->
+        <StackPane styleClass="auth-side" minWidth="620" prefWidth="620" maxWidth="620">
+            <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" styleClass="auth-scroll">
                 <StackPane styleClass="auth-scroll-content">
-                    <VBox styleClass="auth-card-premium" spacing="20" maxWidth="420" maxHeight="-Infinity">
+                    <VBox styleClass="auth-card-premium" spacing="18" maxWidth="520" maxHeight="-Infinity">
 
                         <!-- Logo + marque -->
                         <HBox alignment="CENTER_LEFT" spacing="14">
@@ -85,21 +87,19 @@
                                 onAction="#seConnecter" defaultButton="true"/>
 
                         <!-- Séparateur + inscription -->
-                        <HBox alignment="CENTER" spacing="10">
-                            <Region HBox.hgrow="ALWAYS"
-                                    style="-fx-background-color: rgba(255,255,255,0.15); -fx-pref-height: 1;"/>
+                        <HBox alignment="CENTER" spacing="12">
+                            <Region styleClass="auth-separator-line" HBox.hgrow="ALWAYS"/>
                             <Label text="ou" styleClass="auth-separator-text"/>
-                            <Region HBox.hgrow="ALWAYS"
-                                    style="-fx-background-color: rgba(255,255,255,0.15); -fx-pref-height: 1;"/>
+                            <Region styleClass="auth-separator-line" HBox.hgrow="ALWAYS"/>
                         </HBox>
 
-                        <!-- Lien inscription : deux lignes, la carte de 420 px ne suffit pas
-                             pour tout tenir sur une seule sans tronquer le libellé. -->
-                        <VBox alignment="CENTER" spacing="2">
+                        <!-- Lien inscription : la carte de 520 px est assez large
+                             pour tenir question et lien sur une seule ligne. -->
+                        <HBox alignment="CENTER" spacing="6">
                             <Label text="Pas encore de compte ?" styleClass="auth-footer-text-premium"/>
                             <Hyperlink fx:id="lienInscription" text="Créer un compte gratuitement"
                                        styleClass="auth-link-register" onAction="#allerVersInscription"/>
-                        </VBox>
+                        </HBox>
 
                         <!-- Footer sécurité -->
                         <HBox alignment="CENTER" spacing="8" styleClass="auth-security-row">
