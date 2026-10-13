@@ -4,7 +4,7 @@
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -12,14 +12,12 @@
 <?import javafx.scene.layout.VBox?>
 
 <!--
-  Page de connexion redessinée — palette « nuit profonde + bleu néon »
-  - Fond : dégradé animé bleu nuit avec halos lumineux
-  - Gauche : paneau hero 3D avec badges hexagonaux flottants
-  - Droite : carte glassmorphism (fond translucide + flou)
-  - Polices : Poppins (titres), Inter (champs)
-  - Icônes : 100% vectorielles (Icons.java)
+  Page de connexion — palette « nuit profonde + bleu néon »
+  - Gauche : panneau hero 3D avec badges hexagonaux flottants
+  - Droite : carte glassmorphism dans une colonne scrollable
+    (la carte mesure ~620 px, elle ne tient pas dans une fenêtre réduite à 640 px)
 -->
-<StackPane fx:id="racine" styleClass="auth-container" xmlns="http://javafx.com/javafx"
+<StackPane fx:id="racine" styleClass="auth-container" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.budgetmanager.controller.LoginController">
 
@@ -29,84 +27,89 @@
 
         <!-- ══════════════════  PANNEAU DROIT CONNEXION  ══════════════════ -->
         <StackPane styleClass="auth-side" minWidth="480" prefWidth="480" maxWidth="480">
-            <VBox styleClass="auth-card-premium" spacing="20" maxWidth="420" maxHeight="-Infinity">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="auth-scroll">
+                <StackPane styleClass="auth-scroll-content">
+                    <VBox styleClass="auth-card-premium" spacing="20" maxWidth="420" maxHeight="-Infinity">
 
-                <!-- Logo + marque -->
-                <HBox alignment="CENTER_LEFT" spacing="14">
-                    <StackPane fx:id="zoneLogo"/>
-                    <VBox spacing="1">
-                        <Label text="BUDGET PERSONNEL" styleClass="auth-brand-premium"/>
-                        <Label text="Gérez votre avenir financier" styleClass="auth-brand-sub"/>
+                        <!-- Logo + marque -->
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <StackPane fx:id="zoneLogo"/>
+                            <VBox spacing="1">
+                                <Label text="BUDGET PERSONNEL" styleClass="auth-brand-premium"/>
+                                <Label text="Gérez votre avenir financier" styleClass="auth-brand-sub"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Séparateur décoratif -->
+                        <HBox styleClass="auth-divider-line" maxWidth="Infinity"/>
+
+                        <!-- Titre section -->
+                        <VBox spacing="5">
+                            <Label text="Bon retour !" styleClass="auth-title-premium"/>
+                            <Label text="Connectez-vous pour accéder à votre tableau de bord"
+                                   styleClass="auth-tagline-premium" wrapText="true"/>
+                        </VBox>
+
+                        <!-- Message flash (erreur / succès) -->
+                        <Label fx:id="labelMessage" styleClass="auth-message" wrapText="true" maxWidth="Infinity"
+                               managed="false" visible="false"/>
+
+                        <!-- Champ email / pseudo -->
+                        <VBox spacing="6">
+                            <Label text="IDENTIFIANT" styleClass="auth-field-label"/>
+                            <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                <StackPane fx:id="zoneIconeEmail" styleClass="auth-input-icon-premium"/>
+                                <TextField fx:id="champEmail" styleClass="auth-textfield-premium"
+                                           promptText="Pseudo ou adresse email" HBox.hgrow="ALWAYS"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Champ mot de passe -->
+                        <VBox spacing="6">
+                            <HBox alignment="CENTER_LEFT">
+                                <Label text="MOT DE PASSE" styleClass="auth-field-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Hyperlink fx:id="lienMotDePasseOublie" text="Oublié ?"
+                                           styleClass="auth-link-forgot" onAction="#allerVersMotDePasseOublie"/>
+                            </HBox>
+                            <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                <StackPane fx:id="zoneIconeMotDePasse" styleClass="auth-input-icon-premium"/>
+                                <PasswordField fx:id="champMotDePasse" styleClass="auth-textfield-premium"
+                                               promptText="••••••••" HBox.hgrow="ALWAYS"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Bouton connexion -->
+                        <Button fx:id="boutonConnexion" text="SE CONNECTER"
+                                styleClass="auth-button-premium" maxWidth="Infinity"
+                                onAction="#seConnecter" defaultButton="true"/>
+
+                        <!-- Séparateur + inscription -->
+                        <HBox alignment="CENTER" spacing="10">
+                            <Region HBox.hgrow="ALWAYS"
+                                    style="-fx-background-color: rgba(255,255,255,0.15); -fx-pref-height: 1;"/>
+                            <Label text="ou" styleClass="auth-separator-text"/>
+                            <Region HBox.hgrow="ALWAYS"
+                                    style="-fx-background-color: rgba(255,255,255,0.15); -fx-pref-height: 1;"/>
+                        </HBox>
+
+                        <!-- Lien inscription : deux lignes, la carte de 420 px ne suffit pas
+                             pour tout tenir sur une seule sans tronquer le libellé. -->
+                        <VBox alignment="CENTER" spacing="2">
+                            <Label text="Pas encore de compte ?" styleClass="auth-footer-text-premium"/>
+                            <Hyperlink fx:id="lienInscription" text="Créer un compte gratuitement"
+                                       styleClass="auth-link-register" onAction="#allerVersInscription"/>
+                        </VBox>
+
+                        <!-- Footer sécurité -->
+                        <HBox alignment="CENTER" spacing="8" styleClass="auth-security-row">
+                            <StackPane fx:id="zoneIconeSecurite" styleClass="auth-security-icon"/>
+                            <Label text="Connexion sécurisée · Données chiffrées" styleClass="auth-security-label"/>
+                        </HBox>
+
                     </VBox>
-                </HBox>
-
-                <!-- Séparateur décoratif -->
-                <HBox styleClass="auth-divider-line" maxWidth="Infinity"/>
-
-                <!-- Titre section -->
-                <VBox spacing="5">
-                    <Label text="Bon retour !" styleClass="auth-title-premium"/>
-                    <Label text="Connectez-vous pour accéder à votre tableau de bord"
-                           styleClass="auth-tagline-premium" wrapText="true"/>
-                </VBox>
-
-                <!-- Message flash (erreur / succès) -->
-                <Label fx:id="labelMessage" styleClass="auth-message" wrapText="true" maxWidth="Infinity"
-                       managed="false" visible="false"/>
-
-                <!-- Champ email / pseudo -->
-                <VBox spacing="6">
-                    <Label text="IDENTIFIANT" styleClass="auth-field-label"/>
-                    <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
-                        <StackPane fx:id="zoneIconeEmail" styleClass="auth-input-icon-premium"/>
-                        <TextField fx:id="champEmail" styleClass="auth-textfield-premium"
-                                   promptText="Pseudo ou adresse email" HBox.hgrow="ALWAYS"/>
-                    </HBox>
-                </VBox>
-
-                <!-- Champ mot de passe -->
-                <VBox spacing="6">
-                    <HBox alignment="CENTER_LEFT">
-                        <Label text="MOT DE PASSE" styleClass="auth-field-label"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Hyperlink fx:id="lienMotDePasseOublie" text="Oublié ?"
-                                   styleClass="auth-link-forgot" onAction="#allerVersMotDePasseOublie"/>
-                    </HBox>
-                    <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
-                        <StackPane fx:id="zoneIconeMotDePasse" styleClass="auth-input-icon-premium"/>
-                        <PasswordField fx:id="champMotDePasse" styleClass="auth-textfield-premium"
-                                       promptText="••••••••" HBox.hgrow="ALWAYS"/>
-                    </HBox>
-                </VBox>
-
-                <!-- Bouton connexion premium -->
-                <Button fx:id="boutonConnexion" text="SE CONNECTER"
-                        styleClass="auth-button-premium" maxWidth="Infinity"
-                        onAction="#seConnecter" defaultButton="true"/>
-
-                <!-- Séparateur + inscription -->
-                <HBox alignment="CENTER" spacing="10">
-                    <Region HBox.hgrow="ALWAYS"
-                            style="-fx-background-color: rgba(255,255,255,0.15); -fx-pref-height: 1;"/>
-                    <Label text="ou" styleClass="auth-separator-text"/>
-                    <Region HBox.hgrow="ALWAYS"
-                            style="-fx-background-color: rgba(255,255,255,0.15); -fx-pref-height: 1;"/>
-                </HBox>
-
-                <!-- Lien inscription -->
-                <HBox alignment="CENTER" spacing="6">
-                    <Label text="Pas encore de compte ?" styleClass="auth-footer-text-premium"/>
-                    <Hyperlink fx:id="lienInscription" text="Créer un compte gratuitement"
-                               styleClass="auth-link-register" onAction="#allerVersInscription"/>
-                </HBox>
-
-                <!-- Footer sécurité -->
-                <HBox alignment="CENTER" spacing="8" styleClass="auth-security-row">
-                    <StackPane fx:id="zoneIconeSecurite" styleClass="auth-security-icon"/>
-                    <Label text="Connexion sécurisée · Données chiffrées" styleClass="auth-security-label"/>
-                </HBox>
-
-            </VBox>
+                </StackPane>
+            </ScrollPane>
         </StackPane>
     </HBox>
 </StackPane>

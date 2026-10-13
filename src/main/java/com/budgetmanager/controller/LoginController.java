@@ -49,13 +49,13 @@ public class LoginController {
     public void initialize() {
         try {
             zoneLogo.getChildren().add(Hexagon.badge(46, Icons::wallet, true));
-            javafx.scene.paint.Color couleurIcone = javafx.scene.paint.Color.web("#9dc8ff");
-            zoneIconeEmail.getChildren().add(Icons.user(17, couleurIcone));
-            zoneIconeMotDePasse.getChildren().add(Icons.lock(17, couleurIcone));
+            zoneIconeEmail.getChildren().add(Icons.user(17, AuthUi.couleurIconeChamp()));
+            zoneIconeMotDePasse.getChildren().add(Icons.lock(17, AuthUi.couleurIconeChamp()));
             OeilMotDePasse.installer(champMotDePasse);
             if (zoneIconeSecurite != null) {
                 zoneIconeSecurite.getChildren().add(Icons.shieldCheck(14, javafx.scene.paint.Color.web("#7eb8ff", 0.8)));
             }
+            AuthUi.activerFocusSurLignesPremium(racine);
         } catch (Exception e) {
             log.error("Erreur initialize UI", e);
         }

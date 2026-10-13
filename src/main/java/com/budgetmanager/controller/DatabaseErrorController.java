@@ -44,7 +44,7 @@ public class DatabaseErrorController {
 
     @FXML
     public void initialize() {
-        iconeErreur.getChildren().add(Icons.alertCircle(38, Color.web("#d92d20")));
+        iconeErreur.getChildren().add(Icons.alertCircle(38, Color.web("#ff8080")));
 
         labelDetail.setText(messageErreur.isEmpty()
                 ? "MySQL ne répond pas. Vérifiez que XAMPP/WampServer est démarré."
@@ -55,14 +55,20 @@ public class DatabaseErrorController {
         labelPort.setText("Port configuré : " + port
                 + " — si XAMPP utilise le port 3307, modifiez database.properties");
 
-        labelStatut.setText("");
         boutonReessayer.setGraphic(Icons.rotateCcw(15, Color.WHITE));
-        boutonQuitter.setGraphic(Icons.logOut(15, Color.web("#d92d20")));
+        boutonQuitter.setGraphic(Icons.logOut(15, Color.web("#ff9c9c")));
+    }
+
+    /** Ligne d'état sous le guide : masquée tant qu'elle est vide. */
+    private void afficherStatut(String texte) {
+        labelStatut.setText(texte);
+        labelStatut.setVisible(!texte.isEmpty());
+        labelStatut.setManaged(!texte.isEmpty());
     }
 
     @FXML
     public void reessayer() {
-        labelStatut.setText("Tentative de connexion…");
+        afficherStatut("Tentative de connexion…");
         boutonReessayer.setDisable(true);
 
         Task<Boolean> tache = new Task<>() {
@@ -86,17 +92,17 @@ public class DatabaseErrorController {
                 try {
                     Main.changerScene("view/login.fxml", Main.LARGEUR_AUTH, Main.HAUTEUR_AUTH);
                 } catch (IOException e) {
-                    labelStatut.setText("Erreur inattendue : " + e.getMessage());
+                    afficherStatut("Erreur inattendue : " + e.getMessage());
                     boutonReessayer.setDisable(false);
                 }
             } else {
-                labelStatut.setText("Toujours inaccessible. Vérifiez que MySQL est bien démarré.");
+                afficherStatut("Toujours inaccessible. Vérifiez que MySQL est bien démarré.");
                 boutonReessayer.setDisable(false);
             }
         });
 
         tache.setOnFailed(evt -> {
-            labelStatut.setText("Échec de la tentative. Vérifiez votre configuration.");
+            afficherStatut("Échec de la tentative. Vérifiez votre configuration.");
             boutonReessayer.setDisable(false);
         });
 

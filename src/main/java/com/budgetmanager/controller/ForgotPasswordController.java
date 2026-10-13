@@ -81,10 +81,10 @@ public class ForgotPasswordController {
         zoneIconeReponse.getChildren().add(Icons.shield(17, AuthUi.couleurIconeChamp()));
         zoneIconeNouveau.getChildren().add(Icons.lock(17, AuthUi.couleurIconeChamp()));
         zoneIconeConfirmation.getChildren().add(Icons.lock(17, AuthUi.couleurIconeChamp()));
-        lienRetour.setGraphic(Icons.arrowLeft(15, Color.web("#bfdcff")));
+        lienRetour.setGraphic(Icons.arrowLeft(15, Color.web("#5daaff")));
         OeilMotDePasse.installer(champNouveauMotDePasse);
         OeilMotDePasse.installer(champConfirmation);
-        AuthUi.activerFocusSurLignes(racine);
+        AuthUi.activerFocusSurLignesPremium(racine);
 
         AuthUi.effacer(labelMessage);
         afficherEtape(1);

@@ -6,12 +6,15 @@
 <?import javafx.scene.layout.VBox?>
 
 <!-- Panneau décoratif de gauche des écrans d'authentification : badges hexagonaux
-     flottants (dessinés en Java par AuthHeroController) + accroche. -->
-<StackPane styleClass="auth-hero" xmlns="http://javafx.com/javafx"
+     flottants (dessinés en Java par AuthHeroController) + accroche.
+     minWidth="0" : la fenêtre peut descendre à 920 px, et le panneau de droite
+     (connexion / inscription) est prioritaire — le hero se comprime au lieu
+     de déborder de la scène. -->
+<StackPane styleClass="auth-hero" minWidth="0" xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.budgetmanager.controller.AuthHeroController">
     <Pane fx:id="zoneHexagones" mouseTransparent="true"/>
-    <VBox styleClass="auth-hero-text" alignment="BOTTOM_LEFT" spacing="8" pickOnBounds="false">
+    <VBox styleClass="auth-hero-text" minWidth="0" alignment="BOTTOM_LEFT" spacing="8" pickOnBounds="false">
         <Label text="Gardez le contrôle de votre budget" styleClass="auth-hero-title" wrapText="true"/>
         <Label text="Revenus, dépenses, catégories et statistiques : tout votre suivi financier au même endroit."
                styleClass="auth-hero-subtitle" wrapText="true"/>

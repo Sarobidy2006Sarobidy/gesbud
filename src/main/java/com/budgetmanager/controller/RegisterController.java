@@ -56,6 +56,7 @@ public class RegisterController {
     @FXML private StackPane zoneIconeDevise;
     @FXML private StackPane zoneIconeQuestion;
     @FXML private StackPane zoneIconeReponse;
+    @FXML private StackPane zoneIconeSecurite;
 
     private final UserDAO userDAO = new UserDAO();
 
@@ -71,9 +72,11 @@ public class RegisterController {
         zoneIconeDevise.getChildren().add(Icons.dollar(17, AuthUi.couleurIconeChamp()));
         zoneIconeQuestion.getChildren().add(Icons.helpCircle(17, AuthUi.couleurIconeChamp()));
         zoneIconeReponse.getChildren().add(Icons.shield(17, AuthUi.couleurIconeChamp()));
+        zoneIconeSecurite.getChildren().add(
+                Icons.shieldCheck(14, javafx.scene.paint.Color.web("#7eb8ff", 0.8)));
         OeilMotDePasse.installer(champMotDePasse);
         OeilMotDePasse.installer(champConfirmationMotDePasse);
-        AuthUi.activerFocusSurLignes(racine);
+        AuthUi.activerFocusSurLignesPremium(racine);
 
         comboDevise.getItems().addAll("Ar", "EUR", "USD", "GBP");
         comboDevise.getSelectionModel().selectFirst();

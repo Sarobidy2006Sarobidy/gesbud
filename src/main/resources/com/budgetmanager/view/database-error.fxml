@@ -6,63 +6,66 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
+<!--
+  Écran de secours quand MySQL est injoignable : carte verre sur le fond
+  dégradé, comme les autres pages d'authentification.
+-->
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.budgetmanager.controller.DatabaseErrorController"
            styleClass="auth-container">
 
-    <VBox alignment="CENTER" spacing="24" maxWidth="520"
-          styleClass="auth-card" style="-fx-padding: 48 40 48 40;">
+    <VBox alignment="CENTER" spacing="12" maxWidth="560" maxHeight="-Infinity"
+          styleClass="auth-card-premium" style="-fx-padding: 28 40;">
 
-        <!-- Icône erreur -->
-        <StackPane fx:id="iconeErreur" alignment="CENTER"
-                   style="-fx-background-color: #fff0f0; -fx-background-radius: 50%;
+        <StackPane fx:id="iconeErreur" alignment="CENTER" maxWidth="80" maxHeight="80"
+                   style="-fx-background-color: rgba(220,30,30,0.22); -fx-background-radius: 50%;
+                          -fx-border-color: rgba(255,80,80,0.35); -fx-border-radius: 50%;
                           -fx-min-width: 80; -fx-min-height: 80;"/>
 
-        <!-- Titre -->
         <Label fx:id="labelTitre" text="Base de données inaccessible"
-               styleClass="auth-title" wrapText="true" alignment="CENTER"/>
+               styleClass="auth-title-premium" wrapText="true" alignment="CENTER"/>
 
-        <!-- Explication principale -->
         <Label fx:id="labelDetail"
                wrapText="true" alignment="CENTER"
-               style="-fx-text-fill: #5b7099; -fx-font-size: 13px;"
+               style="-fx-text-fill: rgba(180,210,255,0.85); -fx-font-size: 13px; -fx-font-family: 'Inter';"
                maxWidth="440"/>
 
-        <!-- Port configuré -->
         <Label fx:id="labelPort"
                wrapText="true" alignment="CENTER"
-               style="-fx-text-fill: #d92d20; -fx-font-size: 12px; -fx-font-family: 'Inter';"
+               style="-fx-text-fill: #ff8080; -fx-font-size: 12px; -fx-font-family: 'Inter';"
                maxWidth="440"/>
 
         <!-- Guide rapide -->
-        <VBox spacing="6" style="-fx-background-color: #f3f7fd; -fx-background-radius: 10;
-                                  -fx-padding: 14 18 14 18;">
+        <VBox spacing="6" styleClass="auth-security-row" maxWidth="480">
             <Label text="Comment résoudre ce problème :"
-                   style="-fx-font-weight: bold; -fx-text-fill: #0f2a5c;"/>
+                   style="-fx-font-family: 'Poppins Medium'; -fx-font-size: 12.5px; -fx-text-fill: #cfe6ff;"/>
             <Label text="1. Ouvrez le panneau de contrôle XAMPP ou WampServer"
-                   style="-fx-text-fill: #35508a;" wrapText="true"/>
+                   style="-fx-text-fill: rgba(180,210,255,0.8); -fx-font-size: 12px; -fx-font-family: 'Inter';"
+                   wrapText="true"/>
             <Label text="2. Démarrez le service MySQL (bouton Start)"
-                   style="-fx-text-fill: #35508a;" wrapText="true"/>
+                   style="-fx-text-fill: rgba(180,210,255,0.8); -fx-font-size: 12px; -fx-font-family: 'Inter';"
+                   wrapText="true"/>
             <Label text="3. Si le port affiché est 3307, modifiez db.url dans database.properties"
-                   style="-fx-text-fill: #35508a;" wrapText="true"/>
+                   style="-fx-text-fill: rgba(180,210,255,0.8); -fx-font-size: 12px; -fx-font-family: 'Inter';"
+                   wrapText="true"/>
             <Label text="4. Cliquez sur « Réessayer » ci-dessous"
-                   style="-fx-text-fill: #35508a;" wrapText="true"/>
+                   style="-fx-text-fill: rgba(180,210,255,0.8); -fx-font-size: 12px; -fx-font-family: 'Inter';"
+                   wrapText="true"/>
         </VBox>
 
-        <!-- Statut de la tentative -->
         <Label fx:id="labelStatut"
                wrapText="true" alignment="CENTER"
-               style="-fx-text-fill: #1565c0; -fx-font-size: 12px;"
+               visible="false" managed="false"
+               style="-fx-text-fill: #7ec3ff; -fx-font-size: 12px; -fx-font-family: 'Inter';"
                maxWidth="440"/>
 
-        <!-- Boutons -->
         <HBox spacing="12" alignment="CENTER">
             <Button fx:id="boutonReessayer" text="Réessayer"
-                    styleClass="button-primary" onAction="#reessayer"
-                    style="-fx-min-width: 140;"/>
+                    styleClass="auth-button-premium" onAction="#reessayer"
+                    style="-fx-min-width: 150;"/>
             <Button fx:id="boutonQuitter" text="Quitter"
-                    styleClass="button-danger" onAction="#quitter"
+                    styleClass="auth-button-ghost" onAction="#quitter"
                     style="-fx-min-width: 120;"/>
         </HBox>
 

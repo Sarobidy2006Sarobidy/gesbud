@@ -6,93 +6,153 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane fx:id="racine" styleClass="auth-container" xmlns="http://javafx.com/javafx"
+<!--
+  Page d'inscription — même langage visuel que la connexion :
+  carte glassmorphism sur le hero, champs 48 px avec icône, libellés de champ.
+  Le formulaire est long, on garde donc une colonne scrollable.
+-->
+<StackPane fx:id="racine" styleClass="auth-container" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.budgetmanager.controller.RegisterController">
     <HBox>
         <fx:include source="auth-hero.fxml" HBox.hgrow="ALWAYS"/>
 
-        <StackPane styleClass="auth-side" minWidth="500" prefWidth="500" maxWidth="500">
+        <StackPane styleClass="auth-side" minWidth="560" prefWidth="560" maxWidth="560">
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="auth-scroll">
                 <StackPane styleClass="auth-scroll-content">
-                    <VBox styleClass="auth-card" spacing="11" maxWidth="420" maxHeight="-Infinity">
+                    <VBox styleClass="auth-card-premium" spacing="10" maxWidth="480" alignment="TOP_CENTER" style="-fx-padding: 28 40;">
 
-                        <HBox alignment="CENTER_LEFT" spacing="12">
+                        <!-- Logo + marque -->
+                        <HBox alignment="CENTER_LEFT" spacing="14">
                             <StackPane fx:id="zoneLogo"/>
-                            <Label text="BUDGET PERSONNEL" styleClass="auth-brand"/>
+                            <VBox spacing="1">
+                                <Label text="BUDGET PERSONNEL" styleClass="auth-brand-premium"/>
+                                <Label text="Créer votre espace en une minute" styleClass="auth-brand-sub"/>
+                            </VBox>
                         </HBox>
 
-                        <VBox spacing="3">
-                            <Label text="Créer un compte" styleClass="auth-title"/>
-                            <Label text="8 caractères minimum pour le mot de passe" styleClass="auth-tagline" wrapText="true"/>
+                        <HBox styleClass="auth-divider-line" maxWidth="Infinity"/>
+
+                        <VBox spacing="5">
+                            <Label text="Créer un compte" styleClass="auth-title-premium"/>
+                            <Label text="8 caractères minimum pour le mot de passe"
+                                   styleClass="auth-tagline-premium" wrapText="true"/>
                         </VBox>
 
-                        <Label fx:id="labelMessage" styleClass="auth-message" wrapText="true" maxWidth="Infinity"/>
+                        <Label fx:id="labelMessage" styleClass="auth-message" wrapText="true" maxWidth="Infinity"
+                               managed="false" visible="false"/>
 
-                        <HBox spacing="10">
-                            <HBox styleClass="auth-input" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                                <StackPane fx:id="zoneIconeNom" styleClass="auth-input-icon"/>
-                                <TextField fx:id="champNom" styleClass="auth-textfield" promptText="Nom" HBox.hgrow="ALWAYS"/>
+                        <!-- Identité -->
+                        <Label text="VOTRE IDENTITÉ" styleClass="auth-group-label" maxWidth="Infinity"/>
+
+                        <HBox spacing="12">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="NOM" styleClass="auth-field-label"/>
+                                <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                    <StackPane fx:id="zoneIconeNom" styleClass="auth-input-icon-premium"/>
+                                    <TextField fx:id="champNom" styleClass="auth-textfield-premium"
+                                               promptText="Rakoto" HBox.hgrow="ALWAYS"/>
+                                </HBox>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="PRÉNOM" styleClass="auth-field-label"/>
+                                <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                    <StackPane fx:id="zoneIconePrenom" styleClass="auth-input-icon-premium"/>
+                                    <TextField fx:id="champPrenom" styleClass="auth-textfield-premium"
+                                               promptText="Nicolas" HBox.hgrow="ALWAYS"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+
+                        <VBox spacing="6">
+                            <Label text="PSEUDO" styleClass="auth-field-label"/>
+                            <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                <StackPane fx:id="zoneIconePseudo" styleClass="auth-input-icon-premium"/>
+                                <TextField fx:id="champPseudo" styleClass="auth-textfield-premium"
+                                           promptText="Pour vous connecter" HBox.hgrow="ALWAYS"/>
                             </HBox>
-                            <HBox styleClass="auth-input" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                                <StackPane fx:id="zoneIconePrenom" styleClass="auth-input-icon"/>
-                                <TextField fx:id="champPrenom" styleClass="auth-textfield" promptText="Prénom" HBox.hgrow="ALWAYS"/>
+                        </VBox>
+
+                        <VBox spacing="6">
+                            <Label text="ADRESSE EMAIL" styleClass="auth-field-label"/>
+                            <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                <StackPane fx:id="zoneIconeEmail" styleClass="auth-input-icon-premium"/>
+                                <TextField fx:id="champEmail" styleClass="auth-textfield-premium"
+                                           promptText="vous@exemple.mg" HBox.hgrow="ALWAYS"/>
                             </HBox>
+                        </VBox>
+
+                        <!-- Mot de passe -->
+                        <Label text="ACCÈS AU COMPTE" styleClass="auth-group-label" maxWidth="Infinity"/>
+
+                        <HBox spacing="12">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="MOT DE PASSE" styleClass="auth-field-label"/>
+                                <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                    <StackPane fx:id="zoneIconeMotDePasse" styleClass="auth-input-icon-premium"/>
+                                    <PasswordField fx:id="champMotDePasse" styleClass="auth-textfield-premium"
+                                                   promptText="••••••••" HBox.hgrow="ALWAYS"/>
+                                </HBox>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="CONFIRMATION" styleClass="auth-field-label"/>
+                                <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                    <StackPane fx:id="zoneIconeConfirmation" styleClass="auth-input-icon-premium"/>
+                                    <PasswordField fx:id="champConfirmationMotDePasse" styleClass="auth-textfield-premium"
+                                                   promptText="••••••••" HBox.hgrow="ALWAYS"/>
+                                </HBox>
+                            </VBox>
                         </HBox>
 
-                        <HBox styleClass="auth-input" alignment="CENTER_LEFT">
-                            <StackPane fx:id="zoneIconePseudo" styleClass="auth-input-icon"/>
-                            <TextField fx:id="champPseudo" styleClass="auth-textfield" promptText="Pseudo (pour se connecter)" HBox.hgrow="ALWAYS"/>
-                        </HBox>
-
-                        <HBox styleClass="auth-input" alignment="CENTER_LEFT">
-                            <StackPane fx:id="zoneIconeEmail" styleClass="auth-input-icon"/>
-                            <TextField fx:id="champEmail" styleClass="auth-textfield" promptText="Adresse email" HBox.hgrow="ALWAYS"/>
-                        </HBox>
-
-                        <HBox spacing="10">
-                            <HBox styleClass="auth-input" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                                <StackPane fx:id="zoneIconeMotDePasse" styleClass="auth-input-icon"/>
-                                <PasswordField fx:id="champMotDePasse" styleClass="auth-textfield" promptText="Mot de passe" HBox.hgrow="ALWAYS"/>
+                        <VBox spacing="6">
+                            <Label text="DEVISE DU COMPTE" styleClass="auth-field-label"/>
+                            <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                <StackPane fx:id="zoneIconeDevise" styleClass="auth-input-icon-premium"/>
+                                <ComboBox fx:id="comboDevise" styleClass="auth-combo-premium"
+                                          maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                             </HBox>
-                            <HBox styleClass="auth-input" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                                <StackPane fx:id="zoneIconeConfirmation" styleClass="auth-input-icon"/>
-                                <PasswordField fx:id="champConfirmationMotDePasse" styleClass="auth-textfield" promptText="Confirmation" HBox.hgrow="ALWAYS"/>
+                        </VBox>
+
+                        <!-- Sécurité -->
+                        <Label text="SÉCURITÉ DU COMPTE" styleClass="auth-group-label" maxWidth="Infinity"/>
+
+                        <VBox spacing="6">
+                            <Label text="QUESTION DE SÉCURITÉ" styleClass="auth-field-label"/>
+                            <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                <StackPane fx:id="zoneIconeQuestion" styleClass="auth-input-icon-premium"/>
+                                <ComboBox fx:id="comboQuestion" styleClass="auth-combo-premium"
+                                          promptText="Choisissez une question"
+                                          maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                             </HBox>
-                        </HBox>
+                        </VBox>
 
-                        <HBox styleClass="auth-input" alignment="CENTER_LEFT">
-                            <StackPane fx:id="zoneIconeDevise" styleClass="auth-input-icon"/>
-                            <ComboBox fx:id="comboDevise" styleClass="auth-combo" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        </HBox>
+                        <VBox spacing="6">
+                            <Label text="VOTRE RÉPONSE" styleClass="auth-field-label"/>
+                            <HBox styleClass="auth-input-premium" alignment="CENTER_LEFT">
+                                <StackPane fx:id="zoneIconeReponse" styleClass="auth-input-icon-premium"/>
+                                <TextField fx:id="champReponse" styleClass="auth-textfield-premium"
+                                           promptText="Gardez-la, elle sert à récupérer le compte" HBox.hgrow="ALWAYS"/>
+                            </HBox>
+                        </VBox>
 
-                        <Label text="Sécurité du compte" styleClass="auth-section-label"/>
+                        <Button fx:id="boutonInscription" text="CRÉER MON COMPTE" styleClass="auth-button-premium"
+                                maxWidth="Infinity" onAction="#sInscrire" defaultButton="true"/>
 
-                        <HBox styleClass="auth-input" alignment="CENTER_LEFT">
-                            <StackPane fx:id="zoneIconeQuestion" styleClass="auth-input-icon"/>
-                            <ComboBox fx:id="comboQuestion" styleClass="auth-combo" promptText="Choisissez une question de sécurité"
-                                      maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        </HBox>
+                        <!-- Deux lignes : la carte ne tient pas tout sur une seule sans tronquer -->
+                        <VBox alignment="CENTER" spacing="2">
+                            <Label text="Déjà un compte ?" styleClass="auth-footer-text-premium"/>
+                            <Hyperlink text="Se connecter" styleClass="auth-link-register"
+                                       onAction="#allerVersConnexion"/>
+                        </VBox>
 
-                        <HBox styleClass="auth-input" alignment="CENTER_LEFT">
-                            <StackPane fx:id="zoneIconeReponse" styleClass="auth-input-icon"/>
-                            <TextField fx:id="champReponse" styleClass="auth-textfield" promptText="Votre réponse" HBox.hgrow="ALWAYS"/>
-                        </HBox>
-
-                        <Separator styleClass="auth-separator"/>
-
-                        <Button fx:id="boutonInscription" text="CRÉER MON COMPTE" styleClass="auth-button" maxWidth="Infinity"
-                                onAction="#sInscrire" defaultButton="true"/>
-
-                        <HBox alignment="CENTER" spacing="4">
-                            <Label text="Déjà un compte ?" styleClass="auth-footer-text"/>
-                            <Hyperlink text="Se connecter" styleClass="auth-link-strong" onAction="#allerVersConnexion"/>
+                        <HBox alignment="CENTER" spacing="8" styleClass="auth-security-row">
+                            <StackPane fx:id="zoneIconeSecurite" styleClass="auth-security-icon"/>
+                            <Label text="Mot de passe haché · Réponse de sécurité chiffrée" styleClass="auth-security-label"/>
                         </HBox>
                     </VBox>
                 </StackPane>
