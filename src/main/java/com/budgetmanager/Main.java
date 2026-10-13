@@ -62,6 +62,9 @@ public class Main extends Application {
         stage.setTitle("Gestionnaire de Budget Personnel");
         stage.setMinWidth(920);
         stage.setMinHeight(640);
+        // Lancement fenêtre pleine largeur : les tableaux et graphiques ont besoin
+        // de place, et changerScene ne recalcule plus la taille une fois maximisée.
+        stage.setMaximized(true);
 
         // Tester la connexion DB AVANT de charger login.fxml.
         // Si MySQL est éteint, on affiche database-error.fxml avec un bouton "Réessayer".
