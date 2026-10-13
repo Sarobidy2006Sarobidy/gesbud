@@ -181,12 +181,18 @@ public class DatabaseConnection {
     }
 
     /**
-     * Ferme le pool proprement à l'arrêt de l'application (appelé depuis Main.stop()).
-     * Sans effet si le pool n'a jamais été initialisé.
+     * Ferme le pool et l'oublie : le prochain {@link #getConnection()} en recrée
+     * un neuf. Sans la remise à null, HikariCP resterait fermé pour toute la vie
+     * du processus et le bouton « Réessayer » de l'écran d'erreur ne pourrait
+     * jamais se reconnecter après une panne MySQL.
+     * Est aussi appelé depuis Main.stop() à l'arrêt de l'application.
      */
     public static void closeConnection() {
-        if (pool != null && !pool.isClosed()) {
-            pool.close();
+        synchronized (DatabaseConnection.class) {
+            if (pool != null) {
+                pool.close();
+                pool = null;
+            }
         }
     }
 }
