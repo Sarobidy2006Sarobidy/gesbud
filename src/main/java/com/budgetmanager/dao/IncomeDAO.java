@@ -240,15 +240,25 @@ public class IncomeDAO {
         return 0;
     }
 
-    public List<Object[]> repartitionParCategorie(int idUser) {
+    /**
+     * Répartition par catégorie. {@code mois} null = depuis l'origine ;
+     * sinon un seul mois, pour que le camembert suive le sélecteur de période.
+     */
+    public List<Object[]> repartitionParCategorie(int idUser, YearMonth mois) {
         String sql = "SELECT c.nom, COALESCE(SUM(r.montant), 0) AS total FROM categories c " +
                 "LEFT JOIN incomes r ON r.id_categorie = c.id_categorie"
-                + SqlUtil.jusquAujourdhui("r.date_revenu") +
+                + SqlUtil.jusquAujourdhui("r.date_revenu")
+                + (mois == null ? "" : "AND YEAR(r.date_revenu) = ? AND MONTH(r.date_revenu) = ? ") +
                 "WHERE c.id_user = ? AND c.type = 'REVENU' GROUP BY c.id_categorie, c.nom";
         List<Object[]> resultats = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
-            stmt.setInt(1, idUser);
+            int parametre = 1;
+            if (mois != null) {
+                stmt.setInt(parametre++, mois.getYear());
+                stmt.setInt(parametre++, mois.getMonthValue());
+            }
+            stmt.setInt(parametre, idUser);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) resultats.add(new Object[]{rs.getString("nom"), rs.getDouble("total")});
             }

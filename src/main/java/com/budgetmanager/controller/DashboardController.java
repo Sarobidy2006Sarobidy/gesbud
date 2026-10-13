@@ -145,10 +145,12 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         }
     }
 
-    /** Résultats du calcul mensuel : valeurs du mois M et du mois précédent. */
+    /** Résultats du calcul mensuel : valeurs du mois M et précédent + répartition du mois. */
     private record Mois(double revenus, double revenusPrecedents,
                         double depenses, double depensesPrecedentes,
-                        double economies, double economiesPrecedentes) {}
+                        double economies, double economiesPrecedentes,
+                        List<Object[]> repartitionRevenus,
+                        List<Object[]> repartitionDepenses) {}
 
     private void chargerMoisSelectionne() {
         YearMonth mois = comboPeriode.getValue();
@@ -168,7 +170,9 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
                         expenseDAO.totalParMois(idUser, mois),
                         expenseDAO.totalParMois(idUser, precedent),
                         savingDAO.totalParMois(idUser, mois),
-                        savingDAO.totalParMois(idUser, precedent));
+                        savingDAO.totalParMois(idUser, precedent),
+                        incomeDAO.repartitionParCategorie(idUser, mois),
+                        expenseDAO.repartitionParCategorie(idUser, mois));
             }
         };
 
@@ -202,6 +206,27 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         afficherTendance(badgeDepenses, valeurs.depenses(), valeurs.depensesPrecedentes(), false);
         afficherTendance(badgeEconomies, valeurs.economies(), valeurs.economiesPrecedentes(), true);
         afficherTendance(badgeSolde, soldeMois, soldePrecedent, true);
+
+        // Les deux camemberts suivent le mois choisi : sinon changer de période ne
+        // déplaçait que quatre petites cartes et donnait l'impression d'une page figée.
+        String libelleMois = mois.getMonth().getDisplayName(
+                java.time.format.TextStyle.FULL, java.util.Locale.FRANCE) + " " + mois.getYear();
+        remplirPieChart(pieRevenus,  valeurs.repartitionRevenus(),
+                "Répartition des revenus · " + libelleMois);
+        remplirPieChart(pieDepenses, valeurs.repartitionDepenses(),
+                "Répartition des dépenses · " + libelleMois);
+
+        // Le fondu signale visuellement que ces valeurs viennent de changer.
+        for (Label label : java.util.List.of(labelRevenusMois, labelDepensesMois,
+                labelEconomiesMois, labelSoldeMois, badgeRevenus, badgeDepenses,
+                badgeEconomies, badgeSolde)) {
+            label.setOpacity(0);
+            javafx.animation.FadeTransition fondu =
+                    new javafx.animation.FadeTransition(javafx.util.Duration.millis(340), label);
+            fondu.setFromValue(0);
+            fondu.setToValue(1);
+            fondu.play();
+        }
     }
 
     private void afficherTendance(Label badge, double actuel, double precedent, boolean hausseEstBonne) {
@@ -237,7 +262,6 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
             double totalRevenus, double totalDepenses, double totalEconomies,
             double solde, double tauxEpargne,
             int nbRevenus, int nbDepenses, int nbEconomies,
-            List<Object[]> repartitionRevenus, List<Object[]> repartitionDepenses,
             List<Double> revenusMensuels, List<Double> depensesMensuelles,
             List<Double> economiesMensuelles,
             double soldeInitial, double economiesInitiales) {}
@@ -291,8 +315,6 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
                         (int) incomeDAO.nombreParUser(idUser),
                         (int) expenseDAO.nombreParUser(idUser),
                         (int) savingDAO.nombreParUser(idUser),
-                        incomeDAO.repartitionParCategorie(idUser),
-                        expenseDAO.repartitionParCategorie(idUser),
                         revenusMensuels, depensesMensuelles, economiesMensuelles,
                         soldeInitial, economiesInitiales);
             }
@@ -320,8 +342,6 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
             }
 
             int annee = YearMonth.now().getYear();
-            remplirPieChart(pieRevenus,  c.repartitionRevenus(),  "Répartition des revenus");
-            remplirPieChart(pieDepenses, c.repartitionDepenses(), "Répartition des dépenses");
             remplirBarChart(barRevenusMensuels,    c.revenusMensuels(),    "Revenus " + annee);
             remplirBarChart(barDepensesMensuelles, c.depensesMensuelles(), "Dépenses " + annee);
             remplirLineChartSolde(c.revenusMensuels(), c.depensesMensuelles(),
