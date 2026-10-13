@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class HistoryController {
+public class HistoryController implements com.budgetmanager.util.Rafraichissable {
 
     private static final Logger log = LoggerFactory.getLogger(HistoryController.class);
 
@@ -138,6 +138,12 @@ public class HistoryController {
     // ---------------------------------------------------------------------------
     // Chargement
     // ---------------------------------------------------------------------------
+
+    /** Redemandé par la navigation quand la vue revient du cache. */
+    @Override
+    public void rafraichirDonnees() {
+        chargerHistorique();
+    }
 
     private void chargerHistorique() {
         User utilisateur = SessionManager.getUtilisateurConnecte();

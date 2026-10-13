@@ -21,7 +21,7 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DashboardController {
+public class DashboardController implements com.budgetmanager.util.Rafraichissable {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
@@ -242,6 +242,14 @@ public class DashboardController {
      * JavaFX Application Thread. Labels et charts sont mis à jour via
      * setOnSucceeded(), qui s'exécute automatiquement sur l'UI thread.
      */
+    /** Redemandé par la navigation quand la vue revient du cache. */
+    @Override
+    public void rafraichirDonnees() {
+        if (utilisateurCourant == null) return;
+        chargerDonnees(utilisateurCourant);
+        chargerMoisSelectionne();
+    }
+
     private void chargerDonnees(User utilisateur) {
         int idUser = utilisateur.getIdUser();
         String devise = utilisateur.getDevise();

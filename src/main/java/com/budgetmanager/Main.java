@@ -160,6 +160,7 @@ public class Main extends Application {
             // Vue déjà chargée : récupération instantanée — zéro fuite mémoire.
             racine = com.budgetmanager.util.ViewCache.obtenir(fxml, Main.class);
             detacherDeSonAncienneScene(racine);
+            rafraichirSiCache(racine);
         } else {
             // Première visite : chargement avec factory d'injection.
             FXMLLoader loader = new FXMLLoader(Main.class.getResource(fxml));
@@ -220,6 +221,18 @@ public class Main extends Application {
         Scene ancienne = racine.getScene();
         if (ancienne != null && ancienne.getRoot() == racine) {
             ancienne.setRoot(new javafx.scene.layout.Pane());
+        }
+    }
+
+    /**
+     * Une vue qui revient du cache ne repasse pas par {@code initialize()} :
+     * on redemande ses données aux contrôleurs qui le proposent, sinon elles
+     * resteraient celles de la première visite.
+     */
+    private static void rafraichirSiCache(Parent racine) {
+        if (racine.getProperties().get(CLE_CONTROLEUR)
+                instanceof com.budgetmanager.util.Rafraichissable rafraichissable) {
+            rafraichissable.rafraichirDonnees();
         }
     }
 

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 
-public class IncomeController implements RaccourcisClavier {
+public class IncomeController implements RaccourcisClavier, com.budgetmanager.util.Rafraichissable {
 
     private static final Logger log = LoggerFactory.getLogger(IncomeController.class);
 
@@ -155,6 +155,12 @@ public class IncomeController implements RaccourcisClavier {
                 ? "Ajouté automatiquement " + f.getLibelle().toLowerCase() + " à partir de la date choisie. "
                   + "Si le montant change (augmentation, imprévu), corrigez-le sur la ligne concernée."
                 : "Enregistré une seule fois, à la date choisie.");
+    }
+
+    /** Redemandé par la navigation quand la vue revient du cache. */
+    @Override
+    public void rafraichirDonnees() {
+        chargerRevenus();
     }
 
     private void chargerRevenus() {

@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * (chaque jour, chaque semaine, chaque mois), total économisé et courbe
  * du cumul par jour, par semaine ou par mois.
  */
-public class SavingsController implements RaccourcisClavier {
+public class SavingsController implements RaccourcisClavier, com.budgetmanager.util.Rafraichissable {
 
     private static final Logger log = LoggerFactory.getLogger(SavingsController.class);
 
@@ -138,6 +138,12 @@ public class SavingsController implements RaccourcisClavier {
                 ? "Ajouté automatiquement " + f.getLibelle().toLowerCase() + " à partir de la date choisie. "
                   + "Si le montant change, corrigez-le sur la ligne concernée."
                 : "Enregistré une seule fois, à la date choisie.");
+    }
+
+    /** Redemandé par la navigation quand la vue revient du cache. */
+    @Override
+    public void rafraichirDonnees() {
+        chargerEconomies();
     }
 
     private void chargerEconomies() {

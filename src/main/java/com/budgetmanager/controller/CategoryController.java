@@ -17,7 +17,7 @@ import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CategoryController implements RaccourcisClavier {
+public class CategoryController implements RaccourcisClavier, com.budgetmanager.util.Rafraichissable {
 
     private static final Logger log = LoggerFactory.getLogger(CategoryController.class);
 
@@ -74,6 +74,12 @@ public class CategoryController implements RaccourcisClavier {
         // Focus automatique sur le premier champ
         javafx.application.Platform.runLater(() -> champNom.requestFocus());
 
+        chargerCategories();
+    }
+
+    /** Redemandé par la navigation quand la vue revient du cache. */
+    @Override
+    public void rafraichirDonnees() {
         chargerCategories();
     }
 
