@@ -98,8 +98,14 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         if (utilisateur == null) return;
         utilisateurCourant = utilisateur;
 
-        labelBienvenue.setText("Bienvenue, " + utilisateur.getNomComplet()
-                + "  ·  devise " + utilisateur.getDevise());
+        // Nom et devise accrochés aux propriétés de l'utilisateur : ils sont
+        // modifiables dans Paramètres et doivent se refléter ici sans redémarrage.
+        labelBienvenue.textProperty().bind(
+                javafx.beans.binding.Bindings.createStringBinding(
+                        () -> "Bienvenue, " + utilisateur.getNomComplet()
+                              + "  ·  devise " + utilisateur.getDevise(),
+                        utilisateur.nomProperty(), utilisateur.prenomProperty(),
+                        utilisateur.deviseProperty()));
 
         chargerDonnees(utilisateur);
         chargerMoisSelectionne();

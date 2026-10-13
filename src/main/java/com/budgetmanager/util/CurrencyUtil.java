@@ -18,6 +18,31 @@ public final class CurrencyUtil {
     private CurrencyUtil() {}
 
     /**
+     * Devise de l'utilisateur connecté, lue au moment de l'appel.
+     * À préférer à une variable capturée au {@code initialize()} : un changement
+     * de devise dans Paramètres doit être visible immédiatement, sinon le total
+     * d'en-tête et les cellules du tableau n'affichent plus la même monnaie.
+     */
+    public static String deviseCourante() {
+        com.budgetmanager.model.User utilisateur = SessionManager.getUtilisateurConnecte();
+        return (utilisateur != null && utilisateur.getDevise() != null)
+                ? utilisateur.getDevise() : "Ar";
+    }
+
+    /** Propriété « hors session » : sert de dépendance inerte quand aucun utilisateur n'est connecté. */
+    private static final javafx.beans.property.StringProperty DEVISE_CONSTANTE =
+            new javafx.beans.property.SimpleStringProperty("Ar");
+
+    /**
+     * Dépendance à passer aux bindings qui affichent un montant : elle invalide
+     * le binding dès que l'utilisateur change de devise dans Paramètres.
+     */
+    public static javafx.beans.Observable sourceDevise() {
+        com.budgetmanager.model.User utilisateur = SessionManager.getUtilisateurConnecte();
+        return utilisateur != null ? utilisateur.deviseProperty() : DEVISE_CONSTANTE;
+    }
+
+    /**
      * Codes ISO 4217 supportés → Locale d'affichage.
      * Ar (Ariary malgache) n'a pas de code ISO standard,
      * on le gère manuellement.

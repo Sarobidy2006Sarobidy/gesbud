@@ -88,8 +88,6 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
         boutonFiltrer.setGraphic(Icons.filter(15, Color.WHITE));
         boutonReinitialiser.setGraphic(Icons.rotateCcw(15, Color.web("#374151")));
 
-        User utilisateur = SessionManager.getUtilisateurConnecte();
-
         colonneCategorie.setCellValueFactory(cellData -> cellData.getValue().nomCategorieProperty());
         colonneMontant.setCellValueFactory(cellData -> cellData.getValue().montantProperty().asObject());
         com.budgetmanager.util.TableUtil.formaterMontants(colonneMontant);
@@ -113,13 +111,14 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
         // Puces d'en-tête : elles suivent ce que le filtre laisse voir, pas la DB.
         pastilleNombre.textProperty().bind(
                 javafx.beans.binding.Bindings.size(tableRevenus.getItems()).asString());
-        String devise = utilisateur == null ? "Ar" : utilisateur.getDevise();
+        // Devise lue à chaque évaluation, la propriété devise servant de dépendance :
+        // un changement dans Paramètres se reflète sans redémarrer la vue.
         labelTotalAffiche.textProperty().bind(
                 javafx.beans.binding.Bindings.createObjectBinding(
                         () -> com.budgetmanager.util.CurrencyUtil.formater(
                                 tableRevenus.getItems().stream().mapToDouble(Income::getMontant).sum(),
-                                devise),
-                        tableRevenus.getItems()));
+                                com.budgetmanager.util.CurrencyUtil.deviseCourante()),
+                        tableRevenus.getItems(), com.budgetmanager.util.CurrencyUtil.sourceDevise()));
 
         // WeakChangeListener — libéré par le GC quand la vue est détruite (Point 1).
         tableRevenus.getSelectionModel().selectedItemProperty()
@@ -129,6 +128,16 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
         javafx.application.Platform.runLater(() -> champMontant.requestFocus());
 
         // Chargement des catégories et des revenus en arrière-plan.
+        chargerCombosCategories();
+    }
+
+    /**
+     * Remplit les deux combos de catégories puis lance le chargement des revenus.
+     * Appelé à l'initialisation et à chaque retour de la vue depuis le cache :
+     * une catégorie ajoutée ou renommée ailleurs doit être proposable ici.
+     */
+    private void chargerCombosCategories() {
+        User utilisateur = SessionManager.getUtilisateurConnecte();
         Task<java.util.List<Category>> tacheCategories = new Task<>() {
             @Override
             protected java.util.List<Category> call() {
@@ -160,7 +169,7 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
     /** Redemandé par la navigation quand la vue revient du cache. */
     @Override
     public void rafraichirDonnees() {
-        chargerRevenus();
+        chargerCombosCategories();
     }
 
     private void chargerRevenus() {
@@ -220,9 +229,11 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
         // Une ligne générée automatiquement est un revenu ponctuel : on ne lui montre pas de récurrence.
         comboFrequence.setValue(revenu.getFrequence());
         champDateFin.setValue(revenu.getDateFin());
-        comboCategorie.getItems().stream()
+        // Valeur explicitement vidée si la catégorie n'est plus proposée : sinon
+        // l'ancienne sélection resterait affichée et serait réécrite à l'enregistrement.
+        comboCategorie.setValue(comboCategorie.getItems().stream()
                 .filter(c -> c.getIdCategorie() == revenu.getIdCategorie())
-                .findFirst().ifPresent(comboCategorie::setValue);
+                .findFirst().orElse(null));
     }
 
     @FXML

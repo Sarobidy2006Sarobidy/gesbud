@@ -51,8 +51,16 @@ public class SidebarController {
         zoneLogo.getChildren().add(Hexagon.badge(34, Icons::wallet, true));
 
         User utilisateur = SessionManager.getUtilisateurConnecte();
-        labelSousTitre.setText(utilisateur == null
-                ? "Gestion personnelle" : "Devise : " + utilisateur.getDevise());
+        // Accroché à la propriété devise : la modification faite dans Paramètres
+        // doit apparaître ici sans redémarrer l'application.
+        if (utilisateur == null) {
+            labelSousTitre.setText("Gestion personnelle");
+        } else {
+            labelSousTitre.textProperty().bind(
+                    javafx.beans.binding.Bindings.createStringBinding(
+                            () -> "Devise : " + utilisateur.getDevise(),
+                            utilisateur.deviseProperty()));
+        }
 
         boutonsMenu = new Button[]{ boutonDashboard, boutonRevenus, boutonDepenses,
                 boutonEconomies, boutonCategories, boutonHistorique, boutonParametres };

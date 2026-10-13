@@ -1,6 +1,5 @@
 package com.budgetmanager.util;
 
-import com.budgetmanager.model.User;
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
@@ -50,11 +49,7 @@ public final class TableUtil {
                     pseudoClassStateChanged(NEGATIF, false);
                     return;
                 }
-                User utilisateur = SessionManager.getUtilisateurConnecte();
-                String devise = (utilisateur != null && utilisateur.getDevise() != null)
-                        ? utilisateur.getDevise() : "Ar";
-
-                setText(CurrencyUtil.formater(montant, devise));
+                setText(CurrencyUtil.formater(montant, CurrencyUtil.deviseCourante()));
                 setAlignment(Pos.CENTER_RIGHT);
 
                 // Couleur selon le signe du montant (gérée nativement par style.css).
@@ -83,11 +78,7 @@ public final class TableUtil {
                     pseudoClassStateChanged(NEUTRE, false);
                     return;
                 }
-                User utilisateur = SessionManager.getUtilisateurConnecte();
-                String devise = (utilisateur != null && utilisateur.getDevise() != null)
-                        ? utilisateur.getDevise() : "Ar";
-
-                setText(CurrencyUtil.formater(montant, devise));
+                setText(CurrencyUtil.formater(montant, CurrencyUtil.deviseCourante()));
                 setAlignment(Pos.CENTER_RIGHT);
 
                 // Couleur selon le type d'opération (cellules réutilisées : on réinitialise tout).

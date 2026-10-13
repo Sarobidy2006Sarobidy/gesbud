@@ -128,8 +128,27 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
             AlertUtil.afficherErreur("Aucune sélection", "Veuillez sélectionner une catégorie à modifier.");
             return;
         }
-        categorieSelectionnee.setNom(champNom.getText().trim());
-        categorieSelectionnee.setType(comboType.getValue());
+        String nom = champNom.getText().trim();
+        CategoryType type = comboType.getValue();
+
+        if (nom.isEmpty() || type == null) {
+            AlertUtil.afficherErreur("Champs manquants", "Veuillez renseigner le nom et le type.");
+            return;
+        }
+
+        // Le type décide du volet (revenus ou dépenses) où la catégorie apparaît.
+        // Le changer alors que des opérations la référence déjà laisserait celles-ci
+        // comptées dans un total et exclues du graphique correspondant.
+        if (type != categorieSelectionnee.getType()
+                && categoryDAO.nombreUtilisations(categorieSelectionnee.getIdCategorie()) > 0) {
+            AlertUtil.afficherErreur("Catégorie utilisée",
+                    "Impossible de changer le type : des opérations utilisent déjà cette catégorie. "
+                  + "Réaffectez-les ou supprimez-les d'abord.");
+            return;
+        }
+
+        categorieSelectionnee.setNom(nom);
+        categorieSelectionnee.setType(type);
 
         if (categoryDAO.modifier(categorieSelectionnee)) {
             chargerCategories();
