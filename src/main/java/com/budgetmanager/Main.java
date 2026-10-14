@@ -62,15 +62,10 @@ public class Main extends Application {
         stage.setTitle("Gestionnaire de Budget Personnel");
         stage.setMinWidth(920);
         stage.setMinHeight(640);
-        // Lancement 100 % de l'écran : la fenêtre couvre tout le moniteur, barre des
-        // tâches et bordures comprises. Le mode maximisé reste demandé au cas où le
-        // pilote graphique refuserait le plein écran : la fenêtre ne serait alors
-        // jamais réduite à la taille de la scène.
-        // Échap est neutralisé : une pression par erreur ne doit pas rétrécir l'app.
+        // Fenêtre maximisée : elle couvre l'écran de travail tout en gardant la barre
+        // de titre natif (réduire / agrandir / fermer). Le plein écran JavaFX avait été
+        // essayé pour « 100 % de l'écran » mais supprime cette barre, donc retiré.
         stage.setMaximized(true);
-        stage.setFullScreen(true);
-        stage.setFullScreenExitHint("");
-        stage.setFullScreenExitKeyCombination(javafx.scene.input.KeyCombination.NO_MATCH);
 
         // Tester la connexion DB AVANT de charger login.fxml.
         // Si MySQL est éteint, on affiche database-error.fxml avec un bouton "Réessayer".
@@ -206,7 +201,7 @@ public class Main extends Application {
 
         installerRaccourcis(scene);
         stagePrincipal.setScene(scene);
-        if (!conserver && !stagePrincipal.isMaximized() && !stagePrincipal.isFullScreen()) {
+        if (!conserver && !stagePrincipal.isMaximized()) {
             stagePrincipal.sizeToScene();
             stagePrincipal.centerOnScreen();
         }
