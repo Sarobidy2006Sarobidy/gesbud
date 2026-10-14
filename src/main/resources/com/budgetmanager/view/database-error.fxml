@@ -16,57 +16,41 @@
            styleClass="auth-container">
 
     <VBox alignment="CENTER" spacing="12" maxWidth="560" maxHeight="-Infinity"
-          styleClass="auth-card-premium" style="-fx-padding: 28 40;">
+          styleClass="auth-card-premium, auth-card-compact">
 
-        <StackPane fx:id="iconeErreur" alignment="CENTER" maxWidth="80" maxHeight="80"
-                   style="-fx-background-color: rgba(220,30,30,0.22); -fx-background-radius: 50%;
-                          -fx-border-color: rgba(255,80,80,0.35); -fx-border-radius: 50%;
-                          -fx-min-width: 80; -fx-min-height: 80;"/>
+        <StackPane fx:id="iconeErreur" alignment="CENTER" styleClass="erreur-icone"/>
 
         <Label fx:id="labelTitre" text="Base de données inaccessible"
                styleClass="auth-title-premium" wrapText="true" alignment="CENTER"/>
 
-        <Label fx:id="labelDetail"
-               wrapText="true" alignment="CENTER"
-               style="-fx-text-fill: rgba(180,210,255,0.85); -fx-font-size: 13px; -fx-font-family: 'Inter';"
-               maxWidth="440"/>
+        <Label fx:id="labelDetail" styleClass="erreur-detail"
+               wrapText="true" alignment="CENTER" maxWidth="440"/>
 
-        <Label fx:id="labelPort"
-               wrapText="true" alignment="CENTER"
-               style="-fx-text-fill: #ff8080; -fx-font-size: 12px; -fx-font-family: 'Inter';"
-               maxWidth="440"/>
+        <Label fx:id="labelPort" styleClass="erreur-port"
+               wrapText="true" alignment="CENTER" maxWidth="440"/>
 
         <!-- Guide rapide -->
         <VBox spacing="6" styleClass="auth-security-row" maxWidth="480">
-            <Label text="Comment résoudre ce problème :"
-                   style="-fx-font-family: 'Poppins Medium'; -fx-font-size: 12.5px; -fx-text-fill: #cfe6ff;"/>
+            <Label text="Comment résoudre ce problème :" styleClass="erreur-guide-titre"/>
             <Label text="1. Ouvrez le panneau de contrôle XAMPP ou WampServer"
-                   style="-fx-text-fill: rgba(180,210,255,0.8); -fx-font-size: 12px; -fx-font-family: 'Inter';"
-                   wrapText="true"/>
+                   styleClass="erreur-guide-pas" wrapText="true"/>
             <Label text="2. Démarrez le service MySQL (bouton Start)"
-                   style="-fx-text-fill: rgba(180,210,255,0.8); -fx-font-size: 12px; -fx-font-family: 'Inter';"
-                   wrapText="true"/>
+                   styleClass="erreur-guide-pas" wrapText="true"/>
             <Label text="3. Si le port affiché est 3307, modifiez db.url dans database.properties"
-                   style="-fx-text-fill: rgba(180,210,255,0.8); -fx-font-size: 12px; -fx-font-family: 'Inter';"
-                   wrapText="true"/>
+                   styleClass="erreur-guide-pas" wrapText="true"/>
             <Label text="4. Cliquez sur « Réessayer » ci-dessous"
-                   style="-fx-text-fill: rgba(180,210,255,0.8); -fx-font-size: 12px; -fx-font-family: 'Inter';"
-                   wrapText="true"/>
+                   styleClass="erreur-guide-pas" wrapText="true"/>
         </VBox>
 
-        <Label fx:id="labelStatut"
-               wrapText="true" alignment="CENTER"
-               visible="false" managed="false"
-               style="-fx-text-fill: #7ec3ff; -fx-font-size: 12px; -fx-font-family: 'Inter';"
-               maxWidth="440"/>
+        <Label fx:id="labelStatut" styleClass="erreur-statut"
+               wrapText="true" alignment="CENTER" maxWidth="440"
+               visible="false" managed="false"/>
 
         <HBox spacing="12" alignment="CENTER">
             <Button fx:id="boutonReessayer" text="Réessayer"
-                    styleClass="auth-button-premium" onAction="#reessayer"
-                    style="-fx-min-width: 150;"/>
+                    styleClass="auth-button-premium, bouton-reessayer" onAction="#reessayer"/>
             <Button fx:id="boutonQuitter" text="Quitter"
-                    styleClass="auth-button-ghost" onAction="#quitter"
-                    style="-fx-min-width: 120;"/>
+                    styleClass="auth-button-ghost, bouton-quitter" onAction="#quitter"/>
         </HBox>
 
     </VBox>
