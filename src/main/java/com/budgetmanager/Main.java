@@ -2,15 +2,23 @@ package com.budgetmanager;
 
 import com.budgetmanager.controller.AuthHeroController;
 import com.budgetmanager.dao.UserDAO;
+import com.budgetmanager.util.Hexagon;
+import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.RaccourcisClavier;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.Region;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -47,6 +55,47 @@ public class Main extends Application {
     /** Clé sous laquelle Main range le contrôleur d'une vue dans les properties de sa racine. */
     private static final String CLE_CONTROLEUR = "budget.controleur";
 
+    /** Tailles d'icône demandées : la barre des tâches et la barre de titre prennent celle qui colle. */
+    private static final double[] TAILLES_ICONE_FENETRE = {16, 24, 32, 48, 128};
+
+    /**
+     * Icône de la fenêtre : le badge hexagonal du logo, rasterisé à la volée.
+     * L'application ne contient aucun fichier image, elle dessine tout ; l'icône
+     * suit la même règle. Plusieurs tailles sont fournies pour que Windows choisisse
+     * un rendu net au lieu d'étirer une seule image sur le quart de sa taille.
+     */
+    private static void definirIcone(Stage stage) {
+        for (double taille : TAILLES_ICONE_FENETRE) {
+            stage.getIcons().add(rasteriser(Hexagon.badge(taille, Icons::wallet, false), taille));
+        }
+    }
+
+    /**
+     * Rasterise un noeud hors scène, puis le recopie centré dans une image carrée.
+     * Le hexagone déborde de son gabarit à cause de son contour : une icône plus
+     * haute que large est refusée par Windows, qui retombe alors sur l'icône
+     * JavaFX par défaut sans prévenir.
+     */
+    private static Image rasteriser(Node badge, double taille) {
+        Region zone = (Region) badge;
+        zone.setPrefSize(taille, taille);
+        zone.applyCss();
+        zone.layout();
+        Image brut = zone.snapshot(null, null);
+        int cote = (int) Math.ceil(Math.max(brut.getWidth(), brut.getHeight()));
+        WritableImage carree = new WritableImage(cote, cote);
+        PixelReader lecteur = brut.getPixelReader();
+        PixelWriter scribeur = carree.getPixelWriter();
+        int decalageX = (cote - (int) brut.getWidth()) / 2;
+        int decalageY = (cote - (int) brut.getHeight()) / 2;
+        for (int x = 0; x < brut.getWidth(); x++) {
+            for (int y = 0; y < brut.getHeight(); y++) {
+                scribeur.setArgb(x + decalageX, y + decalageY, lecteur.getArgb(x, y));
+            }
+        }
+        return carree;
+    }
+
     @Override
     public void stop() {
         // Attendre que les tâches DB en cours se terminent avant de fermer le pool.
@@ -60,6 +109,7 @@ public class Main extends Application {
 
         stagePrincipal = stage;
         stage.setTitle("Gestionnaire de Budget Personnel");
+        definirIcone(stage);
         stage.setMinWidth(920);
         stage.setMinHeight(640);
         // Fenêtre maximisée : elle couvre l'écran de travail tout en gardant la barre
