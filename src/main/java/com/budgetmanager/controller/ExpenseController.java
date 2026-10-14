@@ -12,6 +12,7 @@ import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.ListSyncUtil;
 import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.VideEtat;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -83,6 +84,10 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
         boutonSupprimer.setGraphic(Icons.trash(15, Color.web("#b91c1c")));
         boutonFiltrer.setGraphic(Icons.filter(15, Color.WHITE));
         boutonReinitialiser.setGraphic(Icons.rotateCcw(15, Color.web("#374151")));
+
+        VideEtat.surTable(tableDepenses, Icons.tag(26, VideEtat.couleurIcone()),
+                "Aucune dépense",
+                "Enregistrez une dépense depuis le formulaire, ou élargissez les dates du filtre.");
 
         colonneCategorie.setCellValueFactory(cellData -> cellData.getValue().nomCategorieProperty());
         colonneMontant.setCellValueFactory(cellData -> cellData.getValue().montantProperty().asObject());

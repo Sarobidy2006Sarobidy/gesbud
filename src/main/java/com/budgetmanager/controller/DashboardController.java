@@ -57,6 +57,8 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
     @FXML private javafx.scene.layout.GridPane grilleGraphiques;
     @FXML private PieChart pieRevenus;
     @FXML private PieChart pieDepenses;
+    @FXML private Label videPieRevenus;
+    @FXML private Label videPieDepenses;
     @FXML private BarChart<String, Number> barRevenusMensuels;
     @FXML private BarChart<String, Number> barDepensesMensuelles;
     @FXML private LineChart<String, Number> lineSolde;
@@ -211,10 +213,12 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         // déplaçait que quatre petites cartes et donnait l'impression d'une page figée.
         String libelleMois = mois.getMonth().getDisplayName(
                 java.time.format.TextStyle.FULL, java.util.Locale.FRANCE) + " " + mois.getYear();
-        remplirPieChart(pieRevenus,  valeurs.repartitionRevenus(),
-                "Répartition des revenus · " + libelleMois);
-        remplirPieChart(pieDepenses, valeurs.repartitionDepenses(),
-                "Répartition des dépenses · " + libelleMois);
+        remplirPieChart(pieRevenus, videPieRevenus, valeurs.repartitionRevenus(),
+                "Répartition des revenus · " + libelleMois,
+                "Aucun revenu enregistré en " + libelleMois);
+        remplirPieChart(pieDepenses, videPieDepenses, valeurs.repartitionDepenses(),
+                "Répartition des dépenses · " + libelleMois,
+                "Aucune dépense enregistrée en " + libelleMois);
 
         // Le fondu signale visuellement que ces valeurs viennent de changer.
         for (Label label : java.util.List.of(labelRevenusMois, labelDepensesMois,
@@ -363,8 +367,12 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         return totaux;
     }
 
-    private void remplirPieChart(PieChart chart, List<Object[]> donnees, String titre) {
+    private void remplirPieChart(PieChart chart, Label vide, List<Object[]> donnees,
+                                 String titre, String messageVide) {
         chart.setTitle(titre);
+        // Un camembert sans part n'affiche qu'un cercle vide, difficile à
+        // distinguer d'un graphique cassé : le message nomme le mois concerné.
+        vide.setText(messageVide);
         // Mettre à jour les données existantes sans tout effacer → pas de clignotement.
         List<PieChart.Data> nouvellesDonnees = new ArrayList<>();
         for (Object[] ligne : donnees) {
@@ -381,6 +389,7 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         } else {
             chart.getData().setAll(nouvellesDonnees);
         }
+        vide.setVisible(nouvellesDonnees.isEmpty());
     }
 
     private void remplirBarChart(BarChart<String, Number> chart, List<Double> valeursMensuelles, String titre) {

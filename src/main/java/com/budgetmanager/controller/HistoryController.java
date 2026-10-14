@@ -8,6 +8,7 @@ import com.budgetmanager.model.*;
 import com.budgetmanager.util.DbExecutor;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.VideEtat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -100,6 +101,10 @@ public class HistoryController implements com.budgetmanager.util.Rafraichissable
 
         boutonFiltrer.setGraphic(Icons.filter(15, Color.WHITE));
         boutonReinitialiser.setGraphic(Icons.rotateCcw(15, Color.web("#374151")));
+
+        VideEtat.surTable(tableHistorique, Icons.clock(26, VideEtat.couleurIcone()),
+                "Aucun mouvement",
+                "Aucun revenu, dépense ni économie sur la période affichée. Élargissez la plage de dates.");
 
         User utilisateur = SessionManager.getUtilisateurConnecte();
 

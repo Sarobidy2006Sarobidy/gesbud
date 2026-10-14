@@ -12,6 +12,7 @@ import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SavingsCurve;
 import com.budgetmanager.util.SavingsCurve.Period;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.VideEtat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -91,6 +92,10 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         boutonSupprimer.setGraphic(Icons.trash(15, Color.web("#b91c1c")));
         boutonFiltrer.setGraphic(Icons.filter(15, Color.WHITE));
         boutonReinitialiser.setGraphic(Icons.rotateCcw(15, Color.web("#374151")));
+
+        VideEtat.surTable(tableEconomies, Icons.pieChart(26, VideEtat.couleurIcone()),
+                "Aucune économie",
+                "Placez de l'argent de côté depuis le formulaire : la courbe le suivira mois par mois.");
 
         colonneMontant.setCellValueFactory(cellData -> cellData.getValue().montantProperty().asObject());
         com.budgetmanager.util.TableUtil.formaterMontants(colonneMontant);

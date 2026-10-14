@@ -9,6 +9,7 @@ import com.budgetmanager.util.DbHeartbeat;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.VideEtat;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -99,9 +100,16 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
         tableCategories.setItems(triees);
         tableCategories.setEditable(true);
 
-        // La puce compte les catégories enregistrées, hors ligne de saisie.
+        // La puce compte les catégories enregistrées, hors ligne de saisie —
+        // celle-ci quitte les résultats dès qu'un filtre est actif.
         pastilleNombre.textProperty().bind(Bindings.createStringBinding(
-                () -> String.valueOf(Math.max(0, lignesFiltrees.size() - 1)), lignesFiltrees));
+                () -> String.valueOf(lignesFiltrees.stream().filter(c -> c != ligneVide).count()),
+                lignesFiltrees));
+
+        VideEtat.surTable(tableCategories, Icons.tag(26, VideEtat.couleurIcone()),
+                "Aucune catégorie trouvée",
+                "Effacez la recherche (Échap) pour retrouver la liste, ou laissez la recherche "
+                        + "vide et saisissez un nom dans la dernière ligne du tableau.");
 
         colonneNom.setOnEditCommit(evenement -> enregistrerModification(evenement.getRowValue()));
         colonneType.setOnEditCommit(evenement -> enregistrerModification(evenement.getRowValue()));
@@ -149,11 +157,14 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
     private void installerRecherche() {
         champRecherche.textProperty().addListener((obs, avant, texte) -> {
             String terme = texte == null ? "" : texte.trim().toLowerCase();
+            // La ligne de saisie disparaît dès qu'un filtre est actif : sans elle,
+            // une recherche sans résultat montre l'état vide au lieu d'une unique
+            // ligne « Nouvelle catégorie… » qui ferait croire à un bug.
             lignesFiltrees.setPredicate(terme.isEmpty()
                     ? categorie -> true
-                    : categorie -> categorie == ligneVide
-                            || (categorie.getNom() != null
-                                    && categorie.getNom().toLowerCase().contains(terme)));
+                    : categorie -> categorie != ligneVide
+                            && categorie.getNom() != null
+                            && categorie.getNom().toLowerCase().contains(terme));
         });
         champRecherche.setOnKeyPressed(evenement -> {
             if (evenement.getCode() == KeyCode.ESCAPE) champRecherche.clear();
@@ -260,6 +271,8 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
     /** Ctrl+N : place le curseur d'édition dans la ligne de saisie du bas du tableau. */
     @Override
     public void auRaccourciAjouter() {
+        // Une recherche active masque la ligne de saisie : Ctrl+N la ramène d'abord.
+        champRecherche.clear();
         int index = tableCategories.getItems().size() - 1;
         if (index < 0) return;
         tableCategories.scrollTo(index);

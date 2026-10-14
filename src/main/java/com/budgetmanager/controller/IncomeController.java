@@ -11,6 +11,7 @@ import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.VideEtat;
 import com.budgetmanager.util.ListSyncUtil;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
@@ -87,6 +88,10 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
         boutonSupprimer.setGraphic(Icons.trash(15, Color.web("#b91c1c")));
         boutonFiltrer.setGraphic(Icons.filter(15, Color.WHITE));
         boutonReinitialiser.setGraphic(Icons.rotateCcw(15, Color.web("#374151")));
+
+        VideEtat.surTable(tableRevenus, Icons.wallet(26, VideEtat.couleurIcone()),
+                "Aucun revenu",
+                "Ajoutez votre premier revenu avec le formulaire, ou élargissez les dates du filtre.");
 
         colonneCategorie.setCellValueFactory(cellData -> cellData.getValue().nomCategorieProperty());
         colonneMontant.setCellValueFactory(cellData -> cellData.getValue().montantProperty().asObject());
