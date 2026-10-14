@@ -12,6 +12,7 @@ import com.budgetmanager.util.OeilMotDePasse;
 import com.budgetmanager.util.LoginGuard;
 import com.budgetmanager.util.PasswordUtil;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.ViewCache;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -127,6 +128,10 @@ public class LoginController {
             }
 
             LoginGuard.PARTAGE.reussite(identifiant);
+            // On peut arriver ici sans déconnexion propre : la base a lâché, l'écran
+            // d'erreur a renvoyé à la connexion, et un autre compte se connecte. Les
+            // vues en cache appartiennent alors au compte précédent.
+            ViewCache.vider();
             SessionManager.connecter(resultat.get());
             try {
                 Main.changerScene("view/dashboard.fxml", Main.LARGEUR_APP, Main.HAUTEUR_APP);

@@ -13,6 +13,7 @@ import com.budgetmanager.util.PasswordUtil;
 import com.budgetmanager.util.PseudoUtil;
 import com.budgetmanager.util.SecurityQuestions;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.ViewCache;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -162,6 +163,7 @@ public class RegisterController {
             }
             // Connexion automatique : le mot de passe vient d'être saisi et
             // confirmé deux fois, inutile de le redemander immédiatement.
+            ViewCache.vider();
             SessionManager.connecter(compteCree);
             try {
                 Main.changerScene("view/dashboard.fxml", Main.LARGEUR_APP, Main.HAUTEUR_APP);
