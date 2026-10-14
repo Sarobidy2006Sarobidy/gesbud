@@ -3,13 +3,17 @@ package com.budgetmanager.controller;
 import com.budgetmanager.util.Hexagon;
 import com.budgetmanager.util.Icons;
 import javafx.animation.*;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
@@ -25,8 +29,35 @@ public class AuthHeroController {
 
     @FXML private Pane zoneHexagones;
 
+    @FXML private StackPane puceAtout1;
+    @FXML private StackPane puceAtout2;
+    @FXML private StackPane puceAtout3;
+    @FXML private VBox blocAccroche;
+    @FXML private VBox blocAtouts;
+
+    /* Largeurs de panneau en dessous desquelles l'accroche perd des éléments :
+       à 920 px de fenêtre, le hero n'a plus que ~300 px et le texte s'écraserait
+       sur les badges. Le panneau de droite (formulaire) reste prioritaire. */
+    private static final double LARGEUR_ACCROCHE = 430;
+    private static final double LARGEUR_ATOUTS = 520;
+
+    /** Couleur des glyphes des atouts : lisible sur le bleu profond du panneau. */
+    private static final Color COULEUR_ATOUT = Color.web("#9ad4ff");
+
+    /* Les badges vivent dans la place laissée libre au-dessus de l'accroche :
+       5 % en haut, et pour plafond le sommet du bloc de texte moins une marge.
+       Une fraction fixe de la hauteur ne suffisait pas—à 1220x760 l'accroche
+       remontait plus haut que le bandeau et les badges la traversaient. */
+    private static final double BADGES_TOP = 0.05;
+    private static final double MARGE_SOUS_BADGES = 24;
+    /** Plancher : même accroche très haute, le champ de badges garde de l'air. */
+    private static final double BADGES_MINIMUM = 0.30;
+
     private static final List<Animation> ANIMATIONS = new ArrayList<>();
     private static final Random RNG = new Random(42);
+
+    /** Transition de parallaxe réutilisée à chaque déplacement de la souris. */
+    private TranslateTransition parallaxe;
 
     /** Définition d'un badge : position relative, taille, icône, phases. */
     private record Badge(double x, double y, double taille, Icons.IconFactory icone,
@@ -49,6 +80,8 @@ public class AuthHeroController {
     public void initialize() {
         // Particules de fond (cercles lumineux flottants)
         ajouterParticules();
+        installerAtouts();
+        adapterAccrocheALargeur();
 
         for (Badge b : BADGES) {
             Node badge = Hexagon.badge(b.taille(), b.icone(), true);
@@ -56,8 +89,14 @@ public class AuthHeroController {
             // Centrage relatif sur le panneau
             badge.layoutXProperty().bind(
                     zoneHexagones.widthProperty().multiply(b.x()).subtract(b.taille() / 2));
-            badge.layoutYProperty().bind(
-                    zoneHexagones.heightProperty().multiply(b.y()).subtract(b.taille() / 2));
+            // Bande haute uniquement : l'accroche est calée en bas du panneau et
+            // les badges la recouvraient dès qu'elle remontait plus haut qu'un
+            // pourcentage fixe de la hauteur.
+            badge.layoutYProperty().bind(Bindings.createDoubleBinding(
+                    () -> hautBande() + (basBande() - hautBande()) * b.y() - b.taille() / 2,
+                    zoneHexagones.heightProperty(),
+                    blocAccroche.heightProperty(), blocAccroche.widthProperty(),
+                    blocAccroche.managedProperty(), blocAccroche.visibleProperty()));
 
             // --- Rotation Y 3D simulée via Rotate transform ---
             Rotate rotY = new Rotate(0, b.taille() / 2, b.taille() / 2, 0, Rotate.Y_AXIS);
@@ -117,6 +156,85 @@ public class AuthHeroController {
         tourPanneau.setInterpolator(Interpolator.EASE_BOTH);
         tourPanneau.play();
         ANIMATIONS.add(tourPanneau);
+
+        installerParallaxe();
+    }
+
+    /**
+     * Le champ de badges suit la souris de quelques pixels, en sens inverse :
+     * c'est ce qui donne la sensation de profondeur par-dessus les rotations 3D.
+     * Une seule Transition est réutilisée — la souris émet des dizaines
+     * d'événements par seconde, en créer un par événement saturerait le pulse.
+     */
+    private void installerParallaxe() {
+        Node panneau = zoneHexagones.getParent();
+        if (panneau == null) return;
+
+        parallaxe = new TranslateTransition(Duration.millis(500), zoneHexagones);
+        parallaxe.setInterpolator(Interpolator.EASE_OUT);
+
+        panneau.setOnMouseMoved(evenement -> viserParallaxe(
+                evenement.getX(), evenement.getY(),
+                panneau.getBoundsInLocal().getWidth(), panneau.getBoundsInLocal().getHeight()));
+        panneau.setOnMouseExited(evenement -> viserParallaxe(0, 0, 0, 0));
+    }
+
+    private void viserParallaxe(double x, double y, double largeur, double hauteur) {
+        double dx = largeur <= 0 ? 0 : x / largeur - 0.5;
+        double dy = hauteur <= 0 ? 0 : y / hauteur - 0.5;
+        // Repartir de la position courante : la souris bouge plus vite que les
+        // 500 ms de glissement, sans cela chaque saut ramènerait le champ à zéro.
+        parallaxe.setFromX(zoneHexagones.getTranslateX());
+        parallaxe.setFromY(zoneHexagones.getTranslateY());
+        parallaxe.setToX(dx * -26);
+        parallaxe.setToY(dy * -18);
+        parallaxe.play();
+    }
+
+    /**
+     * Les trois puces d'atouts du bas du panneau : mêmes dessins que les badges,
+     * posés sur une pastille ronde pour se distinguer du champ flottant.
+     */
+    private void installerAtouts() {
+        puce(puceAtout1, Icons::trendingUp);
+        puce(puceAtout2, Icons::barChart);
+        puce(puceAtout3, Icons::shieldCheck);
+    }
+
+    /**
+     * Le hero se comprime avant le formulaire quand la fenêtre rétrécit : au-delà
+     * d'un certain point, son texte passerait sur les badges, donc il se retire.
+     */
+    private void adapterAccrocheALargeur() {
+        if (blocAccroche == null || !(zoneHexagones.getParent() instanceof Region panneau)) {
+            return;
+        }
+        blocAtouts.visibleProperty().bind(
+                panneau.widthProperty().greaterThan(LARGEUR_ATOUTS));
+        blocAtouts.managedProperty().bind(blocAtouts.visibleProperty());
+        blocAccroche.visibleProperty().bind(
+                panneau.widthProperty().greaterThan(LARGEUR_ACCROCHE));
+        blocAccroche.managedProperty().bind(blocAccroche.visibleProperty());
+    }
+
+    private void puce(StackPane conteneur, Icons.IconFactory icone) {
+        if (conteneur == null) return;
+        conteneur.getChildren().setAll(icone.create(15, COULEUR_ATOUT));
+    }
+
+    /** Sommet de la bande de badges. */
+    private double hautBande() {
+        return zoneHexagones.getHeight() * BADGES_TOP;
+    }
+
+    /** Plancher de la bande : jamais au-dessus du texte de l'accroche, jamais trop bas. */
+    private double basBande() {
+        double hauteur = zoneHexagones.getHeight();
+        // Le VBox de l'accroche occupe toute la hauteur du panneau (son contenu est
+        // aligné en bas) : seule sa hauteur préférée mesure le bloc de texte réel.
+        double accroche = blocAccroche.isManaged() && blocAccroche.isVisible()
+                ? blocAccroche.prefHeight(blocAccroche.getWidth()) : 0;
+        return Math.max(hauteur * BADGES_MINIMUM, hauteur - accroche - MARGE_SOUS_BADGES);
     }
 
     /** Ajoute des cercles lumineux flottants en arrière-plan pour renforcer l'effet 3D. */

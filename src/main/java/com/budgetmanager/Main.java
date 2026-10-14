@@ -212,6 +212,12 @@ public class Main extends Application {
         fondu.setFromValue(0);
         fondu.setToValue(1);
         fondu.play();
+
+        // Seule une page inédite se joue en cascade ; un retour depuis le cache
+        // doit être instantané, sans re-jouer l'entrée.
+        if (!depuisCache) {
+            com.budgetmanager.util.AnimationEntree.enCascade(racine);
+        }
     }
 
     /**
