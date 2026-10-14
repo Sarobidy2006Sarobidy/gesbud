@@ -28,7 +28,7 @@
         <!-- ══════════════════  PANNEAU DROIT CONNEXION  ══════════════════ -->
         <!-- Colonne large et carte centrée verticalement : en plein écran, une carte
              collée en haut laissait la moitié basse de l'écran vide. -->
-        <StackPane styleClass="auth-side" minWidth="620" prefWidth="620" maxWidth="620">
+        <StackPane styleClass="auth-side" minWidth="620" prefWidth="720" HBox.hgrow="ALWAYS">
             <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" styleClass="auth-scroll">
                 <StackPane styleClass="auth-scroll-content">
                     <VBox styleClass="auth-card-premium" spacing="18" maxWidth="520" maxHeight="-Infinity">

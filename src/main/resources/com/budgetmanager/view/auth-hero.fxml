@@ -25,7 +25,7 @@
 
         <!-- Les badges sont confinés en haut du panneau : sans ces atouts, toute la
              moitié basse restait un vide bleu. Puces dessinées en Java (Icons). -->
-        <VBox fx:id="blocAtouts" spacing="8" maxWidth="470" styleClass="auth-hero-atouts">
+        <VBox fx:id="blocAtouts" spacing="8" maxWidth="520" styleClass="auth-hero-atouts">
             <HBox styleClass="auth-hero-atout" alignment="CENTER_LEFT" spacing="11">
                 <StackPane fx:id="puceAtout1" styleClass="auth-hero-puce"/>
                 <Label text="Revenus et dépenses suivis mois par mois"

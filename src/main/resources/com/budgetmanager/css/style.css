@@ -562,7 +562,7 @@
     -fx-font-family: "Inter";
     -fx-font-size: 14.5px;
     -fx-text-fill: #9dc8ff;
-    -fx-max-width: 470;
+    -fx-max-width: 520;
 }
 
 /* Atouts du bas du hero : ils remplissent la moitié basse du panneau, que les
@@ -641,10 +641,12 @@
    PAGES D'AUTHENTIFICATION — DESIGN PREMIUM
    ========================================================================= */
 
-/* Panneau côté droit — la carte est centrée dans cette colonne */
+/* Panneau côté droit — la carte est centrée dans cette colonne. Padding
+   symétrique : dissymétrique, la carte collait au bord droit de l'écran et
+   laissait un vide entre le hero et le formulaire. */
 .auth-side {
     -fx-background-color: transparent;
-    -fx-padding: 48 64 48 0;
+    -fx-padding: 48 72;
 }
 
 /* ── Carte glassmorphism ── */
