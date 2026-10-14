@@ -409,6 +409,9 @@
 .text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
     -fx-border-color: #1e88e5;
     -fx-background-color: white;
+    /* Même signal visuel que les cartes d'authentification : le champ actif
+       doit se voir sans avoir à chercher le curseur. */
+    -fx-effect: dropshadow(gaussian, rgba(30,136,229,0.30), 14, 0.08, 0, 2);
 }
 .text-field .prompt-text, .password-field .prompt-text { -fx-fill: #9aabcb; }
 .combo-box-popup .list-view, .date-picker-popup {
@@ -431,6 +434,8 @@
     -fx-border-color: transparent;
     -fx-background-insets: 0;
     -fx-padding: 9 4 9 10;
+    /* La lueur appartient au DatePicker entier, pas à son champ interne. */
+    -fx-effect: none;
 }
 .date-picker-popup .month-year-pane { -fx-background-color: #0b2a6b; }
 .date-picker-popup .spinner .button .left-arrow,
@@ -534,12 +539,22 @@
 
 .auth-hero-text { -fx-padding: 0 70 54 64; }
 
+/* Filet d'accent au-dessus de l'accroche : marque le bas du panneau. */
+.auth-hero-accent {
+    -fx-min-width: 54; -fx-pref-width: 54; -fx-max-width: 54;
+    -fx-min-height: 4; -fx-pref-height: 4; -fx-max-height: 4;
+    -fx-background-color: linear-gradient(to right, #00b4d8, #5daaff);
+    -fx-background-radius: 2;
+}
+
 .auth-hero-title {
     -fx-font-family: "Poppins";
     -fx-font-weight: bold;
     -fx-font-size: 33px;
     -fx-text-fill: white;
-    -fx-max-width: 460;
+    /* 430 px = deux lignes équilibrées (« Gardez le contrôle de » / « votre budget »)
+       au lieu de laisser un mot seul en fin d'accroche. */
+    -fx-max-width: 430;
     -fx-effect: dropshadow(gaussian, rgba(0,100,255,0.60), 20, 0.1, 0, 4);
 }
 
@@ -547,7 +562,36 @@
     -fx-font-family: "Inter";
     -fx-font-size: 14.5px;
     -fx-text-fill: #9dc8ff;
-    -fx-max-width: 440;
+    -fx-max-width: 470;
+}
+
+/* Atouts du bas du hero : ils remplissent la moitié basse du panneau, que les
+   badges — confinés dans la bande haute — laissaient vide. */
+.auth-hero-atouts { -fx-padding: 10 0 0 0; }
+
+.auth-hero-atout {
+    -fx-background-color: rgba(255,255,255,0.07);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(157,200,255,0.16);
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 9 13;
+}
+
+.auth-hero-puce {
+    -fx-min-width: 28; -fx-pref-width: 28; -fx-max-width: 28;
+    -fx-min-height: 28; -fx-pref-height: 28; -fx-max-height: 28;
+    -fx-background-color: rgba(0,180,216,0.16);
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(157,220,255,0.35);
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+}
+
+.auth-hero-atout-texte {
+    -fx-font-family: "Inter";
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #d7e8ff;
 }
 
 /* =========================================================================
@@ -880,9 +924,16 @@
 .auth-scroll, .auth-scroll > .viewport { -fx-background-color: transparent; }
 .auth-scroll { -fx-padding: 0; }
 .auth-scroll-content { -fx-padding: 14 0 24 0; }
-.auth-scroll .scroll-bar:vertical { -fx-background-color: transparent; -fx-pref-width: 8; }
+/* Barre de défilement des cartes verre : 6 px, invisible tant que la souris
+   ne survole pas la carte — elle ne doit pas ressembler à un ascenseur. */
+.auth-scroll .scroll-bar:vertical { -fx-background-color: transparent; -fx-pref-width: 6; }
 .auth-scroll .scroll-bar:vertical .track { -fx-background-color: transparent; -fx-border-color: transparent; }
-.auth-scroll .scroll-bar:vertical .thumb { -fx-background-color: rgba(255,255,255,0.35); -fx-background-radius: 4; }
+.auth-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(255,255,255,0.55);
+    -fx-background-radius: 3;
+    -fx-opacity: 0;
+}
+.auth-scroll:hover .scroll-bar:vertical .thumb { -fx-opacity: 1; }
 .auth-scroll .scroll-bar .increment-button, .auth-scroll .scroll-bar .decrement-button {
     -fx-padding: 0; -fx-pref-height: 0; -fx-opacity: 0;
 }
@@ -925,6 +976,55 @@
     -fx-background-color: rgba(255,255,255,0.14); -fx-border-color: rgba(255,255,255,0.32);
     -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14 16;
 }
+
+/* =========================================================================
+   ÉTATS VIDES — tableaux et graphiques sans donnée
+   ========================================================================= */
+.vide-etat { -fx-padding: 18; }
+.vide-icone {
+    -fx-min-width: 56; -fx-min-height: 56;
+    -fx-max-width: 56; -fx-max-height: 56;
+    -fx-background-color: #eaf2ff;
+    -fx-background-radius: 28;
+    -fx-border-color: #d5e5fb;
+    -fx-border-radius: 28;
+    -fx-border-width: 1;
+}
+.vide-titre { -fx-font-family: "Poppins Medium"; -fx-font-size: 14px; -fx-text-fill: #0b2a6b; }
+.vide-aide {
+    -fx-font-family: "Inter"; -fx-font-size: 12.5px; -fx-text-fill: #5b7099;
+    -fx-text-alignment: center;
+}
+/* Message posé sur un graphique vide (camembert, courbe). */
+.vide-graphique {
+    -fx-font-family: "Inter"; -fx-font-size: 12.5px; -fx-text-fill: #465d80;
+    -fx-text-alignment: center;
+    -fx-background-color: rgba(255,255,255,0.92);
+    -fx-background-radius: 10;
+    -fx-border-color: #dbe6f7;
+    -fx-border-radius: 10;
+    -fx-padding: 12 16;
+}
+
+/* Carte verre resserrée : inscription (formulaire long) et écran d'erreur. */
+.auth-card-compact { -fx-padding: 28 40; }
+
+/* ── Écran « base de données inaccessible » ── */
+.erreur-icone {
+    -fx-min-width: 80; -fx-min-height: 80;
+    -fx-max-width: 80; -fx-max-height: 80;
+    -fx-background-color: rgba(220,30,30,0.22);
+    -fx-background-radius: 50%;
+    -fx-border-color: rgba(255,80,80,0.35);
+    -fx-border-radius: 50%;
+}
+.erreur-detail  { -fx-text-fill: rgba(180,210,255,0.85); -fx-font-family: "Inter"; -fx-font-size: 13px; }
+.erreur-port    { -fx-text-fill: #ff8080;                -fx-font-family: "Inter"; -fx-font-size: 12px; }
+.erreur-statut  { -fx-text-fill: #7ec3ff;                -fx-font-family: "Inter"; -fx-font-size: 12px; }
+.erreur-guide-titre { -fx-font-family: "Poppins Medium"; -fx-font-size: 12.5px; -fx-text-fill: #cfe6ff; }
+.erreur-guide-pas   { -fx-text-fill: rgba(180,210,255,0.8); -fx-font-family: "Inter"; -fx-font-size: 12px; }
+.bouton-reessayer { -fx-min-width: 150; }
+.bouton-quitter   { -fx-min-width: 120; }
 
 /* =========================================================================
    ProgressIndicator et overlay
