@@ -213,6 +213,10 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
         if (!DbHeartbeat.ok()) { chargerCategories(); return; }
 
         if (nom.isEmpty() || type == null) {
+            // La ligne de saisie se valide cellule par cellule : Tab, Entrée ou un
+            // clic atteint la colonne Type avant que le type soit choisi. Un nom seul
+            // n'est pas une faute, et recharger la liste effacerait ce qui est tapé.
+            if (categorie == ligneVide) return;
             AlertUtil.afficherErreur("Champs manquants",
                     "Une catégorie a besoin d'un nom et d'un type.");
             chargerCategories();
