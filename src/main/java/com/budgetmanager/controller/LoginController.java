@@ -65,7 +65,22 @@ public class LoginController {
         String flash = FlashMessage.consommer();
         if (flash != null) AuthUi.succes(labelMessage, flash);
 
-        javafx.application.Platform.runLater(() -> champEmail.requestFocus());
+        racine.heightProperty().addListener((obs, avant, hauteur) -> serrer(hauteur.doubleValue()));
+        javafx.application.Platform.runLater(() -> {
+            serrer(racine.getHeight());
+            champEmail.requestFocus();
+        });
+    }
+
+    /** En dessous de cette hauteur, le pied de la carte passerait sous le bord de l'écran. */
+    private static final double HAUTEUR_CONFORT = 780;
+
+    private void serrer(double hauteur) {
+        if (hauteur <= 0) return;
+        boolean serree = hauteur < HAUTEUR_CONFORT;
+        if (serree == racine.getStyleClass().contains("serree")) return;
+        if (serree) racine.getStyleClass().add("serree");
+        else racine.getStyleClass().remove("serree");
     }
 
     @FXML

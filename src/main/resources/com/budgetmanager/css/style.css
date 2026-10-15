@@ -746,6 +746,7 @@
     -fx-border-radius: 24;
     -fx-border-width: 1.5;
     -fx-padding: 40 44;
+    -fx-spacing: 18;
     /* Ombre profonde pour l'effet de profondeur */
     -fx-effect: dropshadow(gaussian, rgba(0,8,40,0.65), 52, 0.05, 0, 18);
 }
@@ -1025,6 +1026,33 @@
 }
 
 .auth-card-premium .hyperlink:focused { -fx-border-color: transparent; }
+
+/* ── Carte « serrée » : fenêtre basse (le minimum de la fenêtre est 640 px de
+   haut). Sans ce mode, le pied de carte « Connexion sécurisée » restait sous le
+   bord de l'écran et il fallait défiler pour le voir. ── */
+.auth-container.serree .auth-side { -fx-padding: 14 72; }
+.auth-container.serree .auth-scroll-content { -fx-padding: 4 0 12 0; }
+.auth-container.serree .auth-card-premium {
+    -fx-padding: 22 32;
+    -fx-spacing: 9;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+}
+.auth-container.serree .auth-brand-premium { -fx-font-size: 14px; }
+.auth-container.serree .auth-title-premium { -fx-font-size: 23px; }
+.auth-container.serree .auth-tagline-premium { -fx-font-size: 12px; }
+.auth-container.serree .auth-input-premium {
+    -fx-min-height: 44;
+    -fx-pref-height: 44;
+    -fx-max-height: 44;
+}
+.auth-container.serree .auth-input-icon-premium {
+    -fx-pref-width: 46;
+    -fx-min-width: 46;
+    -fx-max-width: 46;
+}
+.auth-container.serree .auth-button-premium { -fx-padding: 11 20; -fx-font-size: 14px; }
+.auth-container.serree .auth-security-row { -fx-padding: 6 12; }
 
 .auth-message { -fx-font-family: "Inter"; -fx-font-size: 12.5px; -fx-padding: 10 12; -fx-background-radius: 3; -fx-graphic-text-gap: 9; }
 
