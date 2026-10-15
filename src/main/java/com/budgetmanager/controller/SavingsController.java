@@ -18,7 +18,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.chart.LineChart;
+import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
@@ -52,7 +52,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     @FXML private javafx.scene.layout.GridPane grilleCartes;
     @FXML private Label labelAlerteSolde;
     @FXML private ComboBox<Period> comboPeriode;
-    @FXML private LineChart<String, Number> courbeEconomies;
+    @FXML private AreaChart<String, Number> courbeEconomies;
 
     @FXML private TextField champRecherche;
     @FXML private DatePicker champFiltreDateDebut;
@@ -215,7 +215,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         List<SavingsCurve.Point> points = SavingsCurve.construire(toutes, periode, LocalDate.now());
 
         courbeEconomies.setTitle("Total économisé (cumul) — " + periode.toString().toLowerCase());
-        courbeEconomies.setCreateSymbols(points.size() <= 40);
+        courbeEconomies.setCreateSymbols(false);
         courbeEconomies.getData().clear();
 
         XYChart.Series<String, Number> serie = new XYChart.Series<>();

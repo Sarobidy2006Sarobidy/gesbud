@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.AreaChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
@@ -77,11 +77,11 @@
                             <ComboBox fx:id="comboPeriode" styleClass="period-select" prefWidth="150"/>
                         </VBox>
                     </HBox>
-                    <LineChart fx:id="courbeEconomies" styleClass="courbe-solde"
+                    <AreaChart fx:id="courbeEconomies" styleClass="courbe-solde"
                                prefHeight="280" VBox.vgrow="ALWAYS">
                         <xAxis><CategoryAxis/></xAxis>
                         <yAxis><NumberAxis/></yAxis>
-                    </LineChart>
+                    </AreaChart>
                 </VBox>
 
                 <!-- ===== Formulaire ===== -->

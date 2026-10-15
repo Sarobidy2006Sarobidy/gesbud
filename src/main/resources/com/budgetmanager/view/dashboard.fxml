@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.chart.AreaChart?>
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.ComboBox?>
@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -185,6 +186,10 @@
                     <VBox styleClass="chart-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <StackPane>
                             <PieChart fx:id="pieRevenus" legendVisible="true" prefHeight="280"/>
+                            <!-- Le camembert se présente en anneau : le creux, les
+                                 pourcentages et le total sont posés par le contrôleur,
+                                 qui mesure les parts réelles plutôt que de les supposer. -->
+                            <Pane fx:id="survolPieRevenus" mouseTransparent="true" pickOnBounds="false"/>
                             <!-- Un camembert sans donnée n'affiche qu'un cercle vide :
                                  le message dit de quel mois il s'agit. -->
                             <Label fx:id="videPieRevenus" styleClass="vide-graphique" maxWidth="260"
@@ -195,6 +200,7 @@
                     <VBox styleClass="chart-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
                         <StackPane>
                             <PieChart fx:id="pieDepenses" legendVisible="true" prefHeight="280"/>
+                            <Pane fx:id="survolPieDepenses" mouseTransparent="true" pickOnBounds="false"/>
                             <Label fx:id="videPieDepenses" styleClass="vide-graphique" maxWidth="260"
                                    wrapText="true" textAlignment="CENTER" alignment="CENTER"
                                    visible="false" managed="false"/>
@@ -215,10 +221,10 @@
                     </VBox>
 
                     <VBox styleClass="chart-card" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2">
-                        <LineChart fx:id="lineSolde" styleClass="courbe-solde" prefHeight="320">
+                        <AreaChart fx:id="lineSolde" styleClass="courbe-solde" prefHeight="320">
                             <xAxis><CategoryAxis/></xAxis>
                             <yAxis><NumberAxis/></yAxis>
-                        </LineChart>
+                        </AreaChart>
                     </VBox>
                 </GridPane>
 

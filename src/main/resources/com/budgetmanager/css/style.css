@@ -209,7 +209,7 @@
     -fx-padding: 12 14;
 }
 
-.kpi-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 12px; -fx-text-fill: #5b7099; }
+.kpi-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 11.5px; -fx-text-fill: #5b7099; }
 .kpi-value { -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #0b2a6b; }
 .kpi-detail { -fx-font-family: "Inter"; -fx-font-size: 11px; -fx-text-fill: #9aabcb; }
 
@@ -224,8 +224,8 @@
 }
 
 .tendance {
-    -fx-font-family: "Inter SemiBold"; -fx-font-size: 11px;
-    -fx-background-radius: 20; -fx-padding: 3 9;
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 10.5px;
+    -fx-background-radius: 20; -fx-padding: 2 7;
 }
 .tendance-hausse  { -fx-background-color: #e4f6ee; -fx-text-fill: #12805c; }
 .tendance-baisse  { -fx-background-color: #fdeceb; -fx-text-fill: #c62828; }
@@ -267,6 +267,32 @@
 .default-color1.chart-series-line { -fx-stroke: #26c6da; }
 .default-color0.chart-line-symbol { -fx-background-color: #1e88e5, white; }
 .default-color1.chart-line-symbol { -fx-background-color: #26c6da, white; }
+
+/* --- Courbes en aire dégradée ---
+   La série principale se remplit d'un bleu qui s'évapore vers le bas ; la seconde
+   reste un simple trait tireté, sinon deux aires l'une sur l'autre illisibles. */
+.courbe-solde .chart-vertical-grid-lines { -fx-stroke: transparent; }
+.courbe-solde .chart-horizontal-grid-lines { -fx-stroke: #eef3fb; }
+.courbe-solde .axis .axis-tick-mark, .courbe-solde .axis .axis-minor-tick-mark { -fx-stroke: transparent; }
+.courbe-solde .axis { -fx-tick-label-fill: #8595bb; -fx-tick-label-font-size: 10.5px; }
+.courbe-solde .chart-series-area-line { -fx-stroke-width: 2.4px; }
+.default-color0.chart-series-area-line { -fx-stroke: #1e88e5; }
+.default-color0.chart-series-area-fill {
+    -fx-fill: linear-gradient(to bottom, rgba(30, 136, 229, 0.30), rgba(30, 136, 229, 0.02));
+}
+.default-color1.chart-series-area-line { -fx-stroke: #26c6da; -fx-stroke-width: 2px; -fx-stroke-dash-array: 5 4; }
+.default-color1.chart-series-area-fill { -fx-fill: transparent; }
+
+/* --- Anneaux de répartition ---
+   Le creux reprend le blanc de la carte : l'anneau se lit d'un coup d'œil, et le
+   total du mois se lit au centre au lieu d'être additionné mentalement. */
+.donut-trou { -fx-fill: white; -fx-stroke: #eef3fb; -fx-stroke-width: 1px; }
+.donut-centre {
+    -fx-font-family: "Poppins SemiBold"; -fx-font-size: 14px; -fx-text-fill: #0b2a6b;
+}
+.donut-pourcent {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 11.5px; -fx-fill: white;
+}
 
 /* =========================================================================
    Pages premium — en-tête, cartes de formulaire, tableaux, pagination

@@ -10,7 +10,7 @@ import com.budgetmanager.util.SessionManager;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
-import javafx.scene.chart.LineChart;
+import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
@@ -64,9 +64,11 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
     @FXML private PieChart pieDepenses;
     @FXML private Label videPieRevenus;
     @FXML private Label videPieDepenses;
+    @FXML private javafx.scene.layout.Pane survolPieRevenus;
+    @FXML private javafx.scene.layout.Pane survolPieDepenses;
     @FXML private BarChart<String, Number> barRevenusMensuels;
     @FXML private BarChart<String, Number> barDepensesMensuelles;
-    @FXML private LineChart<String, Number> lineSolde;
+    @FXML private AreaChart<String, Number> lineSolde;
 
     /** Contrôleur de la barre latérale incluse (fx:id="sidebar" -> champ "sidebarController"). */
     @FXML private SidebarController sidebarController;
@@ -101,6 +103,7 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
 
         configurerSelecteurPeriode();
         compacterAxesDesGraphiques();
+        preparerAnneauxEtCourbes();
 
         User utilisateur = SessionManager.getUtilisateurConnecte();
         if (utilisateur == null) return;
@@ -151,6 +154,123 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
             ((javafx.scene.chart.NumberAxis) graphique.getYAxis())
                     .setTickLabelFormatter(com.budgetmanager.util.CurrencyUtil.compact());
         }
+    }
+
+    /**
+     * Les deux parts de camembert deviennent un anneau et la courbe du solde une
+     * aire dégradée : le creux, les pourcentages et le total central sont posés par
+     * dessus, mesurés sur les parts réellement dessinées.
+     */
+    private void preparerAnneauxEtCourbes() {
+        lineSolde.setCreateSymbols(false);
+        for (var paire : java.util.List.of(
+                java.util.Map.entry(pieRevenus, survolPieRevenus),
+                java.util.Map.entry(pieDepenses, survolPieDepenses))) {
+            PieChart camembert = paire.getKey();
+            javafx.scene.layout.Pane survol = paire.getValue();
+            // Sans animation, les bounds des parts sont ceux du dessin final : c'est ce
+            // qui permet de poser le creux et les pourcentages à la bonne place.
+            camembert.setAnimated(false);
+            camembert.setLabelsVisible(false);
+            // Les parts n'existent qu'une fois le camembert posé : needsLayout repasse
+            // à false à la fin de chaque passe, et c'est là seulement que leurs bounds
+            // sont ceux du dessin final.
+            camembert.needsLayoutProperty().addListener((obs, avant, apres) -> {
+                if (!apres) habillerDonut(camembert, survol);
+            });
+        }
+    }
+
+    /** Trou blanc, pourcentage de chaque part et total du mois, d'après les parts dessinées. */
+    private void habillerDonut(PieChart camembert, javafx.scene.layout.Pane survol) {
+        if (habillageEnCours) return;
+        habillageEnCours = true;
+        try { habillerDonutSansGarde(camembert, survol); }
+        finally { habillageEnCours = false; }
+    }
+
+    private boolean habillageEnCours = false;
+
+    private void habillerDonutSansGarde(PieChart camembert, javafx.scene.layout.Pane survol) {
+        javafx.scene.shape.Circle trou = null;
+        javafx.scene.control.Label centre = null;
+        for (javafx.scene.Node enfant : survol.getChildren()) {
+            if (enfant instanceof javafx.scene.shape.Circle c) trou = c;
+            if (enfant instanceof javafx.scene.control.Label l) centre = l;
+        }
+        if (trou == null) {
+            trou = new javafx.scene.shape.Circle();
+            trou.getStyleClass().add("donut-trou");
+            trou.setMouseTransparent(true);
+            survol.getChildren().add(trou);
+        }
+        if (centre == null) {
+            centre = new javafx.scene.control.Label();
+            centre.getStyleClass().add("donut-centre");
+            centre.setMouseTransparent(true);
+            survol.getChildren().add(centre);
+        }
+        survol.getChildren().removeIf(n -> n instanceof javafx.scene.text.Text);
+
+        double somme = camembert.getData().stream().mapToDouble(PieChart.Data::getPieValue).sum();
+        double gauche = 0, haut = 0, droite = 0, bas = 0;
+        for (PieChart.Data donnee : camembert.getData()) {
+            javafx.geometry.Bounds b = autourDe(survol, donnee.getNode());
+            if (b == null) continue;
+            if (droite == 0) {
+                gauche = b.getMinX(); haut = b.getMinY(); droite = b.getMaxX(); bas = b.getMaxY();
+            } else {
+                gauche = Math.min(gauche, b.getMinX()); haut = Math.min(haut, b.getMinY());
+                droite = Math.max(droite, b.getMaxX()); bas = Math.max(bas, b.getMaxY());
+            }
+        }
+        if (somme <= 0 || droite - gauche < 10) {
+            trou.setRadius(0);
+            centre.setText("");
+            return;
+        }
+
+        double cx = (gauche + droite) / 2;
+        double cy = (haut + bas) / 2;
+        double rayon = Math.min(droite - gauche, bas - haut) / 2;
+
+        trou.setCenterX(cx);
+        trou.setCenterY(cy);
+        trou.setRadius(rayon * 0.6);
+
+        // Le creux est petit : « 1 140 000,00 Ar » n'y tiendrait pas.
+        centre.setText(CurrencyUtil.compact().toString(somme));
+        centre.applyCss();
+        javafx.geometry.Bounds t = centre.getLayoutBounds();
+        centre.relocate(cx - t.getWidth() / 2, cy - t.getHeight() / 2);
+
+        // JavaFX ouvre le premier pourcentage à 3 heures et tourne à l'envers des
+        // aiguilles : l'angle médian se déduit de la part déjà consommée.
+        double consommee = 0;
+        for (PieChart.Data donnee : camembert.getData()) {
+            double fraction = donnee.getPieValue() / somme;
+            double milieu = Math.toRadians((consommee + fraction / 2) * 360);
+            consommee += fraction;
+            double dx = Math.cos(milieu);
+            double dy = -Math.sin(milieu);
+            javafx.scene.text.Text pourcentage = new javafx.scene.text.Text(
+                    Math.round(donnee.getPieValue() / somme * 100) + " %");
+            pourcentage.getStyleClass().add("donut-pourcent");
+            pourcentage.setMouseTransparent(true);
+            // Dans le graphe d'abord, la feuille de style ensuite : hors scène, un Text
+            // ignore sa classe et resterait noir sur une part déjà sombre.
+            survol.getChildren().add(pourcentage);
+            pourcentage.applyCss();
+            javafx.geometry.Bounds libelle = pourcentage.getLayoutBounds();
+            pourcentage.relocate(cx + dx * rayon * 0.8 - libelle.getWidth() / 2,
+                                 cy + dy * rayon * 0.8 - libelle.getHeight() / 2);
+        }
+    }
+
+    /** L'empreinte d'une part dans le repère du panneau posé sur le camembert. */
+    private static javafx.geometry.Bounds autourDe(javafx.scene.layout.Pane survol, javafx.scene.Node part) {
+        if (part == null || part.getBoundsInLocal().getWidth() < 1) return null;
+        return survol.sceneToLocal(part.localToScene(part.getBoundsInLocal()));
     }
 
     /** Résultats du calcul mensuel : valeurs du mois M et précédent + répartition du mois. */
@@ -224,10 +344,10 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         // déplaçait que quatre petites cartes et donnait l'impression d'une page figée.
         String libelleMois = mois.getMonth().getDisplayName(
                 java.time.format.TextStyle.FULL, java.util.Locale.FRANCE) + " " + mois.getYear();
-        remplirPieChart(pieRevenus, videPieRevenus, valeurs.repartitionRevenus(),
+        remplirPieChart(pieRevenus, videPieRevenus, survolPieRevenus, valeurs.repartitionRevenus(),
                 "Répartition des revenus · " + libelleMois,
                 "Aucun revenu enregistré en " + libelleMois);
-        remplirPieChart(pieDepenses, videPieDepenses, valeurs.repartitionDepenses(),
+        remplirPieChart(pieDepenses, videPieDepenses, survolPieDepenses, valeurs.repartitionDepenses(),
                 "Répartition des dépenses · " + libelleMois,
                 "Aucune dépense enregistrée en " + libelleMois);
 
@@ -434,7 +554,8 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         return totaux;
     }
 
-    private void remplirPieChart(PieChart chart, Label vide, List<Object[]> donnees,
+    private void remplirPieChart(PieChart chart, Label vide, javafx.scene.layout.Pane survol,
+                                 List<Object[]> donnees,
                                  String titre, String messageVide) {
         chart.setTitle(titre);
         // Un camembert sans part n'affiche qu'un cercle vide, difficile à
@@ -457,6 +578,9 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
             chart.getData().setAll(nouvellesDonnees);
         }
         vide.setVisible(nouvellesDonnees.isEmpty());
+        // Une passe de layout plus loin, les parts ont leur taille définitive : le
+        // creux et les pourcentages se posent alors exactement dessus.
+        javafx.application.Platform.runLater(() -> habillerDonut(chart, survol));
     }
 
     private void remplirBarChart(BarChart<String, Number> chart, List<Double> valeursMensuelles, String titre) {
