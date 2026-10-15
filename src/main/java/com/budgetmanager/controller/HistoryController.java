@@ -5,9 +5,11 @@ import com.budgetmanager.dao.ExpenseDAO;
 import com.budgetmanager.dao.IncomeDAO;
 import com.budgetmanager.dao.SavingDAO;
 import com.budgetmanager.model.*;
+import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.DbExecutor;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.SqlUtil;
 import com.budgetmanager.util.VideEtat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -80,6 +82,7 @@ public class HistoryController implements com.budgetmanager.util.Rafraichissable
     // --- Boutons filtre ---
     @FXML private Button boutonFiltrer;
     @FXML private Button boutonReinitialiser;
+    @FXML private Button boutonExporter;
 
     @FXML private SidebarController sidebarController;
 
@@ -133,6 +136,7 @@ public class HistoryController implements com.budgetmanager.util.Rafraichissable
             new javafx.beans.property.SimpleStringProperty(c.getValue().getDescription()));
         colonneDate.setCellValueFactory(c ->
             new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getDate()));
+        com.budgetmanager.util.TableUtil.marquerPrevues(colonneDate);
 
         tableHistorique.setItems(donnees);
         tableHistorique.getSortOrder().add(colonneDate);
@@ -208,7 +212,10 @@ public class HistoryController implements com.budgetmanager.util.Rafraichissable
 
         donnees.setAll(toutesOperations.subList(debut, fin));
 
-        pastilleNombre.setText(String.valueOf(total));
+        // Le chiffre annonce les opérations réalisées : les prévues restent listées
+        // et marquées « prévue », mais n'entrent dans aucun compteur.
+        pastilleNombre.setText(String.valueOf(toutesOperations.stream()
+                .filter(o -> SqlUtil.estRealisee(o.getDate())).count()));
         labelPagination.setText(
                 "Page " + (pageCourante + 1) + " / " + totalPages);
 
@@ -218,13 +225,60 @@ public class HistoryController implements com.budgetmanager.util.Rafraichissable
         boutonDerniere.setDisable(pageCourante >= totalPages - 1);
     }
 
-    @FXML public void allerPremierePage()  { pageCourante = 0; afficherPage(); }
-    @FXML public void allerPagePrecedente(){ pageCourante--; afficherPage(); }
+    @FXML public void allerPremierePage()  { pageCourante = 0; afficherPage(); }    @FXML public void allerPagePrecedente(){ pageCourante--; afficherPage(); }
     @FXML public void allerPageSuivante()  { pageCourante++; afficherPage(); }
     @FXML public void allerDernierePage()  {
         int total = toutesOperations.size();
         pageCourante = Math.max(0, (int) Math.ceil((double) total / TAILLE_PAGE) - 1);
         afficherPage();
+    }
+
+    // ---------------------------------------------------------------------------
+    // Export
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Exporte les opérations retenues par les filtres — la liste complète, pas
+     * seulement la page affichée. Le fichier se relit dans un tableur.
+     */
+    @FXML
+    public void exporterCsv() {
+        if (toutesOperations.isEmpty()) {
+            AlertUtil.afficherErreur("Rien à exporter",
+                    "Aucune opération avec les filtres actuels.");
+            return;
+        }
+
+        javafx.stage.FileChooser choix = new javafx.stage.FileChooser();
+        choix.setTitle("Enregistrer l'export");
+        choix.setInitialFileName("operations-" + LocalDate.now() + ".csv");
+        choix.getExtensionFilters().add(
+                new javafx.stage.FileChooser.ExtensionFilter("Fichier CSV", "*.csv"));
+        java.io.File fichier = choix.showSaveDialog(
+                tableHistorique.getScene() == null ? null : tableHistorique.getScene().getWindow());
+        if (fichier == null) return;   // annulé : rien n'est écrasé
+
+        List<String[]> lignes = new ArrayList<>();
+        lignes.add(new String[]{"Type", "Catégorie", "Montant", "Description", "Date", "Statut"});
+        for (Operation operation : toutesOperations) {
+            lignes.add(new String[]{
+                    operation.getType(),
+                    operation.getCategorie(),
+                    com.budgetmanager.util.NumberFieldFormatter.ecrire(operation.getMontant()),
+                    operation.getDescription(),
+                    String.valueOf(operation.getDate()),
+                    SqlUtil.estRealisee(operation.getDate()) ? "Réalisée" : "Prévue"});
+        }
+
+        try {
+            com.budgetmanager.util.ExportCsv.ecrire(fichier, lignes);
+            AlertUtil.afficherSucces("Export terminé",
+                    lignes.size() - 1 + " opérations enregistrées dans\n" + fichier.getAbsolutePath());
+        } catch (java.io.IOException e) {
+            log.error("Export CSV échoué", e);
+            AlertUtil.afficherErreur("Export impossible",
+                    "Le fichier n'a pas pu être écrit : " + e.getMessage());
+        }
     }
 
     // ---------------------------------------------------------------------------

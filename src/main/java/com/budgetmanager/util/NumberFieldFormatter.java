@@ -36,6 +36,23 @@ public final class NumberFieldFormatter {
     }
 
     /**
+     * Lit un montant saisi : virgule ou point, espaces (y compris insécables) ignorés.
+     * Renvoie {@code null} pour du vide, du non numérique ou du négatif — un plafond
+     * mal tapé redevient « aucun plafond » plutôt qu'une valeur farfelue.
+     */
+    public static Double lire(String texte) {
+        if (texte == null) return null;
+        String nettoye = texte.trim().replace("\u00a0", "").replace(" ", "").replace(",", ".");
+        if (nettoye.isEmpty()) return null;
+        try {
+            double valeur = Double.parseDouble(nettoye);
+            return valeur > 0 ? valeur : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
      * Crée un TextFormatter pour nombres décimaux (max 2 décimales).
      * Compatible avec séparateur virgule (converti en point automatiquement).
      *

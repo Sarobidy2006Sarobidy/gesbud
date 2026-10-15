@@ -31,14 +31,14 @@
 
         <!-- Guide rapide -->
         <VBox spacing="6" styleClass="auth-security-row" maxWidth="480">
-            <Label text="Comment résoudre ce problème :" styleClass="erreur-guide-titre"/>
-            <Label text="1. Ouvrez le panneau de contrôle XAMPP ou WampServer"
+            <Label text="Ce qu'il faut faire :" styleClass="erreur-guide-titre"/>
+            <Label text="1. Ouvrez XAMPP (ou WampServer), le petit panneau qui démarre vos programmes"
                    styleClass="erreur-guide-pas" wrapText="true"/>
-            <Label text="2. Démarrez le service MySQL (bouton Start)"
+            <Label text="2. Cliquez sur « Start » en face de MySQL, puis attendez que la ligne devienne colorée"
                    styleClass="erreur-guide-pas" wrapText="true"/>
-            <Label text="3. Si le port affiché est 3307, modifiez db.url dans database.properties"
+            <Label text="3. Si le numéro de port affiché par XAMPP diffère de celui indiqué ci-dessus, ouvrez le fichier database.properties (dans le dossier de l'application) et remplacez-y ce numéro"
                    styleClass="erreur-guide-pas" wrapText="true"/>
-            <Label text="4. Cliquez sur « Réessayer » ci-dessous"
+            <Label text="4. Revenez ici et cliquez sur « Réessayer » : l'application se reconnecte sans redémarrer"
                    styleClass="erreur-guide-pas" wrapText="true"/>
         </VBox>
 
