@@ -60,6 +60,15 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     @FXML private Button boutonFiltrer;
     @FXML private Button boutonReinitialiser;
 
+    @FXML private TextField champRetraitMontant;
+    @FXML private TextField champRetraitMotif;
+    @FXML private DatePicker champRetraitDate;
+    @FXML private Button boutonRetirer;
+    @FXML private Label labelTirelire;
+    @FXML private Label labelApresRetrait;
+    @FXML private Label labelDetailMouvements;
+    @FXML private javafx.scene.layout.StackPane sortiePuce;
+
     @FXML private TableView<Saving> tableEconomies;
     @FXML private TableColumn<Saving, Double> colonneMontant;
     @FXML private TableColumn<Saving, String> colonneDescription;
@@ -79,6 +88,9 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
      *  Assigné uniquement sur le thread FX (dans le setOnSucceeded du chargement). */
     private List<Saving> toutes = List.of();
     private Saving economieSelectionnee;
+    /** Ce que contient la tirelire aujourd'hui : le plafond naturel d'un retrait. */
+    private double tirelire;
+    private String devise = "Ar";
 
     @FXML
     public void initialize() {
@@ -93,21 +105,32 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         boutonSupprimer.setGraphic(Icons.trash(15, Color.web("#b91c1c")));
         boutonFiltrer.setGraphic(Icons.filter(15, Color.WHITE));
         boutonReinitialiser.setGraphic(Icons.rotateCcw(15, Color.web("#374151")));
+        boutonRetirer.setGraphic(Icons.arrowLeft(15, Color.web("#b3261e")));
+        sortiePuce.getChildren().setAll(Icons.trendingDown(18, Color.web("#b3261e")));
 
         VideEtat.surTable(tableEconomies, Icons.pieChart(26, VideEtat.couleurIcone()),
                 "Aucune économie",
-                "Placez de l'argent de côté depuis le formulaire : la courbe le suivira mois par mois.");
+                "Placez de l'argent de côté depuis le formulaire : la courbe le suivira mois par mois, "
+                        + "et il redescendra le jour où vous reprendrez ce qui est dans la tirelire.");
 
         colonneMontant.setCellValueFactory(cellData -> cellData.getValue().montantProperty().asObject());
         com.budgetmanager.util.TableUtil.formaterMontants(colonneMontant);
         colonneDescription.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
         colonneDate.setCellValueFactory(cellData -> cellData.getValue().dateEconomieProperty());
         com.budgetmanager.util.TableUtil.marquerPrevues(colonneDate);
-        colonneFrequence.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getLibelleFrequence()));
+        // Une ligne négative n'est pas une fréquence, c'est une sortie : elle se dit telle quelle.
+        colonneFrequence.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
+                cellData.getValue().getMontant() < 0
+                        ? "Retiré de la tirelire"
+                        : cellData.getValue().getLibelleFrequence()));
 
         // Validation : champ montant accepte uniquement des nombres décimaux.
         champMontant.setTextFormatter(com.budgetmanager.util.NumberFieldFormatter.creer());
         champDescription.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(255));
+        champRetraitMontant.setTextFormatter(com.budgetmanager.util.NumberFieldFormatter.creer());
+        champRetraitMotif.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(255));
+        champRetraitDate.setValue(LocalDate.now());
+        champRetraitMontant.textProperty().addListener((obs, ancien, nouveau) -> apercuRetrait());
         tableEconomies.setItems(donnees);
 
         // La pastille suit les lignes visibles, hors opérations prévues.
@@ -115,6 +138,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
                 com.budgetmanager.util.TableUtil.compterRealisees(
                         tableEconomies.getItems(), Saving::getDateEconomie));
         labelTotal.setTooltip(new javafx.scene.control.Tooltip(
+                "Ce qui reste dans la tirelire : ce que vous avez mis de côté, moins ce que vous en avez repris.\n" +
                 "Les opérations datées après aujourd'hui sont prévues : elles restent au tableau,\n" +
                 "elles n'entrent dans aucun total, ni ici ni au tableau de bord."));
 
@@ -162,7 +186,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     private void chargerEconomies() {
         User utilisateur = SessionManager.getUtilisateurConnecte();
         int idUser = utilisateur.getIdUser();
-        String devise = utilisateur.getDevise();
+        devise = utilisateur.getDevise();
 
         // Données calculées en arrière-plan pour ne pas bloquer l'UI.
         // La liste voyage dans la valeur de la Task : « toutes » n'est écrit que sur le thread FX.
@@ -174,7 +198,11 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
                 double total = savingDAO.totalParUser(idUser);
                 double mois  = savingDAO.totalParMois(idUser, YearMonth.now());
                 double solde = com.budgetmanager.util.BudgetUtil.soldeDisponible(idUser);
-                return new Chargement(economies, total, mois, solde);
+                List<Saving> faites = economies.stream()
+                        .filter(e -> SqlUtil.estRealisee(e.getDateEconomie())).toList();
+                return new Chargement(economies, total, mois, solde,
+                        (int) faites.stream().filter(e -> e.getMontant() > 0).count(),
+                        (int) faites.stream().filter(e -> e.getMontant() < 0).count());
             }
         };
         tacheStats.setOnSucceeded(evt -> {
@@ -195,6 +223,11 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
             labelMois.setText(CurrencyUtil.formater(c.mois(), devise));
             labelNombre.setText(String.valueOf(c.economies().stream()
                     .filter(e -> SqlUtil.estRealisee(e.getDateEconomie())).count()));
+            tirelire = c.total();
+            labelTirelire.setText(CurrencyUtil.formater(c.total(), devise));
+            labelDetailMouvements.setText(c.deposes() + " dépôt" + (c.deposes() > 1 ? "s" : "")
+                    + " · " + c.retraits() + " retrait" + (c.retraits() > 1 ? "s" : ""));
+            apercuRetrait();
             double solde = c.solde();
             labelAlerteSolde.setVisible(solde < 0);
             labelAlerteSolde.setManaged(solde < 0);
@@ -214,7 +247,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         Period periode = comboPeriode.getValue() != null ? comboPeriode.getValue() : Period.MOIS;
         List<SavingsCurve.Point> points = SavingsCurve.construire(toutes, periode, LocalDate.now());
 
-        courbeEconomies.setTitle("Total économisé (cumul) — " + periode.toString().toLowerCase());
+        courbeEconomies.setTitle("Ce qu'il reste dans la tirelire — " + periode.toString().toLowerCase());
         courbeEconomies.setCreateSymbols(false);
         courbeEconomies.getData().clear();
 
@@ -226,11 +259,101 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     }
 
     private void remplirFormulaire(Saving economie) {
+        // Une ligne négative est une sortie : elle se corrige dans le formulaire de retrait.
+        if (economie.getMontant() < 0) {
+            champRetraitMontant.setText(com.budgetmanager.util.NumberFieldFormatter.ecrire(-economie.getMontant()));
+            champRetraitMotif.setText(economie.getDescription());
+            champRetraitDate.setValue(economie.getDateEconomie());
+            return;
+        }
         champMontant.setText(com.budgetmanager.util.NumberFieldFormatter.ecrire(economie.getMontant()));
         champDescription.setText(economie.getDescription());
         champDate.setValue(economie.getDateEconomie());
         comboFrequence.setValue(economie.getFrequence());
         champDateFin.setValue(economie.getDateFin());
+    }
+
+    /** Le montant qu'on veut reprendre, ou null si la saisie n'est pas encore exploitable. */
+    private Double montantDemande() {
+        return com.budgetmanager.util.NumberFieldFormatter.lire(champRetraitMontant.getText());
+    }
+
+    /** Pendant la frappe, dit ce que la tirelire contiendra après le retrait. */
+    private void apercuRetrait() {
+        Double montant = montantDemande();
+        if (montant == null) {
+            labelApresRetrait.setText("");
+            return;
+        }
+        double reste = tirelire - montant;
+        labelApresRetrait.setText("Il resterait " + CurrencyUtil.formater(reste, devise) + " dans la tirelire"
+                + (reste < 0 ? ", soit " + CurrencyUtil.formater(-reste, devise)
+                              + " de plus que ce qu'elle contient." : "."));
+    }
+
+    /**
+     * Reprise d'argent déjà mis de côté : la tirelire baisse et le solde disponible remonte
+     * du même montant, ce qui permet de dépenser cet argent sans le compter deux fois.
+     */
+    @FXML
+    public void retirerEconomie() {
+        if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
+        Double montant = montantDemande();
+        if (montant == null) {
+            AlertUtil.afficherErreur("Montant invalide", "Indiquez le montant à reprendre, supérieur à 0.");
+            return;
+        }
+        LocalDate date = champRetraitDate.getValue();
+        if (date == null) {
+            AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
+            return;
+        }
+        if (montant > tirelire && !AlertUtil.confirmer("Retrait trop grand",
+                "Vous reprenez " + CurrencyUtil.formater(montant, devise) + ", mais la tirelire ne contient que "
+                        + CurrencyUtil.formater(tirelire, devise) + ".\nContinuer quand même ? "
+                        + "Ce qui manque sera compté comme déjà dépensé.")) {
+            return;
+        }
+
+        User utilisateur = SessionManager.getUtilisateurConnecte();
+        Saving retrait = new Saving(utilisateur.getIdUser(), -montant, champRetraitMotif.getText().trim(), date);
+        if (savingDAO.creer(retrait)) {
+            chargerEconomies();
+            viderFormulaireRetrait();
+        } else {
+            AlertUtil.afficherErreur("Erreur", "Impossible d'enregistrer le retrait.");
+        }
+    }
+
+    /** Corriger une reprise déjà enregistrée — la ligne garde son signe négatif. */
+    private void modifierRetrait() {
+        Double montant = montantDemande();
+        if (montant == null) {
+            AlertUtil.afficherErreur("Montant invalide", "Indiquez le montant à reprendre, supérieur à 0.");
+            return;
+        }
+        LocalDate date = champRetraitDate.getValue();
+        if (date == null) {
+            AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
+            return;
+        }
+        economieSelectionnee.setMontant(-montant);
+        economieSelectionnee.setDescription(champRetraitMotif.getText().trim());
+        economieSelectionnee.setDateEconomie(date);
+        if (savingDAO.modifier(economieSelectionnee)) {
+            chargerEconomies();
+            viderFormulaireRetrait();
+        } else {
+            AlertUtil.afficherErreur("Erreur", "Impossible de modifier le retrait.");
+        }
+    }
+
+    private void viderFormulaireRetrait() {
+        champRetraitMontant.clear();
+        champRetraitMotif.clear();
+        champRetraitDate.setValue(LocalDate.now());
+        economieSelectionnee = null;
+        tableEconomies.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -282,6 +405,10 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
         if (economieSelectionnee == null) {
             AlertUtil.afficherErreur("Aucune sélection", "Veuillez sélectionner une économie à modifier.");
+            return;
+        }
+        if (economieSelectionnee.getMontant() < 0) {
+            modifierRetrait();
             return;
         }
         try {
@@ -364,7 +491,9 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
             return;
         }
         boolean source = economieSelectionnee.getIdSource() == null && economieSelectionnee.getFrequence().estRecurrent();
-        String message = source
+        String message = economieSelectionnee.getMontant() < 0
+                ? "Supprimer ce retrait ? L'argent retourne dans la tirelire."
+                : source
                 ? "Supprimer cette économie récurrente ? Les économies ajoutées automatiquement seront supprimées aussi."
                 : "Supprimer cette économie ?";
         if (AlertUtil.confirmer("Confirmation", message)) {
@@ -413,5 +542,6 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     }
 
     /** Résultat du chargement en arrière-plan : liste complète et totaux rapatriés ensemble sur le thread FX. */
-    private record Chargement(List<Saving> economies, double total, double mois, double solde) {}
+    private record Chargement(List<Saving> economies, double total, double mois, double solde,
+                              int deposes, int retraits) {}
 }

@@ -16,6 +16,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane styleClass="background-page" xmlns="http://javafx.com/javafx"
@@ -34,11 +35,11 @@
                 <HBox alignment="CENTER_LEFT" spacing="14">
                     <VBox spacing="3" HBox.hgrow="ALWAYS">
                         <Label text="Mes économies" styleClass="page-title"/>
-                        <Label text="Ce que vous mettez de côté, mois après mois"
+                        <Label text="Ce que vous mettez de côté, et ce que vous en reprenez"
                                wrapText="true" maxWidth="560" styleClass="page-subtitle"/>
                     </VBox>
                     <VBox spacing="1" alignment="CENTER_RIGHT" styleClass="chip-droite">
-                        <Label text="TOTAL ÉCONOMISÉ" styleClass="chip-label"/>
+                        <Label text="DANS LA TIRELIRE" styleClass="chip-label"/>
                         <Label fx:id="labelTotal" text="0" styleClass="chip-value"/>
                     </VBox>
                 </HBox>
@@ -55,13 +56,15 @@
 
                     <VBox styleClass="kpi-card, kpi-economies" spacing="6"
                           GridPane.columnIndex="0" GridPane.rowIndex="0">
-                        <Label text="ÉCONOMISÉ CE MOIS-CI" styleClass="kpi-label"/>
+                        <Label text="CE MOIS-CI" styleClass="kpi-label"/>
                         <Label fx:id="labelMois" text="0" styleClass="kpi-value"/>
+                        <Label text="Dépôts moins retraits" styleClass="kpi-detail"/>
                     </VBox>
                     <VBox styleClass="kpi-card, kpi-solde" spacing="6"
                           GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <Label text="NOMBRE D'ÉCONOMIES" styleClass="kpi-label"/>
+                        <Label text="DÉPÔTS ET RETRAITS" styleClass="kpi-label"/>
                         <Label fx:id="labelNombre" text="0" styleClass="kpi-value"/>
+                        <Label fx:id="labelDetailMouvements" text="—" styleClass="kpi-detail"/>
                     </VBox>
                 </GridPane>
 
@@ -70,7 +73,7 @@
                     <HBox alignment="CENTER_LEFT" spacing="12">
                         <VBox spacing="2" HBox.hgrow="ALWAYS">
                             <Label text="Évolution des économies" styleClass="table-card-title"/>
-                            <Label text="Cumul sur la période choisie" styleClass="form-card-sub"/>
+                            <Label text="Ce qu'il reste dans la tirelire, période après période" styleClass="form-card-sub"/>
                         </VBox>
                         <VBox spacing="4" alignment="TOP_RIGHT">
                             <Label text="Période" styleClass="field-caption"/>
@@ -125,6 +128,44 @@
                         <Button fx:id="boutonAjouter" text="Ajouter" styleClass="button-primary" onAction="#ajouterEconomie" contentDisplay="LEFT"/>
                         <Button fx:id="boutonModifier" text="Modifier" styleClass="button-secondary" onAction="#modifierEconomie" contentDisplay="LEFT"/>
                         <Button fx:id="boutonSupprimer" text="Supprimer" styleClass="button-danger" onAction="#supprimerEconomie" contentDisplay="LEFT"/>
+                    </HBox>
+                </VBox>
+
+                <!-- ===== Retrait d'épargne ===== -->
+                <VBox styleClass="form-card, sortie-card" spacing="14">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <StackPane fx:id="sortiePuce" styleClass="sortie-puce"/>
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Label text="Retirer de ma tirelire" styleClass="form-card-title"/>
+                            <Label text="L'argent repris retourne dans votre solde disponible : vous le dépensez ensuite comme d'habitude."
+                                   wrapText="true" maxWidth="620" styleClass="form-card-sub"/>
+                        </VBox>
+                        <VBox spacing="1" alignment="CENTER_RIGHT">
+                            <Label text="DANS LA TIRELIRE" styleClass="chip-label"/>
+                            <Label fx:id="labelTirelire" text="0" styleClass="sortie-dispo"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Montant retiré" styleClass="form-label"/>
+                            <TextField fx:id="champRetraitMontant" promptText="0"/>
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Date du retrait" styleClass="form-label"/>
+                            <DatePicker fx:id="champRetraitDate" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="5">
+                        <Label text="Pour quoi (facultatif)" styleClass="form-label"/>
+                        <TextField fx:id="champRetraitMotif" promptText="ex. : achat voiture, réparation, fête"/>
+                    </VBox>
+
+                    <HBox spacing="12" alignment="CENTER_LEFT" styleClass="form-actions">
+                        <Button fx:id="boutonRetirer" text="Retirer" styleClass="button-sortie"
+                                onAction="#retirerEconomie" contentDisplay="LEFT"/>
+                        <Label fx:id="labelApresRetrait" wrapText="true" styleClass="sortie-apres"/>
                     </HBox>
                 </VBox>
 

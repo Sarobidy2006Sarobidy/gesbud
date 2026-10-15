@@ -309,7 +309,7 @@ public class SavingDAO {
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS savings (" +
                         "id_economie INT AUTO_INCREMENT PRIMARY KEY, " +
                         "id_user INT NOT NULL, " +
-                        "montant DECIMAL(15,2) NOT NULL CHECK (montant >= 0), " +
+                        "montant DECIMAL(15,2) NOT NULL, " +
                         "description VARCHAR(255), " +
                         "date_economie DATE NOT NULL, " +
                         "frequence " + SqlUtil.ENUM_FREQUENCE + " NOT NULL DEFAULT 'PONCTUEL', " +
@@ -327,8 +327,32 @@ public class SavingDAO {
                             + SqlUtil.ENUM_FREQUENCE + " NOT NULL DEFAULT 'PONCTUEL'");
                 }
             }
+            retirerInterditNegatif(conn);
         } catch (SQLException e) {
             log.warn("Migration savings ignorée : {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Un retrait d'épargne s'écrit en montant négatif : la table ne doit plus le refuser.
+     * MariaDB 10.4 refuse `DROP CHECK` et nomme la contrainte d'une colonne sans rapport avec
+     * ce que rend information_schema : seule la redéfinition de la colonne, sans le CHECK
+     * inline, l'emporte vraiment. On ne la retente que si le CHECK est encore là.
+     */
+    private void retirerInterditNegatif(Connection conn) throws SQLException {
+        boolean interdit;
+        try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT 1 FROM information_schema.CHECK_CONSTRAINTS "
+                        + "WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'savings' "
+                        + "AND CHECK_CLAUSE LIKE '%montant%'")) {
+            try (ResultSet rs = ps.executeQuery()) {
+                interdit = rs.next();
+            }
+        }
+        if (!interdit) return;
+        try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
+            st.executeUpdate("ALTER TABLE savings MODIFY COLUMN montant DECIMAL(15,2) NOT NULL");
+            log.info("Le montant des économies accepte désormais les retraits (négatifs).");
         }
     }
 
