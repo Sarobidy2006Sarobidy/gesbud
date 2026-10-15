@@ -44,6 +44,7 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
     @FXML private TableView<Category> tableCategories;
     @FXML private TableColumn<Category, String> colonneNom;
     @FXML private TableColumn<Category, CategoryType> colonneType;
+    @FXML private TableColumn<Category, Double> colonneBudget;
 
     /** Contrôleur de la barre latérale incluse (fx:id="sidebar" -> champ "sidebarController"). */
     @FXML private SidebarController sidebarController;
@@ -67,6 +68,7 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
 
         colonneNom.setCellValueFactory(cellData -> cellData.getValue().nomProperty());
         colonneType.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
+        colonneBudget.setCellValueFactory(cellData -> cellData.getValue().budgetProperty());
 
         colonneNom.setCellFactory(colonne -> new TextFieldTableCell<>() {
             @Override
@@ -80,6 +82,14 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
         });
         colonneType.setCellFactory(ComboBoxTableCell.forTableColumn(
                 CategoryType.REVENU, CategoryType.DEPENSE));
+        colonneBudget.setCellFactory(colonne -> new TextFieldTableCell<>(convertisseurPlafond()) {
+            @Override
+            public void updateItem(Double plafond, boolean vide) {
+                super.updateItem(plafond, vide);
+                // Le montant se lit en colonne : aligné à droite comme les autres.
+                setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+            }
+        });
 
         lignesFiltrees = new FilteredList<>(donnees, categorie -> true);
         SortedList<Category> triees = new SortedList<>(lignesFiltrees);
@@ -113,6 +123,7 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
 
         colonneNom.setOnEditCommit(evenement -> enregistrerModification(evenement.getRowValue()));
         colonneType.setOnEditCommit(evenement -> enregistrerModification(evenement.getRowValue()));
+        colonneBudget.setOnEditCommit(evenement -> enregistrerModification(evenement.getRowValue()));
 
         installerSuppressionParClavierEtMenuContextuel();
         installerRecherche();
@@ -122,9 +133,26 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
         chargerCategories();
     }
 
+    /**
+     * Plafond mensuel : la cellule affiche et attend un nombre brut, sans symbole de
+     * devise — c'est ce qu'elle doit pouvoir relire après saisie. Vide = aucun plafond.
+     */
+    private static javafx.util.StringConverter<Double> convertisseurPlafond() {
+        return new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Double plafond) {
+                return plafond == null ? "" : com.budgetmanager.util.NumberFieldFormatter.ecrire(plafond);
+            }
+
+            @Override
+            public Double fromString(String texte) {
+                return com.budgetmanager.util.NumberFieldFormatter.lire(texte);
+            }
+        };
+    }
+
     /** Touche Suppr et clic droit sur une ligne : la suppression passe par le tableau. */
-    private void installerSuppressionParClavierEtMenuContextuel() {
-        tableCategories.setOnKeyPressed(evenement -> {
+    private void installerSuppressionParClavierEtMenuContextuel() {        tableCategories.setOnKeyPressed(evenement -> {
             if (evenement.getCode() == KeyCode.DELETE) {
                 evenement.consume();
                 supprimer(tableCategories.getSelectionModel().getSelectedItem());
@@ -245,6 +273,21 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
             return;
         }
 
+        // Un plafond se dépasse : il n'a de sens que sur une catégorie de dépenses.
+        Double plafond = categorie.getBudget();
+        if (plafond != null && type == CategoryType.REVENU) {
+            AlertUtil.afficherErreur("Plafond impossible",
+                    "Un plafond mensuel se fixe sur une catégorie de dépenses, pas sur un revenu.");
+            chargerCategories();
+            return;
+        }
+        if (plafond != null && plafond > 999_999_999_999.99) {
+            AlertUtil.afficherErreur("Plafond trop grand",
+                    "Un plafond mensuel s'écrit en dessous de 1 000 milliards.");
+            chargerCategories();
+            return;
+        }
+
         categorie.setNom(nom);
         boolean enregistree = categorie.getIdCategorie() == 0
                 ? categoryDAO.creer(categorie)
@@ -258,6 +301,7 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
         ligneVide.setIdCategorie(0);
         ligneVide.setNom("");
         ligneVide.setType(null);
+        ligneVide.setBudget(null);
         chargerCategories();
     }
 

@@ -25,8 +25,7 @@
                 <VBox spacing="3" HBox.hgrow="ALWAYS">
                     <Label text="Gestion des catégories" styleClass="page-title"/>
                     <Label text="Elles classent vos revenus et vos dépenses. Tout se joue dans le tableau."
-                           wrapText="true" maxWidth="620" styleClass="page-subtitle"/>
-                </VBox>
+                           wrapText="true" maxWidth="620" styleClass="page-subtitle"/>                </VBox>
                 <VBox spacing="1" alignment="CENTER_RIGHT" styleClass="chip-droite">
                     <Label text="CATÉGORIES" styleClass="chip-label"/>
                     <Label fx:id="pastilleNombre" text="0" styleClass="chip-value"/>
@@ -41,12 +40,12 @@
                 </VBox>
             </HBox>
 
-            <!-- ===== Tableau : ajout, modification et suppression s'y font en direct ===== -->
+            <!-- ===== Tableau : ajout, modification, plafonds et suppression s'y font en direct ===== -->
             <VBox styleClass="table-card" spacing="10" VBox.vgrow="ALWAYS">
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Vos catégories" styleClass="table-card-title"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Label text="Double-cliquez une cellule pour la modifier · la dernière ligne vide en ajoute une · touche Suppr pour retirer"
+                    <Label text="Double-cliquez une cellule pour la modifier · la dernière ligne vide en ajoute une · touche Suppr pour retirer · plafond vide = aucune limite, le tableau de bord alerte quand il est dépassé"
                            wrapText="true" maxWidth="620" styleClass="form-card-sub"/>
                 </HBox>
                 <TableView fx:id="tableCategories" editable="true" styleClass="table-embed"
@@ -55,6 +54,7 @@
                     <columns>
                         <TableColumn fx:id="colonneNom" text="Nom" prefWidth="250"/>
                         <TableColumn fx:id="colonneType" text="Type" prefWidth="150"/>
+                        <TableColumn fx:id="colonneBudget" text="Plafond mensuel" prefWidth="160"/>
                     </columns>
                 </TableView>
             </VBox>

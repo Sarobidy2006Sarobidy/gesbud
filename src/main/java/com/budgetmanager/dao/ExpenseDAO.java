@@ -211,7 +211,8 @@ public class ExpenseDAO {
     }
 
     public int nombreParUser(int idUser) {
-        String sql = "SELECT COUNT(*) AS nb FROM expenses WHERE id_user = ?";
+        String sql = "SELECT COUNT(*) AS nb FROM expenses WHERE id_user = ?"
+                + SqlUtil.jusquAujourdhui("date_depense");
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
@@ -225,7 +226,8 @@ public class ExpenseDAO {
     }
 
     public double totalAvantAnnee(int idUser, int annee) {
-        String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM expenses WHERE id_user = ? AND YEAR(date_depense) < ?";
+        String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM expenses WHERE id_user = ? AND YEAR(date_depense) < ?"
+                + SqlUtil.jusquAujourdhui("date_depense");
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
@@ -281,6 +283,36 @@ public class ExpenseDAO {
             }
         } catch (SQLException e) {
             log.error("ExpenseDAO.repartitionParCategorie() — {}", e.getMessage(), e);
+        }
+        return resultats;
+    }
+
+    /**
+     * Catégories de dépenses dont le plafond mensuel est dépassé sur le mois donné :
+     * {@code [nom, dépensé, plafond]}, les plus dépassées d'abord. Une catégorie sans
+     * plafond (budget NULL) ne peut jamais apparaître ici — rien n'est limite par défaut.
+     */
+    public List<Object[]> plafondsDepasses(int idUser, YearMonth mois) {
+        String sql = "SELECT c.nom, SUM(d.montant) AS total, c.budget FROM categories c " +
+                "JOIN expenses d ON d.id_categorie = c.id_categorie " +
+                "WHERE c.id_user = ? AND c.type = 'DEPENSE' AND c.budget IS NOT NULL " +
+                "AND YEAR(d.date_depense) = ? AND MONTH(d.date_depense) = ? "
+                + SqlUtil.jusquAujourdhui("d.date_depense") +
+                "GROUP BY c.id_categorie, c.nom, c.budget HAVING SUM(d.montant) > c.budget " +
+                "ORDER BY SUM(d.montant) - c.budget DESC";
+        List<Object[]> resultats = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
+            stmt.setInt(1, idUser);
+            stmt.setInt(2, mois.getYear());
+            stmt.setInt(3, mois.getMonthValue());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    resultats.add(new Object[]{rs.getString("nom"), rs.getDouble("total"), rs.getDouble("budget")});
+                }
+            }
+        } catch (SQLException e) {
+            log.error("ExpenseDAO.plafondsDepasses() — {}", e.getMessage(), e);
         }
         return resultats;
     }
@@ -351,12 +383,17 @@ public class ExpenseDAO {
             if (!colonneExiste(meta, conn.getCatalog(), "frequence")) {
                 try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
                     st.executeUpdate("ALTER TABLE expenses " +
-                            "ADD COLUMN frequence ENUM('PONCTUEL','QUOTIDIEN','HEBDOMADAIRE','MENSUEL') NOT NULL DEFAULT 'PONCTUEL', " +
+                            "ADD COLUMN frequence " + SqlUtil.ENUM_FREQUENCE + " NOT NULL DEFAULT 'PONCTUEL', " +
                             "ADD COLUMN date_fin DATE NULL, " +
                             "ADD COLUMN derniere_generation DATE NULL, " +
                             "ADD COLUMN id_source INT NULL");
                     st.executeUpdate("ALTER TABLE expenses ADD CONSTRAINT fk_depense_source " +
                             "FOREIGN KEY (id_source) REFERENCES expenses(id_depense) ON DELETE CASCADE");
+                }
+            } else if (!SqlUtil.frequenceAdmet(conn, "expenses", "ANNUEL")) {
+                try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
+                    st.executeUpdate("ALTER TABLE expenses MODIFY COLUMN frequence "
+                            + SqlUtil.ENUM_FREQUENCE + " NOT NULL DEFAULT 'PONCTUEL'");
                 }
             }
         } catch (SQLException e) {

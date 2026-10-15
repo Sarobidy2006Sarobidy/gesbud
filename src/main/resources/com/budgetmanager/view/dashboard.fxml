@@ -156,7 +156,20 @@
                         <Label fx:id="labelSoldeMois" text="0" styleClass="kpi-value"/>
                         <Label fx:id="detailSoldeMois" text="" styleClass="kpi-detail"/>
                     </VBox>
+
+                    <!-- Ce qu'il reste vraiment à dépenser chaque jour : la question
+                         du quotidien, celle qu'aucune des quatre cartes ne pose. -->
+                    <VBox styleClass="kpi-card, kpi-jour" spacing="6"
+                          GridPane.columnIndex="4" GridPane.rowIndex="0">
+                        <Label fx:id="labelTitreResteJour" text="Reste par jour" styleClass="kpi-label"/>
+                        <Label fx:id="labelResteParJour" text="0" styleClass="kpi-value"/>
+                        <Label fx:id="detailResteParJour" text="" styleClass="kpi-detail"/>
+                    </VBox>
                 </GridPane>
+
+                <!-- ===== Alerte : plafonds mensuels dépassés ===== -->
+                <Label fx:id="labelAlertePlafonds" wrapText="true" visible="false" managed="false"
+                       styleClass="alerte-plafonds"/>
 
                 <!-- ===== Graphiques de l'année ===== -->
                 <HBox alignment="CENTER_LEFT" spacing="10">

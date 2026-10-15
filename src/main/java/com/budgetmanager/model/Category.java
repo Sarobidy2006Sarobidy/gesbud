@@ -13,6 +13,8 @@ public class Category {
     private final IntegerProperty idUser            = new SimpleIntegerProperty();
     private final StringProperty  nom               = new SimpleStringProperty();
     private final ObjectProperty<CategoryType>     type         = new SimpleObjectProperty<>();
+    /** Plafond mensuel de dépense ; null = aucun plafond fixé. */
+    private final ObjectProperty<Double>           budget       = new SimpleObjectProperty<>();
     private final ObjectProperty<LocalDateTime>    dateCreation = new SimpleObjectProperty<>();
 
     public Category() {}
@@ -50,6 +52,11 @@ public class Category {
     public CategoryType getType()                               { return type.get(); }
     public void setType(CategoryType v)                         { type.set(v); }
     public ObjectProperty<CategoryType> typeProperty()          { return type; }
+
+    // --- budget (plafond mensuel de dépense) ---
+    public Double getBudget()                               { return budget.get(); }
+    public void setBudget(Double v)                         { budget.set(v); }
+    public ObjectProperty<Double> budgetProperty()          { return budget; }
 
     // --- dateCreation ---
     public LocalDateTime getDateCreation()                          { return dateCreation.get(); }

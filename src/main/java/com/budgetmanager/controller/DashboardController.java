@@ -52,6 +52,11 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
     @FXML private Label labelSoldeMois;
     @FXML private Label badgeSolde;
     @FXML private Label detailSoldeMois;
+    /** Ce qu'il reste à dépenser chaque jour du mois choisi. */
+    @FXML private Label labelResteParJour;
+    @FXML private Label detailResteParJour;
+    /** Bandeau des plafonds mensuels dépassés, vide quand rien ne dépasse. */
+    @FXML private Label labelAlertePlafonds;
 
     /** Graphiques de la section statistiques (fusion de l'ancienne page Statistics). */
     @FXML private javafx.scene.layout.GridPane grilleGraphiques;
@@ -79,9 +84,10 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
     @FXML
     public void initialize() {
         sidebarController.setActive("dashboard");
-        // 4 colonnes dès que chaque carte garde ~210 px (montants Poppins 22 px).
+        // 5 cartes dès que chacune garde ~220 px ; en dessous, 3 par rangée pour ne
+        // jamais laisser une seule carte toute seule sur sa ligne.
         com.budgetmanager.util.ResponsiveGrid.appliquer(grilleCartes,
-                largeur -> largeur >= 880 ? 4 : largeur >= 560 ? 2 : 1);
+                largeur -> largeur >= 1100 ? 5 : largeur >= 660 ? 3 : 1);
         com.budgetmanager.util.ResponsiveGrid.appliquer(grilleGraphiques,
                 largeur -> largeur >= 740 ? 2 : 1);
         // Le bandeau solde est un TilePane : il replie ses trois blocs de lui-même.
@@ -152,7 +158,8 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
                         double depenses, double depensesPrecedentes,
                         double economies, double economiesPrecedentes,
                         List<Object[]> repartitionRevenus,
-                        List<Object[]> repartitionDepenses) {}
+                        List<Object[]> repartitionDepenses,
+                        List<Object[]> plafondsDepasses) {}
 
     private void chargerMoisSelectionne() {
         YearMonth mois = comboPeriode.getValue();
@@ -174,7 +181,8 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
                         savingDAO.totalParMois(idUser, mois),
                         savingDAO.totalParMois(idUser, precedent),
                         incomeDAO.repartitionParCategorie(idUser, mois),
-                        expenseDAO.repartitionParCategorie(idUser, mois));
+                        expenseDAO.repartitionParCategorie(idUser, mois),
+                        expenseDAO.plafondsDepasses(idUser, mois));
             }
         };
 
@@ -209,6 +217,9 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         afficherTendance(badgeEconomies, valeurs.economies(), valeurs.economiesPrecedentes(), true);
         afficherTendance(badgeSolde, soldeMois, soldePrecedent, true);
 
+        afficherResteParJour(mois, soldeMois, devise);
+        afficherPlafondsDepasses(valeurs.plafondsDepasses(), mois, devise);
+
         // Les deux camemberts suivent le mois choisi : sinon changer de période ne
         // déplaçait que quatre petites cartes et donnait l'impression d'une page figée.
         String libelleMois = mois.getMonth().getDisplayName(
@@ -222,7 +233,8 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
 
         // Le fondu signale visuellement que ces valeurs viennent de changer.
         for (Label label : java.util.List.of(labelRevenusMois, labelDepensesMois,
-                labelEconomiesMois, labelSoldeMois, badgeRevenus, badgeDepenses,
+                labelEconomiesMois, labelSoldeMois, labelResteParJour,
+                badgeRevenus, badgeDepenses,
                 badgeEconomies, badgeSolde)) {
             label.setOpacity(0);
             javafx.animation.FadeTransition fondu =
@@ -259,6 +271,61 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         } else {
             badge.getStyleClass().add("tendance-baisse");
         }
+    }
+
+    /**
+     * « Reste par jour » : la question du quotidien, celle qu'aucun total ne pose.
+     * Le mois courant la répartit sur les jours encore à courir (aujourd'hui compris),
+     * un mois clos sur ses jours entiers, et un mois futur n'a encore rien à répartir.
+     */
+    private void afficherResteParJour(YearMonth mois, double soldeMois, String devise) {
+        YearMonth courant = YearMonth.now();
+        if (mois.isAfter(courant)) {
+            labelResteParJour.setText("—");
+            detailResteParJour.setText("Le mois n'est pas encore commencé");
+            return;
+        }
+
+        int jours = mois.equals(courant)
+                ? mois.lengthOfMonth() - java.time.LocalDate.now().getDayOfMonth() + 1
+                : mois.lengthOfMonth();
+        labelResteParJour.setText(CurrencyUtil.formater(soldeMois / jours, devise));
+
+        if (mois.equals(courant) && soldeMois <= 0) {
+            detailResteParJour.setText("Le mois est déjà à découvert : rien de plus à dépenser");
+        } else if (mois.equals(courant)) {
+            detailResteParJour.setText("Réparti sur " + jours + (jours > 1 ? " jours restants" : " jour restant"));
+        } else {
+            detailResteParJour.setText("Solde du mois réparti sur ses " + jours + " jours");
+        }
+    }
+
+    /**
+     * Bandeau des plafonds dépassés sur le mois choisi. Vide quand aucune catégorie
+     * ne dépasse sa limite, donc la page ne dit rien quand tout va bien.
+     */
+    private void afficherPlafondsDepasses(List<Object[]> depassements, YearMonth mois, String devise) {
+        if (depassements.isEmpty()) {
+            labelAlertePlafonds.setVisible(false);
+            labelAlertePlafonds.setManaged(false);
+            return;
+        }
+
+        StringBuilder texte = new StringBuilder("Plafond dépassé en ")
+                .append(mois.getMonth().getDisplayName(
+                        java.time.format.TextStyle.FULL, java.util.Locale.FRANCE))
+                .append(" ").append(mois.getYear()).append(" : ");
+        for (int i = 0; i < depassements.size(); i++) {
+            Object[] ligne = depassements.get(i);
+            if (i > 0) texte.append("  ·  ");
+            texte.append((String) ligne[0]).append(" ")
+                    .append(CurrencyUtil.formater((Double) ligne[1], devise))
+                    .append(" au lieu de ")
+                    .append(CurrencyUtil.formater((Double) ligne[2], devise));
+        }
+        labelAlertePlafonds.setText(texte.toString());
+        labelAlertePlafonds.setVisible(true);
+        labelAlertePlafonds.setManaged(true);
     }
 
     /** Résultats du chargement calculés sur le thread de fond, consommés sur le thread FX. */
@@ -413,35 +480,50 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
     private void remplirLineChartSolde(List<Double> revenusMensuels, List<Double> depensesMensuelles,
                                        List<Double> economiesMensuelles,
                                        double soldeInitial, double economiesInitiales) {
-        lineSolde.setTitle("Solde disponible et économies " + YearMonth.now().getYear());
+        int annee = YearMonth.now().getYear();
+        lineSolde.setTitle("Solde disponible et économies " + annee);
 
-        double soldeCumule = soldeInitial;
-        double economiesCumulees = economiesInitiales;
+        // Les mois écoulés sont les seuls à avoir un solde : tracer les mois à venir à plat
+        // se lirait comme une prévision, alors que c'est simplement l'absence de données.
+        int derniersMois = YearMonth.now().getMonthValue();
+
+        List<Double> soldes = new ArrayList<>();
+        List<Double> economiesCumulees = new ArrayList<>();
+        double solde = soldeInitial;
+        double cumul = economiesInitiales;
+        for (int i = 0; i < 12; i++) {
+            solde += revenusMensuels.get(i) - depensesMensuelles.get(i) - economiesMensuelles.get(i);
+            cumul += economiesMensuelles.get(i);
+            if (i < derniersMois) {
+                soldes.add(solde);
+                economiesCumulees.add(cumul);
+            }
+        }
 
         if (lineSolde.getData().size() < 2) {
-            // Premier chargement : créer les deux séries.
             lineSolde.getData().clear();
             XYChart.Series<String, Number> serieSolde = new XYChart.Series<>();
             serieSolde.setName("Solde disponible");
             XYChart.Series<String, Number> serieEconomies = new XYChart.Series<>();
             serieEconomies.setName("Économies cumulées");
-            for (int i = 0; i < 12; i++) {
-                soldeCumule += revenusMensuels.get(i) - depensesMensuelles.get(i) - economiesMensuelles.get(i);
-                economiesCumulees += economiesMensuelles.get(i);
-                serieSolde.getData().add(new XYChart.Data<>(MOIS_LABELS[i], soldeCumule));
-                serieEconomies.getData().add(new XYChart.Data<>(MOIS_LABELS[i], economiesCumulees));
-            }
             lineSolde.getData().add(serieSolde);
             lineSolde.getData().add(serieEconomies);
+        }
+        // Recharger les valeurs en place quand le nombre de points ne change pas :
+        // reconstruire la série déclenche un recalcul visuel complet, donc un clignotement.
+        poserPoints(lineSolde.getData().get(0), soldes);
+        poserPoints(lineSolde.getData().get(1), economiesCumulees);
+    }
+
+    private static void poserPoints(XYChart.Series<String, Number> serie, List<Double> valeurs) {
+        if (serie.getData().size() != valeurs.size()) {
+            serie.getData().clear();
+            for (int i = 0; i < valeurs.size(); i++) {
+                serie.getData().add(new XYChart.Data<>(MOIS_LABELS[i], valeurs.get(i)));
+            }
         } else {
-            // Mise à jour : modifier les valeurs en place → pas de recalcul visuel complet.
-            XYChart.Series<String, Number> serieSolde    = lineSolde.getData().get(0);
-            XYChart.Series<String, Number> serieEconomies = lineSolde.getData().get(1);
-            for (int i = 0; i < 12; i++) {
-                soldeCumule += revenusMensuels.get(i) - depensesMensuelles.get(i) - economiesMensuelles.get(i);
-                economiesCumulees += economiesMensuelles.get(i);
-                serieSolde.getData().get(i).setYValue(soldeCumule);
-                serieEconomies.getData().get(i).setYValue(economiesCumulees);
+            for (int i = 0; i < valeurs.size(); i++) {
+                serie.getData().get(i).setYValue(valeurs.get(i));
             }
         }
     }

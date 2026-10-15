@@ -15,13 +15,14 @@ public class CategoryDAO {
     private static final Logger log = LoggerFactory.getLogger(CategoryDAO.class);
 
     public boolean creer(Category categorie) {
-        String sql = "INSERT INTO categories (id_user, nom, type) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO categories (id_user, nom, type, budget) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparerAvecCleAuto(conn, sql)) {
 
             stmt.setInt(1, categorie.getIdUser());
             stmt.setString(2, categorie.getNom());
             stmt.setString(3, categorie.getType().name());
+            setBudget(stmt, 4, categorie.getBudget());
 
             int lignes = stmt.executeUpdate();
             if (lignes > 0) {
@@ -38,19 +39,26 @@ public class CategoryDAO {
     }
 
     public boolean modifier(Category categorie) {
-        String sql = "UPDATE categories SET nom = ?, type = ? WHERE id_categorie = ?";
+        String sql = "UPDATE categories SET nom = ?, type = ?, budget = ? WHERE id_categorie = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
 
             stmt.setString(1, categorie.getNom());
             stmt.setString(2, categorie.getType().name());
-            stmt.setInt(3, categorie.getIdCategorie());
+            setBudget(stmt, 3, categorie.getBudget());
+            stmt.setInt(4, categorie.getIdCategorie());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             log.error("CategoryDAO.modifier() — {}", e.getMessage(), e);
             return false;
         }
+    }
+
+    /** Plafond mensuel : null = aucune limite. Un montant se stocke avec 2 décimales. */
+    private void setBudget(PreparedStatement stmt, int position, Double budget) throws SQLException {
+        if (budget == null) stmt.setNull(position, Types.DECIMAL);
+        else stmt.setDouble(position, budget);
     }
 
     public int nombreUtilisations(int idCategorie) {
@@ -112,8 +120,30 @@ public class CategoryDAO {
         c.setIdUser(rs.getInt("id_user"));
         c.setNom(rs.getString("nom"));
         c.setType(CategoryType.valueOf(rs.getString("type")));
+        double plafond = rs.getDouble("budget");
+        if (!rs.wasNull()) c.setBudget(plafond);
         Timestamp ts = rs.getTimestamp("date_creation");
         if (ts != null) c.setDateCreation(ts.toLocalDateTime());
         return c;
+    }
+
+    /**
+     * Plafond mensuel par catégorie : colonne apparue après les premiers schémas.
+     * Les catégories existantes la reçoivent à NULL, donc sans limite — leur
+     * comportement ne change pas.
+     */
+    public void migrerSiNecessaire() {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            DatabaseMetaData meta = conn.getMetaData();
+            try (ResultSet rs = meta.getColumns(conn.getCatalog(), null, "categories", "budget")) {
+                if (rs.next()) return;
+            }
+            try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
+                st.executeUpdate("ALTER TABLE categories ADD COLUMN budget DECIMAL(15,2) NULL "
+                        + "CHECK (budget >= 0)");
+            }
+        } catch (SQLException e) {
+            log.warn("Migration categories ignorée : {}", e.getMessage());
+        }
     }
 }

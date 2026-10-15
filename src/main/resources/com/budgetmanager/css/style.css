@@ -199,6 +199,15 @@
 .kpi-depenses  { -fx-border-color: #e5564b; }
 .kpi-economies { -fx-border-color: #1fa7d4; }
 .kpi-solde     { -fx-border-color: #1e6fe0; }
+.kpi-jour      { -fx-border-color: #f0a324; }
+
+/* Plafonds mensuels dépassés : l'alerte se voit sans crier, elle doit rester lisible. */
+.alerte-plafonds {
+    -fx-font-family: "Inter SemiBold"; -fx-font-size: 12px; -fx-text-fill: #a3520a;
+    -fx-background-color: #fff6e8; -fx-background-radius: 12;
+    -fx-border-color: #f0c483; -fx-border-radius: 12; -fx-border-width: 1;
+    -fx-padding: 12 14;
+}
 
 .kpi-label { -fx-font-family: "Inter SemiBold"; -fx-font-size: 12px; -fx-text-fill: #5b7099; }
 .kpi-value { -fx-font-family: "Poppins"; -fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #0b2a6b; }
@@ -481,6 +490,9 @@
 .table-row-cell:selected .table-cell:negatif { -fx-text-fill: #d92d20; }
 .table-row-cell:selected .table-cell:positif { -fx-text-fill: #12805c; }
 .table-row-cell:selected .table-cell:neutre  { -fx-text-fill: #1565c0; }
+/* Opération datée d'après aujourd'hui : « prévue », visible mais hors des totaux. */
+.table-cell:prevue { -fx-text-fill: #8595bb; -fx-font-style: italic; }
+.table-row-cell:selected .table-cell:prevue { -fx-text-fill: #4a5c88; }
 
 /* =========================================================================
    Graphiques — palette par série (le typographie/couleurs sont dans le
