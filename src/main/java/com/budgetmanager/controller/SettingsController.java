@@ -104,6 +104,17 @@ public class SettingsController implements RaccourcisClavier {
 
         String ancienNom = utilisateur.getNom(), ancienPrenom = utilisateur.getPrenom();
         String ancienEmail = utilisateur.getEmail(), ancienPseudo = utilisateur.getPseudo(), ancienneDevise = utilisateur.getDevise();
+
+        // Changer de devise ne convertit rien : les montants sont seulement relus
+        // avec un autre symbole. Sans cet avertissement, 1 000 000 Ar deviennent
+        // 1 000 000 € et tous les totaux semblent vrais.
+        if (!java.util.Objects.equals(ancienneDevise, comboDevise.getValue())
+                && !AlertUtil.confirmer("Changer de devise",
+                        "Les montants déjà enregistrés ne seront pas convertis : ils seront "
+                      + "simplement affichés avec le nouveau symbole. Continuer ?")) {
+            comboDevise.setValue(ancienneDevise);
+        }
+
         utilisateur.setNom(nom);
         utilisateur.setPrenom(prenom);
         utilisateur.setEmail(email);
