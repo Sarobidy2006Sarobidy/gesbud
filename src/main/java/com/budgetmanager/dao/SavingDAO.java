@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SavingDAO {
 
@@ -256,6 +258,9 @@ public class SavingDAO {
                     while (rs.next()) sources.add(mapper(rs));
                 }
             }
+            // Le calcul des occurrences se ré-ancre sur la date de début : sans ce
+            // filtre, changer cette date réinsérerait des lignes déjà en base.
+            Map<Integer, Set<LocalDate>> genrees = SqlUtil.datesGenerees(conn, "savings", "date_economie", idUser);
             boolean autoCommit = conn.getAutoCommit();
             conn.setAutoCommit(false);
             try (PreparedStatement ins = DatabaseConnection.preparer(conn, insertion);
@@ -267,6 +272,7 @@ public class SavingDAO {
                             ? source.getDerniereGeneration() : source.getDateEconomie();
                     List<LocalDate> dates = source.getFrequence()
                             .occurrencesEntre(source.getDateEconomie(), apres, limite);
+                    dates.removeAll(genrees.getOrDefault(source.getIdEconomie(), Set.of()));
                     if (dates.isEmpty()) continue;
                     for (LocalDate date : dates) {
                         ins.setInt(1, source.getIdUser());
