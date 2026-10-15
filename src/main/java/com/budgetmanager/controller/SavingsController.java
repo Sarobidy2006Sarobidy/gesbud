@@ -12,6 +12,7 @@ import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SavingsCurve;
 import com.budgetmanager.util.SavingsCurve.Period;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.SqlUtil;
 import com.budgetmanager.util.VideEtat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -101,6 +102,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         com.budgetmanager.util.TableUtil.formaterMontants(colonneMontant);
         colonneDescription.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
         colonneDate.setCellValueFactory(cellData -> cellData.getValue().dateEconomieProperty());
+        com.budgetmanager.util.TableUtil.marquerPrevues(colonneDate);
         colonneFrequence.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getLibelleFrequence()));
 
         // Validation : champ montant accepte uniquement des nombres décimaux.
@@ -108,9 +110,13 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         champDescription.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(255));
         tableEconomies.setItems(donnees);
 
-        // La pastille de la carte-tableau suit les lignes réellement visibles.
+        // La pastille suit les lignes visibles, hors opérations prévues.
         pastilleNombre.textProperty().bind(
-                javafx.beans.binding.Bindings.size(tableEconomies.getItems()).asString());
+                com.budgetmanager.util.TableUtil.compterRealisees(
+                        tableEconomies.getItems(), Saving::getDateEconomie));
+        labelTotal.setTooltip(new javafx.scene.control.Tooltip(
+                "Les opérations datées après aujourd'hui sont prévues : elles restent au tableau,\n" +
+                "elles n'entrent dans aucun total, ni ici ni au tableau de bord."));
 
         comboFrequence.setItems(FXCollections.observableArrayList(Frequency.values()));
         comboFrequence.setValue(Frequency.PONCTUEL);
@@ -187,7 +193,8 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
                     });
             labelTotal.setText(CurrencyUtil.formater(c.total(), devise));
             labelMois.setText(CurrencyUtil.formater(c.mois(), devise));
-            labelNombre.setText(String.valueOf(c.economies().size()));
+            labelNombre.setText(String.valueOf(c.economies().stream()
+                    .filter(e -> SqlUtil.estRealisee(e.getDateEconomie())).count()));
             double solde = c.solde();
             labelAlerteSolde.setVisible(solde < 0);
             labelAlerteSolde.setManaged(solde < 0);

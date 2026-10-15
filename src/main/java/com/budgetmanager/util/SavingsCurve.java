@@ -61,7 +61,7 @@ public final class SavingsCurve {
     /**
      * @param economies les économies de l'utilisateur (ordre quelconque)
      * @param periode   le regroupement choisi
-     * @param aujourdhui la date du jour (la courbe va au moins jusque-là)
+     * @param aujourdhui la date du jour ; ce qui est daté après reste hors du cumul
      * @return les derniers points de la courbe (le cumul inclut tout ce qui précède)
      */
     public static List<Point> construire(List<Saving> economies, Period periode, LocalDate aujourdhui) {
@@ -72,11 +72,15 @@ public final class SavingsCurve {
         LocalDate plusAncienne = null;
         LocalDate plusRecente = aujourdhui;
         for (Saving e : economies) {
+            // Une économie datée après aujourd'hui est « prévue » : elle reste au tableau
+            // mais ne doit pas gonfler le cumul, comme partout ailleurs dans l'application.
+            if (e.getDateEconomie().isAfter(aujourdhui)) continue;
             LocalDate debut = periode.debutPeriode(e.getDateEconomie());
             sommes.merge(debut, e.getMontant(), Double::sum);
             if (plusAncienne == null || e.getDateEconomie().isBefore(plusAncienne)) plusAncienne = e.getDateEconomie();
             if (e.getDateEconomie().isAfter(plusRecente)) plusRecente = e.getDateEconomie();
         }
+        if (sommes.isEmpty()) return points;
 
         LocalDate fin = periode.debutPeriode(plusRecente);
         double cumul = 0;

@@ -12,6 +12,7 @@ import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.ListSyncUtil;
 import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
+import com.budgetmanager.util.SqlUtil;
 import com.budgetmanager.util.VideEtat;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
@@ -94,6 +95,7 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
         com.budgetmanager.util.TableUtil.formaterMontants(colonneMontant);
         colonneDescription.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
         colonneDate.setCellValueFactory(cellData -> cellData.getValue().dateDepenseProperty());
+        com.budgetmanager.util.TableUtil.marquerPrevues(colonneDate);
         colonneFrequence.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getLibelleFrequence()));
 
         // Validation : champ montant accepte uniquement des nombres décimaux.
@@ -109,17 +111,24 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
         donneeTriees.comparatorProperty().bind(tableDepenses.comparatorProperty());
         tableDepenses.setItems(donneeTriees);
 
-        // Puces d'en-tête : elles suivent ce que le filtre laisse voir, pas la DB.
+        // Puces d'en-tête : ce que le filtre laisse voir, pas la DB, hors opérations prévues.
         pastilleNombre.textProperty().bind(
-                javafx.beans.binding.Bindings.size(tableDepenses.getItems()).asString());
+                com.budgetmanager.util.TableUtil.compterRealisees(
+                        tableDepenses.getItems(), Expense::getDateDepense));
         // Devise lue à chaque évaluation, la propriété devise servant de dépendance :
         // un changement dans Paramètres se reflète sans redémarrer la vue.
         labelTotalAffiche.textProperty().bind(
                 javafx.beans.binding.Bindings.createObjectBinding(
                         () -> com.budgetmanager.util.CurrencyUtil.formater(
-                                tableDepenses.getItems().stream().mapToDouble(Expense::getMontant).sum(),
+                                tableDepenses.getItems().stream()
+                                        .filter(d -> SqlUtil.estRealisee(d.getDateDepense()))
+                                        .mapToDouble(Expense::getMontant).sum(),
                                 com.budgetmanager.util.CurrencyUtil.deviseCourante()),
                         tableDepenses.getItems(), com.budgetmanager.util.CurrencyUtil.sourceDevise()));
+
+        labelTotalAffiche.setTooltip(new javafx.scene.control.Tooltip(
+                "Les opérations datées après aujourd'hui sont prévues : elles restent au tableau,\n" +
+                "elles n'entrent dans aucun total, ni ici ni au tableau de bord."));
 
         tableDepenses.getSelectionModel().selectedItemProperty()
                 .addListener(new WeakChangeListener<>(listenerSelection));

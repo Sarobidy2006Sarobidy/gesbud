@@ -1,11 +1,17 @@
 package com.budgetmanager.util;
 
+import javafx.beans.binding.Binding;
+import javafx.beans.binding.IntegerBinding;
+import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+
+import java.time.LocalDate;
+import java.util.function.Function;
 
 /**
  * Utilitaires d'affichage centralisés pour les TableView.
@@ -29,6 +35,9 @@ public final class TableUtil {
     private static final PseudoClass NEGATIF = PseudoClass.getPseudoClass("negatif");
     private static final PseudoClass POSITIF = PseudoClass.getPseudoClass("positif");
     private static final PseudoClass NEUTRE  = PseudoClass.getPseudoClass("neutre");
+
+    /** Ligne datée d'après aujourd'hui : marquée « prévue », donc hors totaux. */
+    private static final PseudoClass PREVUE  = PseudoClass.getPseudoClass("prevue");
 
     /**
      * Applique un CellFactory qui :
@@ -91,5 +100,46 @@ public final class TableUtil {
                 pseudoClassStateChanged(NEUTRE, !revenu && !depense);
             }
         });
+    }
+
+    /**
+     * Colonne de date : une opération postée à une date future reste visible au
+     * tableau mais se dit « prévue », en italique passé. Sans ce marqueur, la
+     * ligne existerait dans la table sans exister dans le total, et l'écart
+     * paraitrait être un bug d'arithmétique.
+     */
+    public static <T> void marquerPrevues(TableColumn<T, LocalDate> colonne) {
+        colonne.setCellFactory(c -> new TableCell<>() {
+            @Override
+            protected void updateItem(LocalDate date, boolean vide) {
+                super.updateItem(date, vide);
+                if (vide || date == null) {
+                    setText(null);
+                    pseudoClassStateChanged(PREVUE, false);
+                    return;
+                }
+                boolean prevue = date.isAfter(LocalDate.now());
+                setText(prevue ? date + "  ·  prévue" : date.toString());
+                pseudoClassStateChanged(PREVUE, prevue);
+            }
+        });
+    }
+
+    /**
+     * Compteur de lignes réalisées, qui suit le contenu de la table : les
+     * opérations prévues restent affichées mais n'entrent pas dans le chiffre.
+     */
+    public static <T> Binding<String> compterRealisees(ObservableList<T> lignes,
+                                                       Function<T, LocalDate> date) {
+        return new IntegerBinding() {
+            {
+                bind(lignes);
+            }
+
+            @Override
+            protected int computeValue() {
+                return (int) lignes.stream().filter(l -> SqlUtil.estRealisee(date.apply(l))).count();
+            }
+        }.asString();
     }
 }
