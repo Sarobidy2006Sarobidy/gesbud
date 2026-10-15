@@ -223,6 +223,15 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
             return;
         }
 
+        // La colonne nom est un VARCHAR(50) : au-delà, la requête échoue et
+        // l'utilisateur ne voit qu'une erreur générique. On borne ici, avant.
+        if (nom.length() > 50) {
+            AlertUtil.afficherErreur("Nom trop long",
+                    "Un nom de catégorie ne dépasse pas 50 caractères.");
+            chargerCategories();
+            return;
+        }
+
         // Le type décide du volet (revenus ou dépenses) où apparaît la catégorie.
         // Le changer alors que des opérations la référencent déjà laisserait les
         // totaux et les graphiques en désaccord.
