@@ -196,7 +196,8 @@ public class IncomeDAO {
     }
 
     public int nombreParUser(int idUser) {
-        String sql = "SELECT COUNT(*) AS nb FROM incomes WHERE id_user = ?";
+        String sql = "SELECT COUNT(*) AS nb FROM incomes WHERE id_user = ?"
+                + SqlUtil.jusquAujourdhui("date_revenu");
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
@@ -210,7 +211,8 @@ public class IncomeDAO {
     }
 
     public double totalAvantAnnee(int idUser, int annee) {
-        String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM incomes WHERE id_user = ? AND YEAR(date_revenu) < ?";
+        String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM incomes WHERE id_user = ? AND YEAR(date_revenu) < ?"
+                + SqlUtil.jusquAujourdhui("date_revenu");
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
@@ -336,12 +338,19 @@ public class IncomeDAO {
             if (!colonneExiste(meta, conn.getCatalog(), "frequence")) {
                 try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
                     st.executeUpdate("ALTER TABLE incomes " +
-                            "ADD COLUMN frequence ENUM('PONCTUEL','QUOTIDIEN','HEBDOMADAIRE','MENSUEL') NOT NULL DEFAULT 'PONCTUEL', " +
+                            "ADD COLUMN frequence " + SqlUtil.ENUM_FREQUENCE + " NOT NULL DEFAULT 'PONCTUEL', " +
                             "ADD COLUMN date_fin DATE NULL, " +
                             "ADD COLUMN derniere_generation DATE NULL, " +
                             "ADD COLUMN id_source INT NULL");
                     st.executeUpdate("ALTER TABLE incomes ADD CONSTRAINT fk_revenu_source " +
                             "FOREIGN KEY (id_source) REFERENCES incomes(id_revenu) ON DELETE CASCADE");
+                }
+            } else if (!SqlUtil.frequenceAdmet(conn, "incomes", "ANNUEL")) {
+                // Fréquence annuelle : le ENUM d'origine ne la connaît pas, MySQL
+                // refuserait son écriture. Élargir la colonne laisse les valeurs en place.
+                try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
+                    st.executeUpdate("ALTER TABLE incomes MODIFY COLUMN frequence "
+                            + SqlUtil.ENUM_FREQUENCE + " NOT NULL DEFAULT 'PONCTUEL'");
                 }
             }
         } catch (SQLException e) {

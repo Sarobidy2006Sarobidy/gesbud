@@ -36,6 +36,7 @@ CREATE TABLE categories (
     id_user         INT NOT NULL,
     nom             VARCHAR(50) NOT NULL,
     type            ENUM('REVENU', 'DEPENSE') NOT NULL,
+    budget          DECIMAL(15,2) NULL CHECK (budget >= 0),
     date_creation   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_categorie_user
@@ -58,7 +59,7 @@ CREATE TABLE incomes (
     -- Revenu récurrent : PONCTUEL (une fois) ou chaque jour / semaine / mois.
     -- L'application crée elle-même les occurrences arrivées à échéance
     -- (lignes avec id_source = revenu d'origine, supprimées avec lui).
-    frequence           ENUM('PONCTUEL', 'QUOTIDIEN', 'HEBDOMADAIRE', 'MENSUEL') NOT NULL DEFAULT 'PONCTUEL',
+    frequence           ENUM('PONCTUEL', 'QUOTIDIEN', 'HEBDOMADAIRE', 'MENSUEL', 'ANNUEL') NOT NULL DEFAULT 'PONCTUEL',
     date_fin            DATE NULL,                  -- fin de la récurrence (facultative)
     derniere_generation DATE NULL,                  -- dernière occurrence déjà créée
     id_source           INT  NULL,                  -- revenu d'origine d'une occurrence automatique
@@ -88,7 +89,7 @@ CREATE TABLE expenses (
     description     VARCHAR(255),
     date_depense    DATE NOT NULL,
     -- Dépense récurrente (chaque jour / semaine / mois), fixe ou variable (voir incomes).
-    frequence           ENUM('PONCTUEL', 'QUOTIDIEN', 'HEBDOMADAIRE', 'MENSUEL') NOT NULL DEFAULT 'PONCTUEL',
+    frequence           ENUM('PONCTUEL', 'QUOTIDIEN', 'HEBDOMADAIRE', 'MENSUEL', 'ANNUEL') NOT NULL DEFAULT 'PONCTUEL',
     date_fin            DATE NULL,
     derniere_generation DATE NULL,
     id_source           INT  NULL,                  -- dépense d'origine d'une occurrence automatique
@@ -119,7 +120,7 @@ CREATE TABLE savings (
     montant             DECIMAL(15,2) NOT NULL CHECK (montant >= 0),
     description         VARCHAR(255),
     date_economie       DATE NOT NULL,
-    frequence           ENUM('PONCTUEL', 'QUOTIDIEN', 'HEBDOMADAIRE', 'MENSUEL') NOT NULL DEFAULT 'PONCTUEL',
+    frequence           ENUM('PONCTUEL', 'QUOTIDIEN', 'HEBDOMADAIRE', 'MENSUEL', 'ANNUEL') NOT NULL DEFAULT 'PONCTUEL',
     date_fin            DATE NULL,
     derniere_generation DATE NULL,
     id_source           INT  NULL,

@@ -6,14 +6,15 @@ import java.util.List;
 
 /**
  * Fréquence d'un revenu : une seule fois, ou récurrent (chaque jour,
- * chaque semaine, chaque mois). Sert aussi à calculer les dates des
- * occurrences d'un revenu récurrent.
+ * chaque semaine, chaque mois, chaque année). Sert aussi à calculer les dates
+ * des occurrences d'un revenu récurrent.
  */
 public enum Frequency {
     PONCTUEL("Une seule fois"),
     QUOTIDIEN("Chaque jour"),
     HEBDOMADAIRE("Chaque semaine"),
-    MENSUEL("Chaque mois");
+    MENSUEL("Chaque mois"),
+    ANNUEL("Chaque année");
 
     /** Garde-fou : nombre maximal d'occurrences générées en une seule fois. */
     private static final int MAX_OCCURRENCES = 20000;
@@ -41,6 +42,7 @@ public enum Frequency {
             case QUOTIDIEN -> debut.plusDays(n);
             case HEBDOMADAIRE -> debut.plusWeeks(n);
             case MENSUEL -> debut.plusMonths(n);
+            case ANNUEL -> debut.plusYears(n);
             case PONCTUEL -> debut;
         };
     }

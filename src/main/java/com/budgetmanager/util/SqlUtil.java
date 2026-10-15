@@ -18,6 +18,10 @@ public final class SqlUtil {
     /** Caractère d'échappement utilisé avec « LIKE ? ESCAPE '|' ». */
     public static final char ECHAPPEMENT = '|';
 
+    /** Type ENUM de la colonne « frequence » — une seule définition pour les trois tables. */
+    public static final String ENUM_FREQUENCE =
+            "ENUM('PONCTUEL','QUOTIDIEN','HEBDOMADAIRE','MENSUEL','ANNUEL')";
+
     private SqlUtil() {}
 
     /** Échappe %, _ et | pour qu'une recherche « 50% » cherche vraiment « 50% » et non « 50 + n'importe quoi ». */
@@ -32,6 +36,35 @@ public final class SqlUtil {
      */
     public static String jusquAujourdhui(String colonneDate) {
         return " AND " + colonneDate + " <= '" + LocalDate.now() + "' ";
+    }
+
+    /**
+     * Même règle, côté Java : une ligne datée d'après aujourd'hui est prévue,
+     * pas encore réalisée. Elle reste visible dans les tableaux mais ne rentre
+     * dans aucun total ni aucun compteur.
+     */
+    public static boolean estRealisee(LocalDate date) {
+        return date == null || !date.isAfter(LocalDate.now());
+    }
+
+    /**
+     * La colonne « frequence » de la table accepte-t-elle déjà cette valeur ?
+     * Un ENUM plus ancien refuse « ANNUEL » (erreur MySQL 1265) : la migration
+     * le vérifie avant d'élargir la colonne.
+     *
+     * @param table nom de la table, fourni par le code, jamais par la saisie
+     */
+    public static boolean frequenceAdmet(Connection conn, String table, String valeur) throws SQLException {
+        String requete = "SELECT 1 FROM information_schema.COLUMNS " +
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'frequence' " +
+                "AND COLUMN_TYPE LIKE ?";
+        try (PreparedStatement stmt = DatabaseConnection.preparer(conn, requete)) {
+            stmt.setString(1, table);
+            stmt.setString(2, "%'" + valeur + "'%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
     }
 
     /**

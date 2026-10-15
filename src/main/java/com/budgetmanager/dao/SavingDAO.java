@@ -196,7 +196,8 @@ public class SavingDAO {
     }
 
     public double totalAvantAnnee(int idUser, int annee) {
-        String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM savings WHERE id_user = ? AND YEAR(date_economie) < ?";
+        String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM savings WHERE id_user = ? AND YEAR(date_economie) < ?"
+                + SqlUtil.jusquAujourdhui("date_economie");
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
@@ -211,7 +212,8 @@ public class SavingDAO {
     }
 
     public int nombreParUser(int idUser) {
-        String sql = "SELECT COUNT(*) AS nb FROM savings WHERE id_user = ?";
+        String sql = "SELECT COUNT(*) AS nb FROM savings WHERE id_user = ?"
+                + SqlUtil.jusquAujourdhui("date_economie");
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idUser);
@@ -310,7 +312,7 @@ public class SavingDAO {
                         "montant DECIMAL(15,2) NOT NULL CHECK (montant >= 0), " +
                         "description VARCHAR(255), " +
                         "date_economie DATE NOT NULL, " +
-                        "frequence ENUM('PONCTUEL','QUOTIDIEN','HEBDOMADAIRE','MENSUEL') NOT NULL DEFAULT 'PONCTUEL', " +
+                        "frequence " + SqlUtil.ENUM_FREQUENCE + " NOT NULL DEFAULT 'PONCTUEL', " +
                         "date_fin DATE NULL, " +
                         "derniere_generation DATE NULL, " +
                         "id_source INT NULL, " +
@@ -318,6 +320,12 @@ public class SavingDAO {
                         "CONSTRAINT fk_economie_user FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE, " +
                         "CONSTRAINT fk_economie_source FOREIGN KEY (id_source) REFERENCES savings(id_economie) ON DELETE CASCADE" +
                         ") ENGINE=InnoDB");
+            }
+            if (!SqlUtil.frequenceAdmet(conn, "savings", "ANNUEL")) {
+                try (Statement st = DatabaseConnection.creerStatement(conn, DatabaseConnection.TIMEOUT_MIGRATION)) {
+                    st.executeUpdate("ALTER TABLE savings MODIFY COLUMN frequence "
+                            + SqlUtil.ENUM_FREQUENCE + " NOT NULL DEFAULT 'PONCTUEL'");
+                }
             }
         } catch (SQLException e) {
             log.warn("Migration savings ignorée : {}", e.getMessage());
