@@ -121,7 +121,9 @@ public class Main extends Application {
         // Si MySQL est éteint, on affiche database-error.fxml avec un bouton "Réessayer".
         boolean dbOk = false;
         String erreurDb = null;
-        String urlDb = "";
+        // L'URL configurée d'abord : si la connexion échoue avant d'être établie,
+        // l'écran d'erreur a quand même le bon port à montrer.
+        String urlDb = com.budgetmanager.config.DatabaseConnection.urlTentee();
         try (java.sql.Connection conn = com.budgetmanager.config.DatabaseConnection.getConnection()) {
             dbOk = conn.isValid(3);
             urlDb = conn.getMetaData().getURL();

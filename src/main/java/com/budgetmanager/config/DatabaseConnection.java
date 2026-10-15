@@ -73,13 +73,22 @@ public class DatabaseConnection {
         return ConfigCrypto.dechiffrer(CONFIG.getProperty(cle, defaut));
     }
 
+    /**
+     * URL réellement configurée, variable d'environnement comprise. L'écran
+     * d'erreur l'affiche : sans elle, il annoncerait « 3306 (défaut) » alors que
+     * le pool a tenté un tout autre port, et l'utilisateur corrigrait le mauvais fichier.
+     */
+    public static String urlTentee() {
+        return valeur("BUDGET_DB_URL", "db.url", URL_DEFAUT);
+    }
+
     // ---------------------------------------------------------------------------
     // Pool HikariCP (initialisation paresseuse, thread-safe)
     // ---------------------------------------------------------------------------
 
     private static HikariDataSource creerPool() {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(avecTimeoutsReseau(valeur("BUDGET_DB_URL", "db.url", URL_DEFAUT)));
+        config.setJdbcUrl(avecTimeoutsReseau(urlTentee()));
         config.setUsername(valeur("BUDGET_DB_USER",    "db.user",     USER_DEFAUT));
         config.setPassword(valeur("BUDGET_DB_PASSWORD","db.password", PASSWORD_DEFAUT));
 
