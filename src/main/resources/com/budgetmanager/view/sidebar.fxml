@@ -36,6 +36,8 @@
             maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersCategories"/>
     <Button fx:id="boutonHistorique" styleClass="nav-item" text="Historique"
             maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersHistorique"/>
+    <Button fx:id="boutonCarnet" styleClass="nav-item" text="Emprunts &amp; prêts"
+            maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#allerVersCarnet"/>
 
     <Label text="Système" styleClass="sidebar-group"/>
     <Button fx:id="boutonParametres" styleClass="nav-item" text="Paramètres"

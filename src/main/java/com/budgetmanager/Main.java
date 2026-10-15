@@ -148,6 +148,7 @@ public class Main extends Application {
         new com.budgetmanager.dao.ExpenseDAO().migrerSiNecessaire();
         new com.budgetmanager.dao.SavingDAO().migrerSiNecessaire();
         new com.budgetmanager.dao.CategoryDAO().migrerSiNecessaire();
+        new com.budgetmanager.dao.CarnetDAO().migrerSiNecessaire();
 
         changerScene("view/login.fxml", LARGEUR_AUTH, HAUTEUR_AUTH);
 

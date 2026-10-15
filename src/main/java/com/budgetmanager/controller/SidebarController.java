@@ -33,6 +33,7 @@ public class SidebarController {
     @FXML private Button boutonEconomies;
     @FXML private Button boutonCategories;
     @FXML private Button boutonHistorique;
+    @FXML private Button boutonCarnet;
     @FXML private Button boutonParametres;
     @FXML private Button boutonDeconnexion;
 
@@ -63,12 +64,12 @@ public class SidebarController {
         }
 
         boutonsMenu = new Button[]{ boutonDashboard, boutonRevenus, boutonDepenses,
-                boutonEconomies, boutonCategories, boutonHistorique, boutonParametres };
+                boutonEconomies, boutonCategories, boutonHistorique, boutonCarnet, boutonParametres };
         clesMenu = new String[]{ "dashboard", "revenus", "depenses",
-                "economies", "categories", "historique", "parametres" };
+                "economies", "categories", "historique", "carnet", "parametres" };
         fabriques = new Icons.IconFactory[]{
                 Icons::dashboard, Icons::trendingUp, Icons::trendingDown,
-                Icons::wallet, Icons::tag, Icons::clock, Icons::settings };
+                Icons::wallet, Icons::tag, Icons::clock, Icons::dollar, Icons::settings };
 
         boutonDashboard.setGraphic(Icons.dashboard(TAILLE_ICONE, ICONE_INACTIVE));
         boutonRevenus.setGraphic(Icons.trendingUp(TAILLE_ICONE, ICONE_INACTIVE));
@@ -76,6 +77,7 @@ public class SidebarController {
         boutonEconomies.setGraphic(Icons.wallet(TAILLE_ICONE, ICONE_INACTIVE));
         boutonCategories.setGraphic(Icons.tag(TAILLE_ICONE, ICONE_INACTIVE));
         boutonHistorique.setGraphic(Icons.clock(TAILLE_ICONE, ICONE_INACTIVE));
+        boutonCarnet.setGraphic(Icons.dollar(TAILLE_ICONE, ICONE_INACTIVE));
         boutonParametres.setGraphic(Icons.settings(TAILLE_ICONE, ICONE_INACTIVE));
         boutonDeconnexion.setGraphic(Icons.logOut(TAILLE_ICONE, ICONE_DECONNEXION));
     }
@@ -83,7 +85,7 @@ public class SidebarController {
     /**
      * Met en surbrillance l'élément de menu correspondant à l'écran affiché.
      * @param cle une des valeurs : "dashboard", "revenus", "depenses",
-     *            "economies", "categories", "historique", "parametres".
+     *            "economies", "categories", "historique", "carnet", "parametres".
      */
     public void setActive(String cle) {
         for (int i = 0; i < boutonsMenu.length; i++) {
@@ -103,6 +105,7 @@ public class SidebarController {
     @FXML public void allerVersEconomies()  { naviguer("view/savings.fxml"); }
     @FXML public void allerVersCategories() { naviguer("view/category.fxml"); }
     @FXML public void allerVersHistorique() { naviguer("view/history.fxml"); }
+    @FXML public void allerVersCarnet()     { naviguer("view/carnet.fxml"); }
     @FXML public void allerVersParametres() { naviguer("view/settings.fxml"); }
 
     @FXML
