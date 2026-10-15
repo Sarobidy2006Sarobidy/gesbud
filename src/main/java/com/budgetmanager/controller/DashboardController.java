@@ -168,16 +168,15 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
                 java.util.Map.entry(pieDepenses, survolPieDepenses))) {
             PieChart camembert = paire.getKey();
             javafx.scene.layout.Pane survol = paire.getValue();
-            // Sans animation, les bounds des parts sont ceux du dessin final : c'est ce
-            // qui permet de poser le creux et les pourcentages à la bonne place.
             camembert.setAnimated(false);
             camembert.setLabelsVisible(false);
-            // Les parts n'existent qu'une fois le camembert posé : needsLayout repasse
-            // à false à la fin de chaque passe, et c'est là seulement que leurs bounds
-            // sont ceux du dessin final.
+            // Chaque fin de disposition et chaque changement de taille reposent le
+            // repère de l'anneau, une fois le camembert posé sous le mesurage.
             camembert.needsLayoutProperty().addListener((obs, avant, apres) -> {
                 if (!apres) habillerDonut(camembert, survol);
             });
+            camembert.widthProperty().addListener((obs, avant, apres) -> habillerDonut(camembert, survol));
+            camembert.heightProperty().addListener((obs, avant, apres) -> habillerDonut(camembert, survol));
         }
     }
 
@@ -192,27 +191,28 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
     private boolean habillageEnCours = false;
 
     private void habillerDonutSansGarde(PieChart camembert, javafx.scene.layout.Pane survol) {
+        double somme = camembert.getData().stream().mapToDouble(PieChart.Data::getPieValue).sum();
+
         javafx.scene.shape.Circle trou = null;
         javafx.scene.control.Label centre = null;
         for (javafx.scene.Node enfant : survol.getChildren()) {
             if (enfant instanceof javafx.scene.shape.Circle c) trou = c;
             if (enfant instanceof javafx.scene.control.Label l) centre = l;
         }
-        if (trou == null) {
-            trou = new javafx.scene.shape.Circle();
-            trou.getStyleClass().add("donut-trou");
-            trou.setMouseTransparent(true);
-            survol.getChildren().add(trou);
+        // Un mois sans la moindre opération n'a rien à mesurer : l'anneau revient à plat.
+        if (somme <= 0) {
+            if (trou != null) trou.setRadius(0);
+            if (centre != null) centre.setText("");
+            survol.getChildren().removeIf(n -> n instanceof javafx.scene.text.Text);
+            return;
         }
-        if (centre == null) {
-            centre = new javafx.scene.control.Label();
-            centre.getStyleClass().add("donut-centre");
-            centre.setMouseTransparent(true);
-            survol.getChildren().add(centre);
-        }
-        survol.getChildren().removeIf(n -> n instanceof javafx.scene.text.Text);
 
-        double somme = camembert.getData().stream().mapToDouble(PieChart.Data::getPieValue).sum();
+        // Un camembert ne dessine ses parts que pendant sa propre disposition, et
+        // l'écouteur de disposition est appelé juste avant : on pose le graphe ici pour
+        // lire l'empreinte réelle des parts, sinon l'anneau ne se forme jamais.
+        camembert.applyCss();
+        camembert.layout();
+
         double gauche = 0, haut = 0, droite = 0, bas = 0;
         for (PieChart.Data donnee : camembert.getData()) {
             javafx.geometry.Bounds b = autourDe(survol, donnee.getNode());
@@ -224,11 +224,26 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
                 droite = Math.max(droite, b.getMaxX()); bas = Math.max(bas, b.getMaxY());
             }
         }
-        if (somme <= 0 || droite - gauche < 10) {
-            trou.setRadius(0);
-            centre.setText("");
-            return;
+        // Toujours pas de part mesurable (graphe hors scène, taille nulle) : on ne
+        // touche à rien, la prochaine disposition reposera l'habillage.
+        if (droite - gauche < 10) return;
+
+        if (trou == null) {
+            trou = new javafx.scene.shape.Circle();
+            trou.getStyleClass().add("donut-trou");
+            trou.setMouseTransparent(true);
+            survol.getChildren().add(trou);
+            // Le blanc du creux vient de la feuille de style : sans cette passe, le
+            // cercle neuf garde son noir par défaut le temps d'un instant.
+            trou.applyCss();
         }
+        if (centre == null) {
+            centre = new javafx.scene.control.Label();
+            centre.getStyleClass().add("donut-centre");
+            centre.setMouseTransparent(true);
+            survol.getChildren().add(centre);
+        }
+        survol.getChildren().removeIf(n -> n instanceof javafx.scene.text.Text);
 
         double cx = (gauche + droite) / 2;
         double cy = (haut + bas) / 2;
@@ -262,6 +277,14 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
             survol.getChildren().add(pourcentage);
             pourcentage.applyCss();
             javafx.geometry.Bounds libelle = pourcentage.getLayoutBounds();
+            // La corde de la part au rayon des étiquettes : plus large qu'elle, le
+            // pourcentage déborderait chez son voisin et l'anneau devient illisible.
+            // La légende en dessous garde le nom et le montant de ces parts minuscules.
+            double corde = 2 * rayon * 0.8 * Math.sin(Math.min(fraction * Math.PI, Math.PI / 2));
+            if (libelle.getWidth() > corde) {
+                survol.getChildren().remove(pourcentage);
+                continue;
+            }
             pourcentage.relocate(cx + dx * rayon * 0.8 - libelle.getWidth() / 2,
                                  cy + dy * rayon * 0.8 - libelle.getHeight() / 2);
         }
