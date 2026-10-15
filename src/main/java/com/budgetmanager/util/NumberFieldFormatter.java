@@ -27,10 +27,25 @@ public final class NumberFieldFormatter {
     private NumberFieldFormatter() {}
 
     /**
+     * Écrit un montant sans notation scientifique : {@code String.valueOf} donne
+     * « 1.0E7 » à partir de dix millions, texte que le champ refuserait ensuite
+     * de modifier et que personne ne relit.
+     */
+    public static String ecrire(double montant) {
+        return new java.math.BigDecimal(String.valueOf(montant)).stripTrailingZeros().toPlainString();
+    }
+
+    /**
      * Crée un TextFormatter pour nombres décimaux (max 2 décimales).
      * Compatible avec séparateur virgule (converti en point automatiquement).
+     *
+     * <p>Le convertisseur est neutre : il rend le texte tel quel. Un convertisseur
+     * numérique ferait repasser chaque saisie par un Double, et le champ se
+     * réécrirait sous les yeux de l'utilisateur — « 90000 » devient « 90000.0 »,
+     * « 1.50 » devient « 1.5 », « 10000000 » devient « 1.0E7 ». Seule la filtre
+     * décide ce qui entre dans le champ.
      */
-    public static TextFormatter<Double> creer() {
+    public static TextFormatter<String> creer() {
         // Pattern : chiffres, point ou virgule, max 2 décimales
         Pattern pattern = Pattern.compile("^\\d*[.,]?\\d{0,2}$");
 
@@ -56,26 +71,19 @@ public final class NumberFieldFormatter {
             return null;
         };
 
-        StringConverter<Double> convertisseur = new StringConverter<>() {
+        StringConverter<String> neutre = new StringConverter<>() {
             @Override
-            public String toString(Double valeur) {
-                return valeur == null || valeur == 0.0 ? "" : String.valueOf(valeur);
+            public String toString(String texte) {
+                return texte == null ? "" : texte;
             }
 
             @Override
-            public Double fromString(String texte) {
-                if (texte == null || texte.trim().isEmpty()) {
-                    return 0.0;
-                }
-                try {
-                    return Double.parseDouble(texte.replace(',', '.'));
-                } catch (NumberFormatException e) {
-                    return 0.0;
-                }
+            public String fromString(String texte) {
+                return texte == null ? "" : texte;
             }
         };
 
-        return new TextFormatter<>(convertisseur, 0.0, filtre);
+        return new TextFormatter<>(neutre, "", filtre);
     }
 
     /**

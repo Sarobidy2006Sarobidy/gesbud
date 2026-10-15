@@ -105,6 +105,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
 
         // Validation : champ montant accepte uniquement des nombres décimaux.
         champMontant.setTextFormatter(com.budgetmanager.util.NumberFieldFormatter.creer());
+        champDescription.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(255));
         tableEconomies.setItems(donnees);
 
         // La pastille de la carte-tableau suit les lignes réellement visibles.
@@ -115,6 +116,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         comboFrequence.setValue(Frequency.PONCTUEL);
         comboFrequence.valueProperty().addListener((obs, ancien, nouveau) -> mettreAJourFormulaireFrequence());
         mettreAJourFormulaireFrequence();
+        champDate.setValue(LocalDate.now());
 
         comboPeriode.setItems(FXCollections.observableArrayList(Period.values()));
         comboPeriode.setValue(Period.MOIS);
@@ -217,7 +219,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     }
 
     private void remplirFormulaire(Saving economie) {
-        champMontant.setText(String.valueOf(economie.getMontant()));
+        champMontant.setText(com.budgetmanager.util.NumberFieldFormatter.ecrire(economie.getMontant()));
         champDescription.setText(economie.getDescription());
         champDate.setValue(economie.getDateEconomie());
         comboFrequence.setValue(economie.getFrequence());
@@ -396,7 +398,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     private void viderFormulaire() {
         champMontant.clear();
         champDescription.clear();
-        champDate.setValue(null);
+        champDate.setValue(LocalDate.now());
         comboFrequence.setValue(Frequency.PONCTUEL);
         champDateFin.setValue(null);
         economieSelectionnee = null;

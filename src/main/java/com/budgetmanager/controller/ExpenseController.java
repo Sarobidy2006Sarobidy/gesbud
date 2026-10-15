@@ -98,6 +98,7 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
 
         // Validation : champ montant accepte uniquement des nombres décimaux.
         champMontant.setTextFormatter(com.budgetmanager.util.NumberFieldFormatter.creer());
+        champDescription.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(255));
 
         comboFrequence.setItems(FXCollections.observableArrayList(Frequency.values()));
         comboFrequence.setValue(Frequency.PONCTUEL);
@@ -123,6 +124,7 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
         tableDepenses.getSelectionModel().selectedItemProperty()
                 .addListener(new WeakChangeListener<>(listenerSelection));
 
+        champDate.setValue(LocalDate.now());
         javafx.application.Platform.runLater(() -> champMontant.requestFocus());
 
         chargerCombosCategories();
@@ -219,7 +221,7 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
     }
 
     private void remplirFormulaire(Expense depense) {
-        champMontant.setText(String.valueOf(depense.getMontant()));
+        champMontant.setText(com.budgetmanager.util.NumberFieldFormatter.ecrire(depense.getMontant()));
         champDescription.setText(depense.getDescription());
         champDate.setValue(depense.getDateDepense());
         comboFrequence.setValue(depense.getFrequence());
@@ -409,7 +411,7 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
     private void viderFormulaire() {
         champMontant.clear();
         champDescription.clear();
-        champDate.setValue(null);
+        champDate.setValue(LocalDate.now());
         comboCategorie.setValue(null);
         comboFrequence.setValue(Frequency.PONCTUEL);
         champDateFin.setValue(null);

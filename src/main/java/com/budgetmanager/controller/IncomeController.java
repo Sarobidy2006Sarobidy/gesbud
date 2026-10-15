@@ -102,6 +102,7 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
 
         // Validation : champ montant accepte uniquement des nombres décimaux.
         champMontant.setTextFormatter(com.budgetmanager.util.NumberFieldFormatter.creer());
+        champDescription.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(255));
 
         comboFrequence.setItems(FXCollections.observableArrayList(Frequency.values()));
         comboFrequence.setValue(Frequency.PONCTUEL);
@@ -130,6 +131,7 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
                 .addListener(new WeakChangeListener<>(listenerSelection));
 
         // Focus automatique sur le premier champ (Point 5).
+        champDate.setValue(LocalDate.now());
         javafx.application.Platform.runLater(() -> champMontant.requestFocus());
 
         // Chargement des catégories et des revenus en arrière-plan.
@@ -228,7 +230,7 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
     }
 
     private void remplirFormulaire(Income revenu) {
-        champMontant.setText(String.valueOf(revenu.getMontant()));
+        champMontant.setText(com.budgetmanager.util.NumberFieldFormatter.ecrire(revenu.getMontant()));
         champDescription.setText(revenu.getDescription());
         champDate.setValue(revenu.getDateRevenu());
         // Une ligne générée automatiquement est un revenu ponctuel : on ne lui montre pas de récurrence.
@@ -418,7 +420,7 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
     private void viderFormulaire() {
         champMontant.clear();
         champDescription.clear();
-        champDate.setValue(null);
+        champDate.setValue(LocalDate.now());
         comboCategorie.setValue(null);
         comboFrequence.setValue(Frequency.PONCTUEL);
         champDateFin.setValue(null);

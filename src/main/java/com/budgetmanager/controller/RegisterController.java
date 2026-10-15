@@ -77,6 +77,9 @@ public class RegisterController {
                 Icons.shieldCheck(14, javafx.scene.paint.Color.web("#7eb8ff", 0.8)));
         OeilMotDePasse.installer(champMotDePasse);
         OeilMotDePasse.installer(champConfirmationMotDePasse);
+        champNom.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(50));
+        champPrenom.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(50));
+        champEmail.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(100));
         AuthUi.activerFocusSurLignesPremium(racine);
 
         comboDevise.getItems().addAll("Ar", "EUR", "USD", "GBP");
