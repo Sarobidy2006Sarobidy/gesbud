@@ -621,7 +621,10 @@
 /* Panneau hero gauche */
 .auth-hero { -fx-background-color: transparent; }
 
-.auth-hero-text { -fx-padding: 0 70 54 64; }
+/* Le hero ne garde que la place laissée par le formulaire : ses marges intérieures
+   sont comptées dans cette place, pas ajoutées après coup. 100 px de marge sur un
+   panneau de 400 px, c'était un quart de l'accroche perdu. */
+.auth-hero-text { -fx-padding: 0 48 54 52; }
 
 /* Filet d'accent au-dessus de l'accroche : marque le bas du panneau. */
 .auth-hero-accent {
@@ -678,6 +681,23 @@
     -fx-text-fill: #d7e8ff;
 }
 
+/* Deux paliers de typographie, posés par AuthHeroController selon la largeur que
+   le formulaire laisse au hero. Sans eux, l'accroche restait collée à sa colonne
+   de 430 px dans un panneau de 1 030 px — 446 px de vide à sa droite — et se
+   taisait entièrement dès que le panneau rétrécissait, alors qu'il restait de la
+   place pour le titre. */
+.auth-hero-serre .auth-hero-title { -fx-font-size: 26px; -fx-max-width: 330; }
+.auth-hero-serre .auth-hero-subtitle { -fx-font-size: 13px; -fx-max-width: 340; }
+
+.auth-hero-ample { -fx-padding: 0 64 64 64; }
+.auth-hero-ample .auth-hero-title { -fx-font-size: 42px; -fx-max-width: 780; }
+.auth-hero-ample .auth-hero-subtitle { -fx-font-size: 16.5px; -fx-max-width: 720; }
+.auth-hero-ample .auth-hero-atouts { -fx-max-width: 720; }
+.auth-hero-ample .auth-hero-atout-texte { -fx-font-size: 13.5px; }
+.auth-hero-ample .auth-hero-accent {
+    -fx-min-width: 72; -fx-pref-width: 72; -fx-max-width: 72;
+}
+
 /* =========================================================================
    COMBO BOX AVEC BOUTON AJOUTER
    ========================================================================= */
@@ -730,7 +750,7 @@
    laissait un vide entre le hero et le formulaire. */
 .auth-side {
     -fx-background-color: transparent;
-    -fx-padding: 48 72;
+    -fx-padding: 44 52;
 }
 
 /* ── Carte glassmorphism ── */

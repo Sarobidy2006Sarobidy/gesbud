@@ -6,6 +6,7 @@ import javafx.animation.*;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.Pane;
@@ -34,24 +35,39 @@ public class AuthHeroController {
     @FXML private StackPane puceAtout3;
     @FXML private VBox blocAccroche;
     @FXML private VBox blocAtouts;
+    @FXML private Region filetAccroche;
+    @FXML private Label titreAccroche;
+    @FXML private Label sousTitreAccroche;
 
-    /* Largeurs de panneau en dessous desquelles l'accroche perd des éléments :
-       à 920 px de fenêtre, le hero n'a plus que ~300 px et le texte s'écraserait
-       sur les badges. Le panneau de droite (formulaire) reste prioritaire. */
-    private static final double LARGEUR_ACCROCHE = 430;
-    private static final double LARGEUR_ATOUTS = 520;
+    /* Largeurs de panneau en dessous desquelles l'accroche perd des éléments. Elle
+       ne garde que la place laissée par le formulaire, qui reste prioritaire. Mais
+       elle se retire étage par étage — titre, puis sous-titre, puis atouts : tout
+       couper d'un coup laissait le panneau vide à la taille d'ouverture même de
+       l'application (le hero n'y mesure que ~400 px sur 1 040). */
+    private static final double LARGEUR_TITRE = 330;
+    private static final double LARGEUR_SOUS_TITRE = 400;
+    private static final double LARGEUR_ATOUTS = 620;
+    /* Paliers typographiques : en dessous, la colonne de texte tient sur deux lignes
+       sans déborder ; au-dessus, elle a de l'air et peut grandir au lieu de laisser
+       un quart du panneau vide à sa droite. */
+    private static final double LARGEUR_SERRE = 560;
+    private static final double LARGEUR_AMPLE = 860;
 
     /** Couleur des glyphes des atouts : lisible sur le bleu profond du panneau. */
     private static final Color COULEUR_ATOUT = Color.web("#9ad4ff");
 
-    /* Les badges vivent dans la place laissée libre au-dessus de l'accroche :
-       5 % en haut, et pour plafond le sommet du bloc de texte moins une marge.
-       Une fraction fixe de la hauteur ne suffisait pas—à 1220x760 l'accroche
-       remontait plus haut que le bandeau et les badges la traversaient. */
+    /* Les badges vivent dans la place laissée libre au-dessus de l'accroche : 5 % en
+       haut, et pour plafond le sommet du bloc de texte moins une marge. Une fraction
+       fixe de la hauteur ne suffisait pas—à 1220x760 l'accroche remontait plus haut
+       que le bandeau et les badges la traversaient. */
     private static final double BADGES_TOP = 0.05;
-    private static final double MARGE_SOUS_BADGES = 24;
-    /** Plancher : même accroche très haute, le champ de badges garde de l'air. */
     private static final double BADGES_MINIMUM = 0.30;
+    /* Les marges du champ ne sont pas du décor : un badge est un disque de jusqu'à
+       72 px, et la parallaxe peut encore le pousser de 26 px horizontalement et
+       18 px verticalement. Une marge plus petite que rayon + dérive, et le badge
+       était coupé par le bord de la fenêtre ou touchait le texte. */
+    private static final double MARGE_HAUT_BADGES = 60;
+    private static final double MARGE_BAS_BADGES = 66;
 
     private static final List<Animation> ANIMATIONS = new ArrayList<>();
     private static final Random RNG = new Random(42);
@@ -76,6 +92,27 @@ public class AuthHeroController {
             new Badge(0.08, 0.78, 38, Icons::clock,        4.0, 1.2,  18),
     };
 
+    /* Les ordonnées du tableau s'arrêtent à 0,78 : posées telles quelles dans la
+       bande, elles laissaient un quart de celle-ci vide sous le badge le plus bas —
+       une bande morte entre les badges et l'accroche en fenêtre maximisée. */
+    private static final double Y_PLANCHER;
+    private static final double Y_PLAFOND;
+
+    static {
+        double min = Double.MAX_VALUE, max = -Double.MAX_VALUE;
+        for (Badge b : BADGES) {
+            min = Math.min(min, b.y());
+            max = Math.max(max, b.y());
+        }
+        Y_PLANCHER = min;
+        Y_PLAFOND = max;
+    }
+
+    /** L'ordonnée du tableau, remise à plat sur toute la hauteur du champ. */
+    private static double fractionY(double y) {
+        return (y - Y_PLANCHER) / (Y_PLAFOND - Y_PLANCHER);
+    }
+
     @FXML
     public void initialize() {
         // Particules de fond (cercles lumineux flottants)
@@ -93,7 +130,7 @@ public class AuthHeroController {
             // les badges la recouvraient dès qu'elle remontait plus haut qu'un
             // pourcentage fixe de la hauteur.
             badge.layoutYProperty().bind(Bindings.createDoubleBinding(
-                    () -> hautBande() + (basBande() - hautBande()) * b.y() - b.taille() / 2,
+                    () -> hautBande() + (basBande() - hautBande()) * fractionY(b.y()) - b.taille() / 2,
                     zoneHexagones.heightProperty(),
                     blocAccroche.heightProperty(), blocAccroche.widthProperty(),
                     blocAccroche.managedProperty(), blocAccroche.visibleProperty()));
@@ -203,18 +240,43 @@ public class AuthHeroController {
 
     /**
      * Le hero se comprime avant le formulaire quand la fenêtre rétrécit : au-delà
-     * d'un certain point, son texte passerait sur les badges, donc il se retire.
+     * d'un certain point son texte passerait sur les badges. Il se retire étage par
+     * étage, et pendant ce temps sa typographie suit la place réellement offerte.
      */
     private void adapterAccrocheALargeur() {
         if (blocAccroche == null || !(zoneHexagones.getParent() instanceof Region panneau)) {
             return;
         }
+        titreAccroche.visibleProperty().bind(
+                panneau.widthProperty().greaterThan(LARGEUR_TITRE));
+        titreAccroche.managedProperty().bind(titreAccroche.visibleProperty());
+        filetAccroche.visibleProperty().bind(titreAccroche.visibleProperty());
+        filetAccroche.managedProperty().bind(titreAccroche.managedProperty());
+        sousTitreAccroche.visibleProperty().bind(
+                panneau.widthProperty().greaterThan(LARGEUR_SOUS_TITRE));
+        sousTitreAccroche.managedProperty().bind(sousTitreAccroche.visibleProperty());
         blocAtouts.visibleProperty().bind(
                 panneau.widthProperty().greaterThan(LARGEUR_ATOUTS));
         blocAtouts.managedProperty().bind(blocAtouts.visibleProperty());
-        blocAccroche.visibleProperty().bind(
-                panneau.widthProperty().greaterThan(LARGEUR_ACCROCHE));
-        blocAccroche.managedProperty().bind(blocAccroche.visibleProperty());
+
+        panneau.widthProperty().addListener((obs, avant, apres) ->
+                appliquerPalierTypographique(apres.doubleValue()));
+        appliquerPalierTypographique(panneau.getWidth());
+    }
+
+    /**
+     * Le palier de taille est un style de plus sur le bloc, jamais une valeur posée à
+     * la main : le CSS garde la main sur les polices et les largeurs de colonne.
+     */
+    private void appliquerPalierTypographique(double largeurPanneau) {
+        List<String> attendu = largeurPanneau >= LARGEUR_AMPLE
+                ? List.of("auth-hero-text", "auth-hero-ample")
+                : largeurPanneau <= LARGEUR_SERRE
+                        ? List.of("auth-hero-text", "auth-hero-serre")
+                        : List.of("auth-hero-text");
+        if (!blocAccroche.getStyleClass().equals(attendu)) {
+            blocAccroche.getStyleClass().setAll(attendu);
+        }
     }
 
     private void puce(StackPane conteneur, Icons.IconFactory icone) {
@@ -222,9 +284,9 @@ public class AuthHeroController {
         conteneur.getChildren().setAll(icone.create(15, COULEUR_ATOUT));
     }
 
-    /** Sommet de la bande de badges. */
+    /** Sommet de la bande de badges : de l'air au-dessus du plus grand disque. */
     private double hautBande() {
-        return zoneHexagones.getHeight() * BADGES_TOP;
+        return Math.max(zoneHexagones.getHeight() * BADGES_TOP, MARGE_HAUT_BADGES);
     }
 
     /** Plancher de la bande : jamais au-dessus du texte de l'accroche, jamais trop bas. */
@@ -234,7 +296,7 @@ public class AuthHeroController {
         // aligné en bas) : seule sa hauteur préférée mesure le bloc de texte réel.
         double accroche = blocAccroche.isManaged() && blocAccroche.isVisible()
                 ? blocAccroche.prefHeight(blocAccroche.getWidth()) : 0;
-        return Math.max(hauteur * BADGES_MINIMUM, hauteur - accroche - MARGE_SOUS_BADGES);
+        return Math.max(hauteur * BADGES_MINIMUM, hauteur - accroche - MARGE_BAS_BADGES);
     }
 
     /** Ajoute des cercles lumineux flottants en arrière-plan pour renforcer l'effet 3D. */
