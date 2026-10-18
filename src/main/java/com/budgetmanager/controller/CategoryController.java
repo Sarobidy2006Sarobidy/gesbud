@@ -84,10 +84,32 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
                 CategoryType.REVENU, CategoryType.DEPENSE));
         colonneBudget.setCellFactory(colonne -> new TextFieldTableCell<>(convertisseurPlafond()) {
             @Override
+            public void startEdit() {
+                super.startEdit();
+                // Le convertisseur rend « aucun plafond » (null) à tout texte non
+                // numérique : sans cette borne, un plafond tapé en lettres partait
+                // silencieusement de la ligne. L'éditeur est le graphic de la cellule.
+                if (getGraphic() instanceof javafx.scene.control.TextField editeur) {
+                    editeur.setTextFormatter(com.budgetmanager.util.NumberFieldFormatter.creer());
+                    // La cellule peut être peinte « 200 000,00 Ar » : le champ, lui,
+                    // doit partir du nombre brut que son filtre sait relire.
+                    editeur.setText(getItem() == null ? ""
+                            : com.budgetmanager.util.NumberFieldFormatter.ecrire(getItem()));
+                }
+            }
+
+            @Override
             public void updateItem(Double plafond, boolean vide) {
                 super.updateItem(plafond, vide);
                 // Le montant se lit en colonne : aligné à droite comme les autres.
                 setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                // Peinture groupée avec la devise du compte — « 200000 » ne se relit
+                // pas, et hors Ariary le nombre brut ne dit pas de quelle monnaie il
+                // s'agit. L'éditeur, lui, garde le nombre brut que le champ sait lire.
+                if (!isEditing() && !vide && plafond != null) {
+                    setText(com.budgetmanager.util.CurrencyUtil.formater(plafond,
+                            com.budgetmanager.util.CurrencyUtil.deviseCourante()));
+                }
             }
         });
 
@@ -134,8 +156,9 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
     }
 
     /**
-     * Plafond mensuel : la cellule affiche et attend un nombre brut, sans symbole de
-     * devise — c'est ce qu'elle doit pouvoir relire après saisie. Vide = aucun plafond.
+     * Plafond mensuel : le convertisseur manipule un nombre brut, sans symbole de
+     * devise — c'est ce que le champ d'édition doit pouvoir relire. La cellule, elle,
+     * le peint groupé et monnayé (voir le CellFactory). Vide = aucun plafond.
      */
     private static javafx.util.StringConverter<Double> convertisseurPlafond() {
         return new javafx.util.StringConverter<>() {
