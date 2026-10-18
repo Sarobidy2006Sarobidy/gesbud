@@ -9,7 +9,9 @@ USE gestionnaire_budget;
 CREATE TABLE IF NOT EXISTS savings (
     id_economie         INT AUTO_INCREMENT PRIMARY KEY,
     id_user             INT NOT NULL,
-    montant             DECIMAL(15,2) NOT NULL CHECK (montant >= 0),
+    -- Comme dans schema.sql : un retrait est une ligne négative, la table ne doit
+    -- pas l'interdire.
+    montant             DECIMAL(15,2) NOT NULL,
     description         VARCHAR(255),
     date_economie       DATE NOT NULL,
     frequence           ENUM('PONCTUEL', 'QUOTIDIEN', 'HEBDOMADAIRE', 'MENSUEL') NOT NULL DEFAULT 'PONCTUEL',

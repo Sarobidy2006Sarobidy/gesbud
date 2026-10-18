@@ -117,7 +117,10 @@ CREATE TABLE expenses (
 CREATE TABLE savings (
     id_economie         INT AUTO_INCREMENT PRIMARY KEY,
     id_user             INT NOT NULL,
-    montant             DECIMAL(15,2) NOT NULL CHECK (montant >= 0),
+    -- Un retrait d'épargne est une ligne négative : aucune borne ici, contrairement
+    -- aux revenus et aux dépenses. La base l'a toujours admis (voir SavingDAO), et
+    -- « montant >= 0 » ferait échouer chaque retrait sur une installation neuve.
+    montant             DECIMAL(15,2) NOT NULL,
     description         VARCHAR(255),
     date_economie       DATE NOT NULL,
     frequence           ENUM('PONCTUEL', 'QUOTIDIEN', 'HEBDOMADAIRE', 'MENSUEL', 'ANNUEL') NOT NULL DEFAULT 'PONCTUEL',
