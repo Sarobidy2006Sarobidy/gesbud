@@ -344,6 +344,12 @@
     -fx-border-width: 1 0 0 0;
     -fx-padding: 14 0 0 0;
 }
+/* Voile posé sur la carte pendant que la base répond : le formulaire reste
+   devinable dessous, mais rien ne se clique. */
+.overlay-chargement {
+    -fx-background-color: rgba(243,247,253,0.82);
+    -fx-background-radius: 12;
+}
 
 /* --- Cartes de tableau --- */
 .table-card {

@@ -152,8 +152,7 @@
             <!-- Overlay de chargement -->
             <VBox fx:id="overlayChargement" alignment="CENTER" spacing="12"
                   visible="false" managed="false"
-                  style="-fx-background-color: rgba(243,247,253,0.82);
-                         -fx-background-radius: 12;">
+                  styleClass="overlay-chargement">
                 <ProgressIndicator prefWidth="48" prefHeight="48"/>
                 <Label text="Chargement des dépenses…" styleClass="page-subtitle"/>
             </VBox>
