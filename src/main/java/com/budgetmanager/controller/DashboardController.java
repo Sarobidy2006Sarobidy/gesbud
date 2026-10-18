@@ -249,23 +249,38 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         double cy = (haut + bas) / 2;
         double rayon = Math.min(droite - gauche, bas - haut) / 2;
 
+        // Le creux se rétracte sur les petits graphiques : à 0,6 R, un anneau de 50 px
+        // de rayon n'offre qu'une couronne de 20 px, trop étroite pour un pourcentage
+        // quel que soit son angle. En dessous de 70 px de rayon, le creux rend de la
+        // place à la couleur, sans jamais descendre sous ce que peut contenir le total.
+        double creux = rayon * Math.min(0.6, 0.5 + Math.max(0, rayon - 40) / 300);
         trou.setCenterX(cx);
         trou.setCenterY(cy);
-        trou.setRadius(rayon * 0.6);
+        trou.setRadius(creux);
 
         // Le creux est petit : « 1 140 000,00 Ar » n'y tiendrait pas.
         centre.setText(CurrencyUtil.compact().toString(somme));
-        centre.applyCss();
+        for (double taille : new double[] { 0, 12, 10 }) {
+            if (taille > 0) {
+                centre.setStyle("-fx-font-family: \"Inter SemiBold\"; -fx-font-size: " + taille
+                        + "px; -fx-text-fill: #0b2a6b;");
+            }
+            centre.applyCss();
+            javafx.geometry.Bounds t = centre.getLayoutBounds();
+            // Une diagonale qui dépasse le diamètre du creux déborderait sur la couleur.
+            if (Math.hypot(t.getWidth(), t.getHeight()) <= creux * 2 || taille == 10) break;
+        }
         javafx.geometry.Bounds t = centre.getLayoutBounds();
         centre.relocate(cx - t.getWidth() / 2, cy - t.getHeight() / 2);
 
-        // JavaFX ouvre le premier pourcentage à 3 heures et tourne à l'envers des
-        // aiguilles : l'angle médian se déduit de la part déjà consommée.
-        double consommee = 0;
+        // Un camembert peint ses parts dans le sens horaire depuis 3 heures, mais le
+        // cumul des fractions ne dit rien de l'angle réellement occupé : une part de
+        // 40,9 % posée à 0° finit à -147°, pas à +147°. C'est l'Arc de la part qui
+        // porte la vérité, et lui seul, sinon le pourcentage atterrit chez son voisin.
         for (PieChart.Data donnee : camembert.getData()) {
-            double fraction = donnee.getPieValue() / somme;
-            double milieu = Math.toRadians((consommee + fraction / 2) * 360);
-            consommee += fraction;
+            javafx.scene.shape.Arc forme = formeDePart(donnee.getNode());
+            if (forme == null) continue;
+            double milieu = Math.toRadians(forme.getStartAngle() + forme.getLength() / 2);
             double dx = Math.cos(milieu);
             double dy = -Math.sin(milieu);
             javafx.scene.text.Text pourcentage = new javafx.scene.text.Text(
@@ -275,19 +290,68 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
             // Dans le graphe d'abord, la feuille de style ensuite : hors scène, un Text
             // ignore sa classe et resterait noir sur une part déjà sombre.
             survol.getChildren().add(pourcentage);
-            pourcentage.applyCss();
-            javafx.geometry.Bounds libelle = pourcentage.getLayoutBounds();
-            // La corde de la part au rayon des étiquettes : plus large qu'elle, le
-            // pourcentage déborderait chez son voisin et l'anneau devient illisible.
-            // La légende en dessous garde le nom et le montant de ces parts minuscules.
-            double corde = 2 * rayon * 0.8 * Math.sin(Math.min(fraction * Math.PI, Math.PI / 2));
-            if (libelle.getWidth() > corde) {
+            // Une part trop étroite pour son texte n'a pas de pourcentage : la légende
+            // garde son nom et son montant, et l'anneau ne se couvre pas de miettes.
+            if (!poserDansLaPart(pourcentage, forme, donnee.getNode(), survol, cx, cy, rayon, creux, dx, dy)) {
                 survol.getChildren().remove(pourcentage);
-                continue;
             }
-            pourcentage.relocate(cx + dx * rayon * 0.8 - libelle.getWidth() / 2,
-                                 cy + dy * rayon * 0.8 - libelle.getHeight() / 2);
         }
+    }
+
+    /** Échelons de police essayés quand la taille de la feuille ne tient pas dans la couronne. */
+    private static final double[] TAILLES_POURCENT = { 0, 10, 9, 8 };
+
+    /** Décalages essayés depuis le cœur de la couronne, du plus proche au plus lointain. */
+    private static final double[] PAS_POURCENT = { 0, -2, 2, -4, 4, -6, 6 };
+
+    /**
+     * Pose un pourcentage sur la bissectrice de sa part, au cœur de sa couronne, en
+     * décalant son rayon puis en rétrécissant sa police tant que ses quatre coins ne
+     * tiennent pas dans la couleur de cette part.
+     */
+    private static boolean poserDansLaPart(javafx.scene.text.Text pourcentage,
+                                            javafx.scene.shape.Arc forme, javafx.scene.Node part,
+                                            javafx.scene.layout.Pane survol,
+                                            double cx, double cy, double rayon, double creux,
+                                            double dx, double dy) {
+        double coeur = (creux + rayon) / 2;
+        for (double taille : TAILLES_POURCENT) {
+            if (taille > 0) {
+                pourcentage.setStyle("-fx-font-family: \"Inter SemiBold\"; -fx-font-size: "
+                        + taille + "px; -fx-fill: white;");
+            }
+            pourcentage.applyCss();
+            for (double pas : PAS_POURCENT) {
+                javafx.geometry.Bounds libelle = pourcentage.getBoundsInParent();
+                double distance = coeur + pas;
+                pourcentage.relocate(cx + dx * distance - libelle.getWidth() / 2,
+                                     cy + dy * distance - libelle.getHeight() / 2);
+                libelle = pourcentage.getBoundsInParent();
+                if (tientDansLaPart(forme, part, survol, libelle, cx, cy, rayon, creux)) return true;
+            }
+        }
+        return false;
+    }
+
+    /** Les quatre coins du libellé sont-ils dans la couronne et dans le secteur de sa part ? */
+    private static boolean tientDansLaPart(javafx.scene.shape.Arc forme, javafx.scene.Node part,
+                                           javafx.scene.layout.Pane survol, javafx.geometry.Bounds b,
+                                           double cx, double cy, double rayon, double creux) {
+        double[][] coins = { { b.getMinX(), b.getMinY() }, { b.getMaxX(), b.getMinY() },
+                             { b.getMaxX(), b.getMaxY() }, { b.getMinX(), b.getMaxY() } };
+        for (double[] coin : coins) {
+            double depuisLeCentre = Math.hypot(coin[0] - cx, coin[1] - cy);
+            if (depuisLeCentre < creux || depuisLeCentre > rayon) return false;
+            javafx.geometry.Point2D local = part.sceneToLocal(survol.localToScene(coin[0], coin[1]));
+            if (!forme.contains(local.getX(), local.getY())) return false;
+        }
+        return true;
+    }
+
+    /** La part d'un camembert est une Region habillée d'un Arc : c'est lui qui tourne. */
+    private static javafx.scene.shape.Arc formeDePart(javafx.scene.Node part) {
+        return part instanceof javafx.scene.layout.Region region
+                && region.getShape() instanceof javafx.scene.shape.Arc arc ? arc : null;
     }
 
     /** L'empreinte d'une part dans le repère du panneau posé sur le camembert. */
