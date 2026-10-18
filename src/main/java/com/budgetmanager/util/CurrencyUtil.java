@@ -54,6 +54,16 @@ public final class CurrencyUtil {
     );
 
     /**
+     * Locale.FRANCE sépare les milliers par un espace insécable ÉTROIT (U+202F).
+     * Les polices de l'application ne lui donnent aucune largeur en petits corps :
+     * « 2 050 000,00 Ar » se peignait « 2050000,00 Ar ». Un insécable ordinaire se
+     * rend partout et garde les montants groupés sous les yeux.
+     */
+    private static String groupement(String montant) {
+        return montant.replace('\u202f', '\u00a0');
+    }
+
+    /**
      * Formate un montant avec le symbole et les séparateurs corrects.
      *
      * <p>Exemples :
@@ -66,17 +76,17 @@ public final class CurrencyUtil {
     public static String formater(double montant, String devise) {
         if ("Ar".equals(devise)) {
             // Ariary : pas de code ISO, format manuel avec séparateur français.
-            return String.format(Locale.FRANCE, "%,.2f Ar", montant);
+            return groupement(String.format(Locale.FRANCE, "%,.2f Ar", montant));
         }
 
         Locale locale = LOCALES.getOrDefault(devise, Locale.FRANCE);
         try {
             NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
             nf.setCurrency(Currency.getInstance(devise));
-            return nf.format(montant);
+            return groupement(nf.format(montant));
         } catch (IllegalArgumentException e) {
             // Devise inconnue : affichage brut avec code.
-            return String.format(Locale.FRANCE, "%,.2f %s", montant, devise);
+            return groupement(String.format(Locale.FRANCE, "%,.2f %s", montant, devise));
         }
     }
 
@@ -85,7 +95,7 @@ public final class CurrencyUtil {
      * Exemple : formaterSansSymbole(1200.5) → "1 200,50"
      */
     public static String formaterSansSymbole(double montant) {
-        return String.format(Locale.FRANCE, "%,.2f", montant);
+        return groupement(String.format(Locale.FRANCE, "%,.2f", montant));
     }
 
     /**
