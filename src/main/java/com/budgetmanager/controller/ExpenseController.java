@@ -247,7 +247,7 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
         try {
             User utilisateur = SessionManager.getUtilisateurConnecte();
-            double montant = Double.parseDouble(champMontant.getText().trim());
+            double montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
             Category categorie = comboCategorie.getValue();
             LocalDate date = champDate.getValue();
 
@@ -296,7 +296,7 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
             return;
         }
         try {
-            double montant = Double.parseDouble(champMontant.getText().trim());
+            double montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
             LocalDate date = champDate.getValue();
             Category categorie = comboCategorie.getValue();
             if (categorie == null || date == null) {
