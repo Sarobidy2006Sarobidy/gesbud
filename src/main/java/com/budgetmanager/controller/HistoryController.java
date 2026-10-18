@@ -5,7 +5,6 @@ import com.budgetmanager.dao.ExpenseDAO;
 import com.budgetmanager.dao.IncomeDAO;
 import com.budgetmanager.dao.SavingDAO;
 import com.budgetmanager.model.*;
-import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.DbExecutor;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.SessionManager;
@@ -82,7 +81,6 @@ public class HistoryController implements com.budgetmanager.util.Rafraichissable
     // --- Boutons filtre ---
     @FXML private Button boutonFiltrer;
     @FXML private Button boutonReinitialiser;
-    @FXML private Button boutonExporter;
 
     @FXML private SidebarController sidebarController;
 
@@ -231,54 +229,6 @@ public class HistoryController implements com.budgetmanager.util.Rafraichissable
         int total = toutesOperations.size();
         pageCourante = Math.max(0, (int) Math.ceil((double) total / TAILLE_PAGE) - 1);
         afficherPage();
-    }
-
-    // ---------------------------------------------------------------------------
-    // Export
-    // ---------------------------------------------------------------------------
-
-    /**
-     * Exporte les opérations retenues par les filtres — la liste complète, pas
-     * seulement la page affichée. Le fichier se relit dans un tableur.
-     */
-    @FXML
-    public void exporterCsv() {
-        if (toutesOperations.isEmpty()) {
-            AlertUtil.afficherErreur("Rien à exporter",
-                    "Aucune opération avec les filtres actuels.");
-            return;
-        }
-
-        javafx.stage.FileChooser choix = new javafx.stage.FileChooser();
-        choix.setTitle("Enregistrer l'export");
-        choix.setInitialFileName("operations-" + LocalDate.now() + ".csv");
-        choix.getExtensionFilters().add(
-                new javafx.stage.FileChooser.ExtensionFilter("Fichier CSV", "*.csv"));
-        java.io.File fichier = choix.showSaveDialog(
-                tableHistorique.getScene() == null ? null : tableHistorique.getScene().getWindow());
-        if (fichier == null) return;   // annulé : rien n'est écrasé
-
-        List<String[]> lignes = new ArrayList<>();
-        lignes.add(new String[]{"Type", "Catégorie", "Montant", "Description", "Date", "Statut"});
-        for (Operation operation : toutesOperations) {
-            lignes.add(new String[]{
-                    operation.getType(),
-                    operation.getCategorie(),
-                    com.budgetmanager.util.NumberFieldFormatter.ecrire(operation.getMontant()),
-                    operation.getDescription(),
-                    String.valueOf(operation.getDate()),
-                    SqlUtil.estRealisee(operation.getDate()) ? "Réalisée" : "Prévue"});
-        }
-
-        try {
-            com.budgetmanager.util.ExportCsv.ecrire(fichier, lignes);
-            AlertUtil.afficherSucces("Export terminé",
-                    lignes.size() - 1 + " opérations enregistrées dans\n" + fichier.getAbsolutePath());
-        } catch (java.io.IOException e) {
-            log.error("Export CSV échoué", e);
-            AlertUtil.afficherErreur("Export impossible",
-                    "Le fichier n'a pas pu être écrit : " + e.getMessage());
-        }
     }
 
     // ---------------------------------------------------------------------------

@@ -81,8 +81,6 @@
                     <Label text="Journal des opérations" styleClass="table-card-title"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label text="Tri en cliquant sur un en-tête de colonne" styleClass="form-card-sub"/>
-                    <Button fx:id="boutonExporter" minWidth="-Infinity" text="Exporter CSV"
-                            styleClass="button-secondary" contentDisplay="LEFT" onAction="#exporterCsv"/>
                 </HBox>
                 <TableView fx:id="tableHistorique" styleClass="table-embed" VBox.vgrow="ALWAYS" minHeight="260">
                     <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
