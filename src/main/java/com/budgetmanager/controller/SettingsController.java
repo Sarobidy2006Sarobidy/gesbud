@@ -60,6 +60,12 @@ public class SettingsController implements RaccourcisClavier {
         comboDevise.getItems().addAll("Ar", "EUR", "USD", "GBP");
         comboQuestion.getItems().addAll(SecurityQuestions.QUESTIONS);
 
+        // Mêmes bornes que l'inscription : sans elles, une saisie au-delà de la
+        // taille de la colonne partait jusqu'à la base, qui la rejetait en erreur.
+        champNom.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(50));
+        champPrenom.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(50));
+        champEmail.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(100));
+
         User utilisateur = SessionManager.getUtilisateurConnecte();
         if (utilisateur != null) {
             champNom.setText(utilisateur.getNom());
@@ -95,6 +101,10 @@ public class SettingsController implements RaccourcisClavier {
                 AlertUtil.afficherErreur("Pseudo déjà pris", "Ce pseudo est déjà utilisé. Choisissez-en un autre.");
                 return;
             }
+        }
+        if (!email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            AlertUtil.afficherErreur("Email invalide", "L'adresse email n'est pas valide.");
+            return;
         }
         Optional<User> memeEmail = userDAO.trouverParEmail(email);
         if (memeEmail.isPresent() && memeEmail.get().getIdUser() != utilisateur.getIdUser()) {
