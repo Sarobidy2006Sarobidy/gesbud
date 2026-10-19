@@ -207,21 +207,26 @@
                         </StackPane>
                     </VBox>
 
+                    <!-- animated="false" sur les trois graphes a axe de categories : l'animation
+                         interne de JavaFX part de la pose faite alors que la page n'avait pas de
+                         largeur, et les etiquettes n'atteignent jamais leur place (mesure en fenetre
+                         reelle : 12 etiquettes etalees sur 8 px pour un axe de 509 px). Le
+                         gonflement des barres se jouait de toute facon sous le pli. -->
                     <VBox styleClass="chart-card" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                        <BarChart fx:id="barRevenusMensuels" styleClass="bars-revenus" legendVisible="false" prefHeight="280">
+                        <BarChart fx:id="barRevenusMensuels" styleClass="bars-revenus" legendVisible="false" animated="false" prefHeight="280">
                             <xAxis><CategoryAxis/></xAxis>
                             <yAxis><NumberAxis/></yAxis>
                         </BarChart>
                     </VBox>
                     <VBox styleClass="chart-card" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                        <BarChart fx:id="barDepensesMensuelles" styleClass="bars-depenses" legendVisible="false" prefHeight="280">
+                        <BarChart fx:id="barDepensesMensuelles" styleClass="bars-depenses" legendVisible="false" animated="false" prefHeight="280">
                             <xAxis><CategoryAxis/></xAxis>
                             <yAxis><NumberAxis/></yAxis>
                         </BarChart>
                     </VBox>
 
                     <VBox styleClass="chart-card" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2">
-                        <AreaChart fx:id="lineSolde" styleClass="courbe-solde" prefHeight="320">
+                        <AreaChart fx:id="lineSolde" styleClass="courbe-solde" animated="false" prefHeight="320">
                             <xAxis><CategoryAxis/></xAxis>
                             <yAxis><NumberAxis/></yAxis>
                         </AreaChart>
