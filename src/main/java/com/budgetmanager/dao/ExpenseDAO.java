@@ -264,6 +264,26 @@ public class ExpenseDAO {
         return 0;
     }
 
+    /** Total déjà dépensé ce mois dans une catégorie (opérations réalisées seulement). */
+    public double totalCategorieMois(int idUser, int idCategorie, YearMonth mois) {
+        String sql = "SELECT COALESCE(SUM(montant), 0) AS total FROM expenses "
+                + "WHERE id_user = ? AND id_categorie = ? AND YEAR(date_depense) = ? AND MONTH(date_depense) = ?"
+                + SqlUtil.jusquAujourdhui("date_depense");
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
+            stmt.setInt(1, idUser);
+            stmt.setInt(2, idCategorie);
+            stmt.setInt(3, mois.getYear());
+            stmt.setInt(4, mois.getMonthValue());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getDouble("total");
+            }
+        } catch (SQLException e) {
+            log.error("ExpenseDAO.totalCategorieMois() — {}", e.getMessage(), e);
+        }
+        return 0;
+    }
+
     /**
      * Répartition par catégorie. {@code mois} null = depuis l'origine ;
      * sinon un seul mois, pour que le camembert suive le sélecteur de période.

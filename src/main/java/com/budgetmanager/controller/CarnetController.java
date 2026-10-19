@@ -144,6 +144,9 @@ public class CarnetController implements RaccourcisClavier, com.budgetmanager.ut
             if (nouveau != null) remplirFormulaire(nouveau);
         });
 
+        com.budgetmanager.util.BoutonsLigne.lier(tableCarnet, boutonModifier, boutonSupprimer);
+        com.budgetmanager.util.DateFr.appliquer(champDateDebut, champDateFin);
+
         chargerCarnet();
     }
 
@@ -183,6 +186,9 @@ public class CarnetController implements RaccourcisClavier, com.budgetmanager.ut
                     .filter(e -> e.getStatut() == StatutCarnet.EN_COURS).count()));
             labelRegles.setText(String.valueOf(ecritures.size()
                     - ecritures.stream().filter(e -> e.getStatut() == StatutCarnet.EN_COURS).count()));
+            // Le rechargement peut faire sauter le choix : les boutons se recalquent, la
+            // fiche en cours de frappe reste intacte.
+            com.budgetmanager.util.BoutonsLigne.appliquer(tableCarnet, boutonModifier, boutonSupprimer);
         });
         tache.setOnFailed(evt -> log.error("Chargement du carnet échoué", tache.getException()));
         com.budgetmanager.util.DbExecutor.soumettre(tache);
@@ -210,17 +216,13 @@ public class CarnetController implements RaccourcisClavier, com.budgetmanager.ut
             AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
             return null;
         }
-        double montant;
-        try {
-            montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
-        } catch (NumberFormatException e) {
-            AlertUtil.afficherErreur("Montant invalide", "Veuillez saisir un montant numérique valide.");
+        Double montantLu = com.budgetmanager.util.NumberFieldFormatter.lire(champMontant.getText());
+        if (montantLu == null) {
+            AlertUtil.afficherErreur("Montant invalide",
+                    com.budgetmanager.util.NumberFieldFormatter.messageErreur(champMontant.getText()));
             return null;
         }
-        if (montant <= 0) {
-            AlertUtil.afficherErreur("Montant invalide", "Le montant doit être supérieur à 0.");
-            return null;
-        }
+        double montant = montantLu;
         LocalDate debut = champDateDebut.getValue();
         LocalDate fin = champDateFin.getValue();
         if (fin != null && fin.isBefore(debut)) {
@@ -239,6 +241,10 @@ public class CarnetController implements RaccourcisClavier, com.budgetmanager.ut
     @FXML
     public void ajouterEcriture() {
         if (!DbHeartbeat.ok()) return;
+        if (ecritureSelectionnee != null) {
+            modifierEcriture();
+            return;
+        }
         Carnet ecriture = lireFormulaire();
         if (ecriture == null) return;
 
@@ -250,9 +256,9 @@ public class CarnetController implements RaccourcisClavier, com.budgetmanager.ut
         }
     }
 
-    /** Ctrl+N : même action que le bouton « Ajouter ». */
+    /** Ctrl+N : nouveau formulaire vide, sans créer de doublon. */
     @Override
-    public void auRaccourciAjouter() { ajouterEcriture(); }
+    public void auRaccourciAjouter() { viderFormulaire(); }
 
     @FXML
     public void modifierEcriture() {

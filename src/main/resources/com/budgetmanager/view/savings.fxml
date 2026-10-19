@@ -142,7 +142,7 @@
                         </VBox>
                         <VBox spacing="1" alignment="CENTER_RIGHT">
                             <Label text="DANS LA TIRELIRE" styleClass="chip-label"/>
-                            <Label fx:id="labelTirelire" text="0" styleClass="sortie-dispo"/>
+                            <Label fx:id="labelTirelire" text="0" styleClass="chip-value"/>
                         </VBox>
                     </HBox>
 

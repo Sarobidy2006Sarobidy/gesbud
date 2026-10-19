@@ -62,8 +62,6 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
 
     private FilteredList<Category> lignesFiltrees;
     private Category categorieSelectionnee;
-    /** Ligne qu'un rechargement doit rendre choisie : la modification suit sans re-clic. */
-    private Integer idARechoisir;
 
     private final javafx.beans.value.ChangeListener<Category> listenerSelection =
             (obs, avant, nouveau) -> {
@@ -98,6 +96,13 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
 
         comboType.setItems(FXCollections.observableArrayList(
                 CategoryType.REVENU, CategoryType.DEPENSE));
+        // Un plafond ne se pose que sur une dépense : le champ se grise plutôt que
+        // d'attendre le refus à l'enregistrement.
+        comboType.valueProperty().addListener((obs, avant, type) -> {
+            boolean revenu = type == CategoryType.REVENU;
+            champPlafond.setDisable(revenu);
+            if (revenu) champPlafond.clear();
+        });
         // Le nom est un VARCHAR(50) : la borne se pose à la frappe, pas après coup.
         champNom.setTextFormatter(com.budgetmanager.util.LongueurFieldFormatter.creer(50));
         champPlafond.setTextFormatter(com.budgetmanager.util.NumberFieldFormatter.creer());
@@ -118,6 +123,8 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
 
         tableCategories.getSelectionModel().selectedItemProperty()
                 .addListener(new javafx.beans.value.WeakChangeListener<>(listenerSelection));
+
+        com.budgetmanager.util.BoutonsLigne.lier(tableCategories, boutonModifier, boutonSupprimer);
 
         installerSuppressionParClavierEtMenuContextuel();
         installerRecherche();
@@ -184,14 +191,9 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
             for (Category categorie : chargees) {
                 typesEnBase.put(categorie.getIdCategorie(), categorie.getType());
             }
-            if (idARechoisir != null) {
-                int cible = idARechoisir;
-                idARechoisir = null;
-                chargees.stream()
-                        .filter(categorie -> categorie.getIdCategorie() == cible)
-                        .findFirst()
-                        .ifPresent(categorie -> tableCategories.getSelectionModel().select(categorie));
-            }
+            // Le rechargement peut faire sauter le choix : les boutons se recalquent, mais
+            // une fiche en cours de frappe doit survivre au retour de la navigation.
+            com.budgetmanager.util.BoutonsLigne.appliquer(tableCategories, boutonModifier, boutonSupprimer);
         });
         tache.setOnFailed(evenement -> log.error("Chargement catégories échoué", tache.getException()));
         com.budgetmanager.util.DbExecutor.soumettre(tache);
@@ -200,12 +202,16 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
     @FXML
     public void ajouterCategorie() {
         if (!DbHeartbeat.ok()) return;
+        if (categorieSelectionnee != null) {
+            modifierCategorie();
+            return;
+        }
         Category nouvelle = lireFormulaire(null);
         if (nouvelle == null) return;
 
         if (categoryDAO.creer(nouvelle)) {
-            chargerCategories();
             viderFormulaire();
+            chargerCategories();
         } else {
             AlertUtil.afficherErreur("Erreur", "Impossible d'enregistrer la catégorie.");
         }
@@ -221,10 +227,8 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
         Category modifiee = lireFormulaire(categorieSelectionnee);
         if (modifiee == null) return;
 
-        // Le rechargement remplace les lignes : celle-ci est choisie de sitôt, la main
-        // reste sur le formulaire pour l'autre champ à corriger.
-        idARechoisir = modifiee.getIdCategorie();
         if (categoryDAO.modifier(modifiee)) {
+            viderFormulaire();
             chargerCategories();
         } else {
             AlertUtil.afficherErreur("Erreur", "Impossible d'enregistrer la catégorie.");
@@ -247,6 +251,13 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
         viderFormulaire();
     }
 
+    /** Ctrl+S : modifier la ligne choisie, sinon ajouter. */
+    @Override
+    public void auRaccourciEnregistrer() {
+        if (categorieSelectionnee == null) ajouterCategorie();
+        else modifierCategorie();
+    }
+
     /**
      * Le formulaire contrôlé : la catégorie prête à écrire, ou null une fois le refus
      * dit à l'écran. Nom et type sont exigés, le plafond ne se fixe que sur une dépense.
@@ -259,6 +270,21 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
 
         if (nom.isEmpty() || type == null) {
             AlertUtil.afficherErreur("Champs manquants", "Une catégorie a besoin d'un nom et d'un type.");
+            return null;
+        }
+        String nomInvalide = com.budgetmanager.util.NomPersonne.validerCategorie(nom);
+        if (nomInvalide != null) {
+            AlertUtil.afficherErreur("Nom invalide", nomInvalide);
+            return null;
+        }
+        boolean doublon = donnees.stream().anyMatch(existante ->
+                existante.getNom() != null
+                        && existante.getNom().equalsIgnoreCase(nom)
+                        && existante.getType() == type
+                        && (base == null || existante.getIdCategorie() != base.getIdCategorie()));
+        if (doublon) {
+            AlertUtil.afficherErreur("Catégorie déjà existante",
+                    "Une catégorie « " + nom + " » existe déjà pour ce type.");
             return null;
         }
         // Le champ borne déjà la frappe, mais une collure ou un setText court-circuite
@@ -335,9 +361,10 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
                     SessionManager.getUtilisateurConnecte().getIdUser())) {
                 AlertUtil.afficherErreur("Erreur",
                         "Impossible de supprimer : des opérations utilisent peut-être encore cette catégorie.");
+                return;
             }
-            chargerCategories();
             viderFormulaire();
+            chargerCategories();
         }
     }
 }

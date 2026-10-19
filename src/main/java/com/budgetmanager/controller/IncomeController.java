@@ -139,6 +139,14 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
         tableRevenus.getSelectionModel().selectedItemProperty()
                 .addListener(new WeakChangeListener<>(listenerSelection));
 
+        // « Modifier » et « Supprimer » n'ont de sens qu'avec une ligne sous la main.
+        com.budgetmanager.util.BoutonsLigne.lier(tableRevenus, boutonModifier, boutonSupprimer);
+        // Dates en français, sinon Windows affiche 10/19/2026 dans un logiciel français.
+        com.budgetmanager.util.DateFr.appliquer(champDate, champDateFin, champFiltreDateDebut, champFiltreDateFin);
+        // La dernière ligne du combo mène à la page Catégories : un compte neuf n'est pas bloqué.
+        com.budgetmanager.util.ComboCategories.installer(comboCategorie,
+                sidebarController::allerVersCategories);
+
         // Focus automatique sur le premier champ (Point 5).
         champDate.setValue(LocalDate.now());
         javafx.application.Platform.runLater(() -> champMontant.requestFocus());
@@ -161,8 +169,8 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
             }
         };
         tacheCategories.setOnSucceeded(evt -> {
-            ObservableList<Category> categories = FXCollections.observableArrayList(tacheCategories.getValue());
-            comboCategorie.setItems(categories);
+            java.util.List<Category> categories = tacheCategories.getValue();
+            com.budgetmanager.util.ComboCategories.remplir(comboCategorie, categories);
             comboFiltreCategorie.setItems(FXCollections.observableArrayList(categories));
             chargerRevenus(); // Lance le chargement des revenus une fois les catégories prêtes.
         });
@@ -224,16 +232,15 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
             overlayChargement.setVisible(false);
             overlayChargement.setManaged(false);
             boutonAjouter.setDisable(false);
-            boutonModifier.setDisable(false);
-            boutonSupprimer.setDisable(false);
+            com.budgetmanager.util.BoutonsLigne.appliquer(tableRevenus, boutonModifier, boutonSupprimer);
+            // Rien n'est vidé ici : une fiche en cours de frappe doit survivre au rechargement.
         });
         tache.setOnFailed(evt -> {
             log.error("Chargement revenus échoué", tache.getException());
             overlayChargement.setVisible(false);
             overlayChargement.setManaged(false);
             boutonAjouter.setDisable(false);
-            boutonModifier.setDisable(false);
-            boutonSupprimer.setDisable(false);
+            com.budgetmanager.util.BoutonsLigne.appliquer(tableRevenus, boutonModifier, boutonSupprimer);
         });
         com.budgetmanager.util.DbExecutor.soumettre(tache);
     }
@@ -255,46 +262,55 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
     @FXML
     public void ajouterRevenu() {
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
-        try {
-            User utilisateur = SessionManager.getUtilisateurConnecte();
-            double montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
-            Category categorie = comboCategorie.getValue();
-            LocalDate date = champDate.getValue();
+        if (revenuSelectionne != null) {
+            modifierRevenu();
+            return;
+        }
+        User utilisateur = SessionManager.getUtilisateurConnecte();
+        Double montantLu = com.budgetmanager.util.NumberFieldFormatter.lire(champMontant.getText());
+        if (montantLu == null) {
+            AlertUtil.afficherErreur("Montant invalide",
+                    com.budgetmanager.util.NumberFieldFormatter.messageErreur(champMontant.getText()));
+            return;
+        }
+        double montant = montantLu;
+        Category categorie = comboCategorie.getValue();
+        LocalDate date = champDate.getValue();
 
-            if (categorie == null || date == null) {
-                AlertUtil.afficherErreur("Champs manquants", "Veuillez sélectionner une catégorie et une date.");
-                return;
-            }
-            if (montant <= 0) {
-                AlertUtil.afficherErreur("Montant invalide", "Le montant doit être supérieur à 0.");
-                return;
-            }
-            Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
-            LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
-            if (dateFin != null && dateFin.isBefore(date)) {
-                AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
-                return;
-            }
+        if (categorie == null || date == null) {
+            AlertUtil.afficherErreur("Champs manquants", "Veuillez sélectionner une catégorie et une date.");
+            return;
+        }
+        Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
+        LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
+        if (dateFin != null && dateFin.isBefore(date)) {
+            AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
+            return;
+        }
 
-            Income revenu = new Income(utilisateur.getIdUser(), categorie.getIdCategorie(),
-                    montant, champDescription.getText().trim(), date);
-            revenu.setFrequence(frequence);
-            revenu.setDateFin(dateFin);
+        Income revenu = new Income(utilisateur.getIdUser(), categorie.getIdCategorie(),
+                montant, champDescription.getText().trim(), date);
+        revenu.setFrequence(frequence);
+        revenu.setDateFin(dateFin);
 
-            if (incomeDAO.creer(revenu)) {
-                chargerRevenus();
-                viderFormulaire();
-            } else {
-                AlertUtil.afficherErreur("Erreur", "Impossible d'ajouter le revenu.");
-            }
-        } catch (NumberFormatException e) {
-            AlertUtil.afficherErreur("Montant invalide", "Veuillez saisir un montant numérique valide.");
+        if (incomeDAO.creer(revenu)) {
+            chargerRevenus();
+            viderFormulaire();
+        } else {
+            AlertUtil.afficherErreur("Erreur", "Impossible d'ajouter le revenu.");
         }
     }
 
-    /** Ctrl+N : même action que le bouton « Ajouter ». */
+    /** Ctrl+N : nouveau formulaire vide, sans créer de doublon. */
     @Override
-    public void auRaccourciAjouter() { ajouterRevenu(); }
+    public void auRaccourciAjouter() { viderFormulaire(); }
+
+    /** Ctrl+S : modifier la ligne choisie, sinon ajouter. */
+    @Override
+    public void auRaccourciEnregistrer() {
+        if (revenuSelectionne == null) ajouterRevenu();
+        else modifierRevenu();
+    }
 
     @FXML
     public void modifierRevenu() {
@@ -303,77 +319,75 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
             AlertUtil.afficherErreur("Aucune sélection", "Veuillez sélectionner un revenu à modifier.");
             return;
         }
-        try {
-            double montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
-            LocalDate date = champDate.getValue();
-            Category categorie = comboCategorie.getValue();
-            if (categorie == null || date == null) {
-                AlertUtil.afficherErreur("Champs manquants", "Veuillez sélectionner une catégorie et une date.");
-                return;
-            }
-            if (montant <= 0) {
-                AlertUtil.afficherErreur("Montant invalide", "Le montant doit être supérieur à 0.");
-                return;
-            }
-            Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
-            LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
-            if (dateFin != null && dateFin.isBefore(date)) {
-                AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
-                return;
-            }
+        Double montantLu = com.budgetmanager.util.NumberFieldFormatter.lire(champMontant.getText());
+        if (montantLu == null) {
+            AlertUtil.afficherErreur("Montant invalide",
+                    com.budgetmanager.util.NumberFieldFormatter.messageErreur(champMontant.getText()));
+            return;
+        }
+        double montant = montantLu;
+        LocalDate date = champDate.getValue();
+        Category categorie = comboCategorie.getValue();
+        if (categorie == null || date == null) {
+            AlertUtil.afficherErreur("Champs manquants", "Veuillez sélectionner une catégorie et une date.");
+            return;
+        }
+        Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
+        LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
+        if (dateFin != null && dateFin.isBefore(date)) {
+            AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
+            return;
+        }
 
-            // Le montant d'une opération récurrente change (augmentation, baisse, imprévu) : il s'applique à partir de
-            // la prochaine échéance ; ce qui est déjà enregistré garde l'ancien montant.
-            if (revenuSelectionne.getIdSource() == null && revenuSelectionne.getFrequence().estRecurrent()
-                    && revenuSelectionne.getDerniereGeneration() != null
-                    && Math.abs(revenuSelectionne.getMontant() - montant) > 0.004) {
-                LocalDate prochaine = revenuSelectionne.getFrequence()
-                        .prochaineApres(revenuSelectionne.getDateRevenu(), revenuSelectionne.getDerniereGeneration());
-                if (prochaine != null && (dateFin == null || !dateFin.isBefore(prochaine))) {
-                    if (!AlertUtil.confirmer("Nouveau montant", "Le nouveau montant s'appliquera à partir du "
-                            + prochaine.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                            + ". Les montants déjà enregistrés ne changent pas. Continuer ?")) {
-                        return;
-                    }
-                    Income suite = new Income(revenuSelectionne.getIdUser(), categorie.getIdCategorie(), montant, champDescription.getText().trim(), prochaine);
-                    suite.setFrequence(revenuSelectionne.getFrequence());
-                    suite.setDateFin(dateFin);
-                    revenuSelectionne.setDateFin(revenuSelectionne.getDerniereGeneration());
-                    if (incomeDAO.changerMontantRecurrent(revenuSelectionne, suite)) {
-                        chargerRevenus();
-                        viderFormulaire();
-                    } else {
-                        AlertUtil.afficherErreur("Erreur", "Impossible d'appliquer le nouveau montant.");
-                    }
+        // Le montant d'une opération récurrente change (augmentation, baisse, imprévu) : il s'applique à partir de
+        // la prochaine échéance ; ce qui est déjà enregistré garde l'ancien montant.
+        if (revenuSelectionne.getIdSource() == null && revenuSelectionne.getFrequence().estRecurrent()
+                && revenuSelectionne.getDerniereGeneration() != null
+                && Math.abs(revenuSelectionne.getMontant() - montant) > 0.004) {
+            LocalDate prochaine = revenuSelectionne.getFrequence()
+                    .prochaineApres(revenuSelectionne.getDateRevenu(), revenuSelectionne.getDerniereGeneration());
+            if (prochaine != null && (dateFin == null || !dateFin.isBefore(prochaine))) {
+                if (!AlertUtil.confirmer("Nouveau montant", "Le nouveau montant s'appliquera à partir du "
+                        + com.budgetmanager.util.DateFr.formater(prochaine)
+                        + ". Les montants déjà enregistrés ne changent pas. Continuer ?")) {
                     return;
                 }
+                Income suite = new Income(revenuSelectionne.getIdUser(), categorie.getIdCategorie(), montant, champDescription.getText().trim(), prochaine);
+                suite.setFrequence(revenuSelectionne.getFrequence());
+                suite.setDateFin(dateFin);
+                revenuSelectionne.setDateFin(revenuSelectionne.getDerniereGeneration());
+                if (incomeDAO.changerMontantRecurrent(revenuSelectionne, suite)) {
+                    chargerRevenus();
+                    viderFormulaire();
+                } else {
+                    AlertUtil.afficherErreur("Erreur", "Impossible d'appliquer le nouveau montant.");
+                }
+                return;
             }
+        }
 
-            // Un revenu qui devient récurrent compte déjà comme sa première occurrence.
-            if (frequence.estRecurrent() && !revenuSelectionne.getFrequence().estRecurrent()) {
-                revenuSelectionne.setDerniereGeneration(date);
-            }
-            // Une ligne générée automatiquement reste un revenu ponctuel.
-            if (revenuSelectionne.getIdSource() != null) {
-                frequence = Frequency.PONCTUEL;
-                dateFin = null;
-            }
+        // Un revenu qui devient récurrent compte déjà comme sa première occurrence.
+        if (frequence.estRecurrent() && !revenuSelectionne.getFrequence().estRecurrent()) {
+            revenuSelectionne.setDerniereGeneration(date);
+        }
+        // Une ligne générée automatiquement reste un revenu ponctuel.
+        if (revenuSelectionne.getIdSource() != null) {
+            frequence = Frequency.PONCTUEL;
+            dateFin = null;
+        }
 
-            revenuSelectionne.setMontant(montant);
-            revenuSelectionne.setDescription(champDescription.getText().trim());
-            revenuSelectionne.setDateRevenu(date);
-            revenuSelectionne.setIdCategorie(categorie.getIdCategorie());
-            revenuSelectionne.setFrequence(frequence);
-            revenuSelectionne.setDateFin(dateFin);
+        revenuSelectionne.setMontant(montant);
+        revenuSelectionne.setDescription(champDescription.getText().trim());
+        revenuSelectionne.setDateRevenu(date);
+        revenuSelectionne.setIdCategorie(categorie.getIdCategorie());
+        revenuSelectionne.setFrequence(frequence);
+        revenuSelectionne.setDateFin(dateFin);
 
-            if (incomeDAO.modifier(revenuSelectionne)) {
-                chargerRevenus();
-                viderFormulaire();
-            } else {
-                AlertUtil.afficherErreur("Erreur", "Impossible de modifier le revenu.");
-            }
-        } catch (NumberFormatException e) {
-            AlertUtil.afficherErreur("Montant invalide", "Veuillez saisir un montant numérique valide.");
+        if (incomeDAO.modifier(revenuSelectionne)) {
+            chargerRevenus();
+            viderFormulaire();
+        } else {
+            AlertUtil.afficherErreur("Erreur", "Impossible de modifier le revenu.");
         }
     }
 

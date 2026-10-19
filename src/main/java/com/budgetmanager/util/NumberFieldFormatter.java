@@ -24,6 +24,9 @@ import java.util.regex.Pattern;
  */
 public final class NumberFieldFormatter {
 
+    /** Borne de DECIMAL(15,2) : 13 chiffres avant la virgule. */
+    public static final double MONTANT_MAX = 9_999_999_999_999.99;
+
     private NumberFieldFormatter() {}
 
     /**
@@ -42,14 +45,41 @@ public final class NumberFieldFormatter {
      */
     public static Double lire(String texte) {
         if (texte == null) return null;
-        String nettoye = texte.trim().replace("\u00a0", "").replace(" ", "").replace(",", ".");
-        if (nettoye.isEmpty()) return null;
+        String brut = texte.trim();
+        if (brut.isEmpty()) return null;
+        // Un collage « -abc12e5,5.5 » n'est pas un montant : on refuse, on ne nettoie pas en silence.
+        if (!brut.matches("[\\d\\s\u00a0]+([.,]\\d{1,2})?")) return null;
+        String nettoye = brut.replace("\u00a0", "").replace(" ", "").replace(",", ".");
         try {
             double valeur = Double.parseDouble(nettoye);
-            return valeur > 0 ? valeur : null;
+            if (valeur <= 0 || valeur > MONTANT_MAX) return null;
+            return valeur;
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    /** Message pour un champ montant refusé par {@link #lire}. */
+    public static String messageErreur(String texte) {
+        if (texte == null || texte.isBlank()) {
+            return "Indiquez un montant supérieur à 0.";
+        }
+        String brut = texte.trim();
+        if (!brut.matches("[\\d\\s\u00a0]+([.,]\\d{1,2})?")) {
+            return "Le montant n'a pas été modifié en silence : ne tapez que des chiffres "
+                    + "(exemple : 12500 ou 12500,50).";
+        }
+        String nettoye = brut.replace("\u00a0", "").replace(" ", "").replace(",", ".");
+        try {
+            double valeur = Double.parseDouble(nettoye);
+            if (valeur <= 0) return "Le montant doit être supérieur à 0.";
+            if (valeur > MONTANT_MAX) {
+                return "Ce montant est trop grand. Le maximum est 9 999 999 999 999,99.";
+            }
+        } catch (NumberFormatException ignored) {
+            return "Veuillez saisir un montant numérique valide.";
+        }
+        return "Veuillez saisir un montant numérique valide.";
     }
 
     /**
@@ -63,8 +93,8 @@ public final class NumberFieldFormatter {
      * décide ce qui entre dans le champ.
      */
     public static TextFormatter<String> creer() {
-        // Pattern : chiffres, point ou virgule, max 2 décimales
-        Pattern pattern = Pattern.compile("^\\d*[.,]?\\d{0,2}$");
+        // 13 chiffres avant la virgule (DECIMAL 15,2), max 2 décimales.
+        Pattern pattern = Pattern.compile("^\\d{0,13}([.,]\\d{0,2})?$");
 
         UnaryOperator<TextFormatter.Change> filtre = change -> {
             String nouveauTexte = change.getControlNewText();

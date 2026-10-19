@@ -167,6 +167,11 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
             if (nouveau != null) remplirFormulaire(nouveau);
         });
 
+        // Les deux boutons de ligne n'ont de sens qu'avec une ligne sous la main.
+        com.budgetmanager.util.BoutonsLigne.lier(tableEconomies, boutonModifier, boutonSupprimer);
+        com.budgetmanager.util.DateFr.appliquer(champDate, champDateFin, champRetraitDate,
+                champFiltreDateDebut, champFiltreDateFin);
+
         chargerEconomies();
     }
 
@@ -230,6 +235,9 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
                     .filter(e -> SqlUtil.estRealisee(e.getDateEconomie())).count()));
             tirelire = c.total();
             labelTirelire.setText(CurrencyUtil.formater(c.total(), devise));
+            // Le rouge se réserve à un fond perdu : « 0,00 Ar » n'est pas une alarme.
+            labelTirelire.getStyleClass().removeAll("chip-value", "sortie-dispo");
+            labelTirelire.getStyleClass().add(c.total() < 0 ? "sortie-dispo" : "chip-value");
             labelDetailMouvements.setText(c.deposes() + " dépôt" + (c.deposes() > 1 ? "s" : "")
                     + " · " + c.retraits() + " retrait" + (c.retraits() > 1 ? "s" : ""));
             apercuRetrait();
@@ -242,6 +250,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
                         + "). Vos dépenses et économies dépassent vos revenus.");
             }
             afficherCourbe();
+            // Rien n'est vidé ici : une fiche en cours de frappe doit survivre au rechargement.
         });
         tacheStats.setOnFailed(evt -> log.error("Chargement économies échoué", tacheStats.getException()));
         com.budgetmanager.util.DbExecutor.soumettre(tacheStats);
@@ -265,10 +274,16 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
 
     private void remplirFormulaire(Saving economie) {
         // Une ligne négative est une sortie : elle se corrige dans le formulaire de retrait.
+        // L'autre formulaire est vidé pour ne pas enregistrer les deux d'un coup.
         if (economie.getMontant() < 0) {
             champRetraitMontant.setText(com.budgetmanager.util.NumberFieldFormatter.ecrire(-economie.getMontant()));
             champRetraitMotif.setText(economie.getDescription());
             champRetraitDate.setValue(economie.getDateEconomie());
+            champMontant.clear();
+            champDescription.clear();
+            champDate.setValue(LocalDate.now());
+            comboFrequence.setValue(Frequency.PONCTUEL);
+            champDateFin.setValue(null);
             return;
         }
         champMontant.setText(com.budgetmanager.util.NumberFieldFormatter.ecrire(economie.getMontant()));
@@ -276,6 +291,9 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         champDate.setValue(economie.getDateEconomie());
         comboFrequence.setValue(economie.getFrequence());
         champDateFin.setValue(economie.getDateFin());
+        champRetraitMontant.clear();
+        champRetraitMotif.clear();
+        champRetraitDate.setValue(LocalDate.now());
     }
 
     /** Le montant qu'on veut reprendre, ou null si la saisie n'est pas encore exploitable. */
@@ -303,6 +321,10 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     @FXML
     public void retirerEconomie() {
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
+        if (economieSelectionnee != null && economieSelectionnee.getMontant() < 0) {
+            modifierRetrait();
+            return;
+        }
         Double montant = montantDemande();
         if (montant == null) {
             AlertUtil.afficherErreur("Montant invalide", "Indiquez le montant à reprendre, supérieur à 0.");
@@ -313,10 +335,11 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
             AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
             return;
         }
-        if (montant > tirelire && !AlertUtil.confirmer("Retrait trop grand",
-                "Vous reprenez " + CurrencyUtil.formater(montant, devise) + ", mais la tirelire ne contient que "
-                        + CurrencyUtil.formater(tirelire, devise) + ".\nContinuer quand même ? "
-                        + "Ce qui manque sera compté comme déjà dépensé.")) {
+        if (montant > tirelire) {
+            AlertUtil.afficherErreur("Retrait trop grand",
+                    "La tirelire ne contient que " + CurrencyUtil.formater(Math.max(tirelire, 0), devise)
+                            + " : vous ne pouvez pas en reprendre "
+                            + CurrencyUtil.formater(montant, devise) + ".");
             return;
         }
 
@@ -342,6 +365,16 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
             AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
             return;
         }
+        // Grossir une reprise déjà enregistrée ne doit pas vider la tirelire au-delà de zéro :
+        // ce qui compte est le supplément demandé par rapport à l'ancienne ligne.
+        double supplement = montant - (-economieSelectionnee.getMontant());
+        if (supplement > tirelire) {
+            AlertUtil.afficherErreur("Retrait trop grand",
+                    "La tirelire ne contient que " + CurrencyUtil.formater(Math.max(tirelire, 0), devise)
+                            + " : cette reprise ne peut pas grossir de "
+                            + CurrencyUtil.formater(supplement, devise) + ".");
+            return;
+        }
         economieSelectionnee.setMontant(-montant);
         economieSelectionnee.setDescription(champRetraitMotif.getText().trim());
         economieSelectionnee.setDateEconomie(date);
@@ -364,46 +397,59 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     @FXML
     public void ajouterEconomie() {
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
-        try {
-            User utilisateur = SessionManager.getUtilisateurConnecte();
-            double montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
-            LocalDate date = champDate.getValue();
+        if (economieSelectionnee != null) {
+            modifierEconomie();
+            return;
+        }
+        User utilisateur = SessionManager.getUtilisateurConnecte();
+        Double montantLu = com.budgetmanager.util.NumberFieldFormatter.lire(champMontant.getText());
+        if (montantLu == null) {
+            AlertUtil.afficherErreur("Montant invalide",
+                    com.budgetmanager.util.NumberFieldFormatter.messageErreur(champMontant.getText()));
+            return;
+        }
+        double montant = montantLu;
+        LocalDate date = champDate.getValue();
 
-            if (date == null) {
-                AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
-                return;
-            }
-            if (montant <= 0) {
-                AlertUtil.afficherErreur("Montant invalide", "Le montant doit être supérieur à 0.");
-                return;
-            }
-            Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
-            LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
-            if (dateFin != null && dateFin.isBefore(date)) {
-                AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
-                return;
-            }
+        if (date == null) {
+            AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
+            return;
+        }
+        Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
+        LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
+        if (dateFin != null && dateFin.isBefore(date)) {
+            AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
+            return;
+        }
 
-            if (!com.budgetmanager.util.BudgetUtil.confirmerSiDepassement(montant, date)) return;
+        // Une mise de côté prend de l'argent réel : ici « Confirmer » ne passe pas outre.
+        if (!com.budgetmanager.util.BudgetUtil.refuserSiPasAssezPourEpargner(montant, date)) return;
 
-            Saving economie = new Saving(utilisateur.getIdUser(), montant, champDescription.getText().trim(), date);
-            economie.setFrequence(frequence);
-            economie.setDateFin(dateFin);
+        Saving economie = new Saving(utilisateur.getIdUser(), montant, champDescription.getText().trim(), date);
+        economie.setFrequence(frequence);
+        economie.setDateFin(dateFin);
 
-            if (savingDAO.creer(economie)) {
-                chargerEconomies();
-                viderFormulaire();
-            } else {
-                AlertUtil.afficherErreur("Erreur", "Impossible d'ajouter l'économie.");
-            }
-        } catch (NumberFormatException e) {
-            AlertUtil.afficherErreur("Montant invalide", "Veuillez saisir un montant numérique valide.");
+        if (savingDAO.creer(economie)) {
+            chargerEconomies();
+            viderFormulaire();
+        } else {
+            AlertUtil.afficherErreur("Erreur", "Impossible d'ajouter l'économie.");
         }
     }
 
-    /** Ctrl+N : même action que le bouton « Ajouter ». */
+    /** Ctrl+N : nouveau formulaire vide, sans créer de doublon. */
     @Override
-    public void auRaccourciAjouter() { ajouterEconomie(); }
+    public void auRaccourciAjouter() {
+        viderFormulaire();
+        viderFormulaireRetrait();
+    }
+
+    /** Ctrl+S : modifier la ligne choisie, sinon ajouter. */
+    @Override
+    public void auRaccourciEnregistrer() {
+        if (economieSelectionnee == null) ajouterEconomie();
+        else modifierEconomie();
+    }
 
     @FXML
     public void modifierEconomie() {
@@ -416,75 +462,77 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
             modifierRetrait();
             return;
         }
-        try {
-            double montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
-            LocalDate date = champDate.getValue();
-            if (date == null) {
-                AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
-                return;
-            }
-            if (montant <= 0) {
-                AlertUtil.afficherErreur("Montant invalide", "Le montant doit être supérieur à 0.");
-                return;
-            }
-            Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
-            LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
-            if (dateFin != null && dateFin.isBefore(date)) {
-                AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
-                return;
-            }
+        Double montantLu = com.budgetmanager.util.NumberFieldFormatter.lire(champMontant.getText());
+        if (montantLu == null) {
+            AlertUtil.afficherErreur("Montant invalide",
+                    com.budgetmanager.util.NumberFieldFormatter.messageErreur(champMontant.getText()));
+            return;
+        }
+        double montant = montantLu;
+        LocalDate date = champDate.getValue();
+        if (date == null) {
+            AlertUtil.afficherErreur("Champ manquant", "Veuillez choisir une date.");
+            return;
+        }
+        Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
+        LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
+        if (dateFin != null && dateFin.isBefore(date)) {
+            AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
+            return;
+        }
 
-            // Le montant d'une opération récurrente change (augmentation, baisse, imprévu) : il s'applique à partir de
-            // la prochaine échéance ; ce qui est déjà enregistré garde l'ancien montant.
-            if (economieSelectionnee.getIdSource() == null && economieSelectionnee.getFrequence().estRecurrent()
-                    && economieSelectionnee.getDerniereGeneration() != null
-                    && Math.abs(economieSelectionnee.getMontant() - montant) > 0.004) {
-                LocalDate prochaine = economieSelectionnee.getFrequence()
-                        .prochaineApres(economieSelectionnee.getDateEconomie(), economieSelectionnee.getDerniereGeneration());
-                if (prochaine != null && (dateFin == null || !dateFin.isBefore(prochaine))) {
-                    if (!AlertUtil.confirmer("Nouveau montant", "Le nouveau montant s'appliquera à partir du "
-                            + prochaine.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                            + ". Les montants déjà enregistrés ne changent pas. Continuer ?")) {
-                        return;
-                    }
-                    Saving suite = new Saving(economieSelectionnee.getIdUser(), montant, champDescription.getText().trim(), prochaine);
-                    suite.setFrequence(economieSelectionnee.getFrequence());
-                    suite.setDateFin(dateFin);
-                    economieSelectionnee.setDateFin(economieSelectionnee.getDerniereGeneration());
-                    if (savingDAO.changerMontantRecurrent(economieSelectionnee, suite)) {
-                        chargerEconomies();
-                        viderFormulaire();
-                    } else {
-                        AlertUtil.afficherErreur("Erreur", "Impossible d'appliquer le nouveau montant.");
-                    }
+        // Le montant d'une opération récurrente change (augmentation, baisse, imprévu) : il s'applique à partir de
+        // la prochaine échéance ; ce qui est déjà enregistré garde l'ancien montant.
+        if (economieSelectionnee.getIdSource() == null && economieSelectionnee.getFrequence().estRecurrent()
+                && economieSelectionnee.getDerniereGeneration() != null
+                && Math.abs(economieSelectionnee.getMontant() - montant) > 0.004) {
+            LocalDate prochaine = economieSelectionnee.getFrequence()
+                    .prochaineApres(economieSelectionnee.getDateEconomie(), economieSelectionnee.getDerniereGeneration());
+            if (prochaine != null && (dateFin == null || !dateFin.isBefore(prochaine))) {
+                if (!AlertUtil.confirmer("Nouveau montant", "Le nouveau montant s'appliquera à partir du "
+                        + com.budgetmanager.util.DateFr.formater(prochaine)
+                        + ". Les montants déjà enregistrés ne changent pas. Continuer ?")) {
                     return;
                 }
+                Saving suite = new Saving(economieSelectionnee.getIdUser(), montant, champDescription.getText().trim(), prochaine);
+                suite.setFrequence(economieSelectionnee.getFrequence());
+                suite.setDateFin(dateFin);
+                economieSelectionnee.setDateFin(economieSelectionnee.getDerniereGeneration());
+                if (savingDAO.changerMontantRecurrent(economieSelectionnee, suite)) {
+                    chargerEconomies();
+                    viderFormulaire();
+                } else {
+                    AlertUtil.afficherErreur("Erreur", "Impossible d'appliquer le nouveau montant.");
+                }
+                return;
             }
+        }
 
-            // Une économie qui devient récurrente compte déjà comme sa première occurrence.
-            if (frequence.estRecurrent() && !economieSelectionnee.getFrequence().estRecurrent()) {
-                economieSelectionnee.setDerniereGeneration(date);
-            }
-            // Une ligne générée automatiquement reste une économie ponctuelle.
-            if (economieSelectionnee.getIdSource() != null) {
-                frequence = Frequency.PONCTUEL;
-                dateFin = null;
-            }
+        // L'ancienne mise est déjà sortie du solde : seul le supplément doit être disponible.
+        double supplement = montant - economieSelectionnee.getMontant();
+        if (supplement > 0 && !com.budgetmanager.util.BudgetUtil.refuserSiPasAssezPourEpargner(supplement, date)) return;
 
-            economieSelectionnee.setMontant(montant);
-            economieSelectionnee.setDescription(champDescription.getText().trim());
-            economieSelectionnee.setDateEconomie(date);
-            economieSelectionnee.setFrequence(frequence);
-            economieSelectionnee.setDateFin(dateFin);
+        // Une économie qui devient récurrente compte déjà comme sa première occurrence.
+        if (frequence.estRecurrent() && !economieSelectionnee.getFrequence().estRecurrent()) {
+            economieSelectionnee.setDerniereGeneration(date);
+        }
+        // Une ligne générée automatiquement reste une économie ponctuelle.
+        if (economieSelectionnee.getIdSource() != null) {
+            frequence = Frequency.PONCTUEL;
+            dateFin = null;
+        }
 
-            if (savingDAO.modifier(economieSelectionnee)) {
-                chargerEconomies();
-                viderFormulaire();
-            } else {
-                AlertUtil.afficherErreur("Erreur", "Impossible de modifier l'économie.");
-            }
-        } catch (NumberFormatException e) {
-            AlertUtil.afficherErreur("Montant invalide", "Veuillez saisir un montant numérique valide.");
+        economieSelectionnee.setMontant(montant);
+        economieSelectionnee.setDescription(champDescription.getText().trim());
+        economieSelectionnee.setDateEconomie(date);
+        economieSelectionnee.setFrequence(frequence);
+        economieSelectionnee.setDateFin(dateFin);
+
+        if (savingDAO.modifier(economieSelectionnee)) {
+            chargerEconomies();
+            viderFormulaire();
+        } else {
+            AlertUtil.afficherErreur("Erreur", "Impossible de modifier l'économie.");
         }
     }
 

@@ -133,6 +133,11 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
         tableDepenses.getSelectionModel().selectedItemProperty()
                 .addListener(new WeakChangeListener<>(listenerSelection));
 
+        com.budgetmanager.util.BoutonsLigne.lier(tableDepenses, boutonModifier, boutonSupprimer);
+        com.budgetmanager.util.DateFr.appliquer(champDate, champDateFin, champFiltreDateDebut, champFiltreDateFin);
+        com.budgetmanager.util.ComboCategories.installer(comboCategorie,
+                sidebarController::allerVersCategories);
+
         champDate.setValue(LocalDate.now());
         javafx.application.Platform.runLater(() -> champMontant.requestFocus());
 
@@ -153,8 +158,8 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
             }
         };
         tacheCategories.setOnSucceeded(evt -> {
-            ObservableList<Category> categories = FXCollections.observableArrayList(tacheCategories.getValue());
-            comboCategorie.setItems(categories);
+            java.util.List<Category> categories = tacheCategories.getValue();
+            com.budgetmanager.util.ComboCategories.remplir(comboCategorie, categories);
             comboFiltreCategorie.setItems(FXCollections.observableArrayList(categories));
             chargerDepenses();
         });
@@ -215,16 +220,15 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
             overlayChargement.setVisible(false);
             overlayChargement.setManaged(false);
             boutonAjouter.setDisable(false);
-            boutonModifier.setDisable(false);
-            boutonSupprimer.setDisable(false);
+            com.budgetmanager.util.BoutonsLigne.appliquer(tableDepenses, boutonModifier, boutonSupprimer);
+            // Pas de vidage ici : une fiche en cours de frappe doit survivre au rechargement.
         });
         tache.setOnFailed(evt -> {
             log.error("Chargement dépenses échoué", tache.getException());
             overlayChargement.setVisible(false);
             overlayChargement.setManaged(false);
             boutonAjouter.setDisable(false);
-            boutonModifier.setDisable(false);
-            boutonSupprimer.setDisable(false);
+            com.budgetmanager.util.BoutonsLigne.appliquer(tableDepenses, boutonModifier, boutonSupprimer);
         });
         com.budgetmanager.util.DbExecutor.soumettre(tache);
     }
@@ -245,48 +249,58 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
     @FXML
     public void ajouterDepense() {
         if (!com.budgetmanager.util.DbHeartbeat.ok()) return;
-        try {
-            User utilisateur = SessionManager.getUtilisateurConnecte();
-            double montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
-            Category categorie = comboCategorie.getValue();
-            LocalDate date = champDate.getValue();
+        if (depenseSelectionne != null) {
+            modifierDepense();
+            return;
+        }
+        User utilisateur = SessionManager.getUtilisateurConnecte();
+        Double montantLu = com.budgetmanager.util.NumberFieldFormatter.lire(champMontant.getText());
+        if (montantLu == null) {
+            AlertUtil.afficherErreur("Montant invalide",
+                    com.budgetmanager.util.NumberFieldFormatter.messageErreur(champMontant.getText()));
+            return;
+        }
+        double montant = montantLu;
+        Category categorie = comboCategorie.getValue();
+        LocalDate date = champDate.getValue();
 
-            if (categorie == null || date == null) {
-                AlertUtil.afficherErreur("Champs manquants", "Veuillez sélectionner une catégorie et une date.");
-                return;
-            }
-            if (montant <= 0) {
-                AlertUtil.afficherErreur("Montant invalide", "Le montant doit être supérieur à 0.");
-                return;
-            }
-            Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
-            LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
-            if (dateFin != null && dateFin.isBefore(date)) {
-                AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
-                return;
-            }
+        if (categorie == null || date == null) {
+            AlertUtil.afficherErreur("Champs manquants", "Veuillez sélectionner une catégorie et une date.");
+            return;
+        }
+        Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
+        LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
+        if (dateFin != null && dateFin.isBefore(date)) {
+            AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
+            return;
+        }
 
-            if (!com.budgetmanager.util.BudgetUtil.confirmerSiDepassement(montant, date)) return;
+        if (!com.budgetmanager.util.BudgetUtil.confirmerSiDepassement(montant, date)) return;
+        if (!com.budgetmanager.util.BudgetUtil.confirmerSiPlafond(categorie, montant, date, null)) return;
 
-            Expense depense = new Expense(utilisateur.getIdUser(), categorie.getIdCategorie(),
-                    montant, champDescription.getText().trim(), date);
-            depense.setFrequence(frequence);
-            depense.setDateFin(dateFin);
+        Expense depense = new Expense(utilisateur.getIdUser(), categorie.getIdCategorie(),
+                montant, champDescription.getText().trim(), date);
+        depense.setFrequence(frequence);
+        depense.setDateFin(dateFin);
 
-            if (expenseDAO.creer(depense)) {
-                chargerDepenses();
-                viderFormulaire();
-            } else {
-                AlertUtil.afficherErreur("Erreur", "Impossible d'ajouter la dépense.");
-            }
-        } catch (NumberFormatException e) {
-            AlertUtil.afficherErreur("Montant invalide", "Veuillez saisir un montant numérique valide.");
+        if (expenseDAO.creer(depense)) {
+            chargerDepenses();
+            viderFormulaire();
+        } else {
+            AlertUtil.afficherErreur("Erreur", "Impossible d'ajouter la dépense.");
         }
     }
 
-    /** Ctrl+N : même action que le bouton « Ajouter ». */
+    /** Ctrl+N : nouveau formulaire vide, sans créer de doublon. */
     @Override
-    public void auRaccourciAjouter() { ajouterDepense(); }
+    public void auRaccourciAjouter() { viderFormulaire(); }
+
+    /** Ctrl+S : modifier la ligne choisie, sinon ajouter. */
+    @Override
+    public void auRaccourciEnregistrer() {
+        if (depenseSelectionne == null) ajouterDepense();
+        else modifierDepense();
+    }
 
     @FXML
     public void modifierDepense() {
@@ -295,77 +309,77 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
             AlertUtil.afficherErreur("Aucune sélection", "Veuillez sélectionner une dépense à modifier.");
             return;
         }
-        try {
-            double montant = Double.parseDouble(champMontant.getText().trim().replace(',', '.'));
-            LocalDate date = champDate.getValue();
-            Category categorie = comboCategorie.getValue();
-            if (categorie == null || date == null) {
-                AlertUtil.afficherErreur("Champs manquants", "Veuillez sélectionner une catégorie et une date.");
-                return;
-            }
-            if (montant <= 0) {
-                AlertUtil.afficherErreur("Montant invalide", "Le montant doit être supérieur à 0.");
-                return;
-            }
-            Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
-            LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
-            if (dateFin != null && dateFin.isBefore(date)) {
-                AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
-                return;
-            }
+        Double montantLu = com.budgetmanager.util.NumberFieldFormatter.lire(champMontant.getText());
+        if (montantLu == null) {
+            AlertUtil.afficherErreur("Montant invalide",
+                    com.budgetmanager.util.NumberFieldFormatter.messageErreur(champMontant.getText()));
+            return;
+        }
+        double montant = montantLu;
+        LocalDate date = champDate.getValue();
+        Category categorie = comboCategorie.getValue();
+        if (categorie == null || date == null) {
+            AlertUtil.afficherErreur("Champs manquants", "Veuillez sélectionner une catégorie et une date.");
+            return;
+        }
+        Frequency frequence = comboFrequence.getValue() != null ? comboFrequence.getValue() : Frequency.PONCTUEL;
+        LocalDate dateFin = frequence.estRecurrent() ? champDateFin.getValue() : null;
+        if (dateFin != null && dateFin.isBefore(date)) {
+            AlertUtil.afficherErreur("Dates incohérentes", "La date de fin doit être après la date de début.");
+            return;
+        }
 
-            // Le montant d'une opération récurrente change (augmentation, baisse, imprévu) : il s'applique à partir de
-            // la prochaine échéance ; ce qui est déjà enregistré garde l'ancien montant.
-            if (depenseSelectionne.getIdSource() == null && depenseSelectionne.getFrequence().estRecurrent()
-                    && depenseSelectionne.getDerniereGeneration() != null
-                    && Math.abs(depenseSelectionne.getMontant() - montant) > 0.004) {
-                LocalDate prochaine = depenseSelectionne.getFrequence()
-                        .prochaineApres(depenseSelectionne.getDateDepense(), depenseSelectionne.getDerniereGeneration());
-                if (prochaine != null && (dateFin == null || !dateFin.isBefore(prochaine))) {
-                    if (!AlertUtil.confirmer("Nouveau montant", "Le nouveau montant s'appliquera à partir du "
-                            + prochaine.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                            + ". Les montants déjà enregistrés ne changent pas. Continuer ?")) {
-                        return;
-                    }
-                    Expense suite = new Expense(depenseSelectionne.getIdUser(), categorie.getIdCategorie(), montant, champDescription.getText().trim(), prochaine);
-                    suite.setFrequence(depenseSelectionne.getFrequence());
-                    suite.setDateFin(dateFin);
-                    depenseSelectionne.setDateFin(depenseSelectionne.getDerniereGeneration());
-                    if (expenseDAO.changerMontantRecurrent(depenseSelectionne, suite)) {
-                        chargerDepenses();
-                        viderFormulaire();
-                    } else {
-                        AlertUtil.afficherErreur("Erreur", "Impossible d'appliquer le nouveau montant.");
-                    }
+        // Le montant d'une opération récurrente change (augmentation, baisse, imprévu) : il s'applique à partir de
+        // la prochaine échéance ; ce qui est déjà enregistré garde l'ancien montant.
+        if (depenseSelectionne.getIdSource() == null && depenseSelectionne.getFrequence().estRecurrent()
+                && depenseSelectionne.getDerniereGeneration() != null
+                && Math.abs(depenseSelectionne.getMontant() - montant) > 0.004) {
+            LocalDate prochaine = depenseSelectionne.getFrequence()
+                    .prochaineApres(depenseSelectionne.getDateDepense(), depenseSelectionne.getDerniereGeneration());
+            if (prochaine != null && (dateFin == null || !dateFin.isBefore(prochaine))) {
+                if (!AlertUtil.confirmer("Nouveau montant", "Le nouveau montant s'appliquera à partir du "
+                        + com.budgetmanager.util.DateFr.formater(prochaine)
+                        + ". Les montants déjà enregistrés ne changent pas. Continuer ?")) {
                     return;
                 }
+                Expense suite = new Expense(depenseSelectionne.getIdUser(), categorie.getIdCategorie(), montant, champDescription.getText().trim(), prochaine);
+                suite.setFrequence(depenseSelectionne.getFrequence());
+                suite.setDateFin(dateFin);
+                depenseSelectionne.setDateFin(depenseSelectionne.getDerniereGeneration());
+                if (expenseDAO.changerMontantRecurrent(depenseSelectionne, suite)) {
+                    chargerDepenses();
+                    viderFormulaire();
+                } else {
+                    AlertUtil.afficherErreur("Erreur", "Impossible d'appliquer le nouveau montant.");
+                }
+                return;
             }
+        }
 
-            // Une dépense qui devient récurrente compte déjà comme sa première occurrence.
-            if (frequence.estRecurrent() && !depenseSelectionne.getFrequence().estRecurrent()) {
-                depenseSelectionne.setDerniereGeneration(date);
-            }
-            // Une ligne générée automatiquement reste une dépense ponctuelle.
-            if (depenseSelectionne.getIdSource() != null) {
-                frequence = Frequency.PONCTUEL;
-                dateFin = null;
-            }
+        if (!com.budgetmanager.util.BudgetUtil.confirmerSiPlafond(categorie, montant, date, depenseSelectionne)) return;
 
-            depenseSelectionne.setMontant(montant);
-            depenseSelectionne.setDescription(champDescription.getText().trim());
-            depenseSelectionne.setDateDepense(date);
-            depenseSelectionne.setIdCategorie(categorie.getIdCategorie());
-            depenseSelectionne.setFrequence(frequence);
-            depenseSelectionne.setDateFin(dateFin);
+        // Une dépense qui devient récurrente compte déjà comme sa première occurrence.
+        if (frequence.estRecurrent() && !depenseSelectionne.getFrequence().estRecurrent()) {
+            depenseSelectionne.setDerniereGeneration(date);
+        }
+        // Une ligne générée automatiquement reste une dépense ponctuelle.
+        if (depenseSelectionne.getIdSource() != null) {
+            frequence = Frequency.PONCTUEL;
+            dateFin = null;
+        }
 
-            if (expenseDAO.modifier(depenseSelectionne)) {
-                chargerDepenses();
-                viderFormulaire();
-            } else {
-                AlertUtil.afficherErreur("Erreur", "Impossible de modifier la dépense.");
-            }
-        } catch (NumberFormatException e) {
-            AlertUtil.afficherErreur("Montant invalide", "Veuillez saisir un montant numérique valide.");
+        depenseSelectionne.setMontant(montant);
+        depenseSelectionne.setDescription(champDescription.getText().trim());
+        depenseSelectionne.setDateDepense(date);
+        depenseSelectionne.setIdCategorie(categorie.getIdCategorie());
+        depenseSelectionne.setFrequence(frequence);
+        depenseSelectionne.setDateFin(dateFin);
+
+        if (expenseDAO.modifier(depenseSelectionne)) {
+            chargerDepenses();
+            viderFormulaire();
+        } else {
+            AlertUtil.afficherErreur("Erreur", "Impossible de modifier la dépense.");
         }
     }
 
