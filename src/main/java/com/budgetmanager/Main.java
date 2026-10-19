@@ -6,6 +6,7 @@ import com.budgetmanager.util.Hexagon;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.RaccourcisClavier;
 import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -31,6 +32,7 @@ import java.io.IOException;
 public class Main extends Application {
 
     private static Stage stagePrincipal;
+    private static boolean correctionEnCours = false;
 
     /** Taille commune des écrans d'authentification (connexion, inscription, mot de passe oublié). */
     public static final int LARGEUR_AUTH = 1040;
@@ -114,6 +116,15 @@ public class Main extends Application {
         // de titre natif (réduire / agrandir / fermer). Le plein écran JavaFX avait été
         // essayé pour « 100 % de l'écran » mais supprime cette barre, donc retiré.
         stage.setMaximized(true);
+
+        // La fenêtre vient-elle de prendre sa taille d'un seul coup que les tableaux
+        // sont encore posés pour la largeur d'avant : voir rectifierLargeur().
+        PauseTransition tailleReposee = new PauseTransition(Duration.millis(200));
+        stage.widthProperty().addListener((obs, avant, apres) -> {
+            if (correctionEnCours || stage.isMaximized()) return;
+            tailleReposee.setOnFinished(e -> retablirTableaux(4));
+            tailleReposee.playFromStart();
+        });
 
         // Tester la connexion DB AVANT de charger login.fxml.
         // Si MySQL est éteint, on affiche database-error.fxml avec un bouton "Réessayer".
@@ -269,7 +280,61 @@ public class Main extends Application {
         // doit être instantané, sans re-jouer l'entrée.
         if (!depuisCache) {
             com.budgetmanager.util.AnimationEntree.enCascade(racine);
+        } else {
+            // Une page qui revient du cache se pose à une largeur que ses tableaux
+            // n'ont jamais vue : on redemande leur calcul une fois la page en place.
+            PauseTransition pageEnPlacee = new PauseTransition(Duration.millis(150));
+            pageEnPlacee.setOnFinished(e -> retablirTableaux(4));
+            pageEnPlacee.playFromStart();
         }
+    }
+
+    /**
+     * JavaFX calcule la largeur des colonnes d'un tableau avec une passe de retard :
+     * quand la fenêtre prend sa taille d'un seul coup (restaurer, Snap Windows, bord
+     * tiré) ou quand une page déjà chargée revient du cache, les colonnes restent
+     * posées pour la largeur précédente et sortent du cadre sans ascenseur horizontal.
+     * Mesuré à 920 px de large : 691 px de colonnes dans un tableau de 598 px, donc
+     * « Montant », « La date », « À rendre le » et « Statut » hors écran. Rien de ce
+     * qu'on tente sur le tableau ne relance ce calcul ; seul un nouveau changement de
+     * largeur le fait. D'où cet aller-retour d'un pixel, invisible à l'œil.
+     */
+    private static void rectifierLargeur() {
+        Stage stage = stagePrincipal;
+        if (stage == null || !stage.isShowing() || stage.isMaximized() || correctionEnCours) return;
+        double largeur = stage.getWidth();
+        correctionEnCours = true;
+        // Vers le haut : descendre d'un pixel serait ramené à la largeur minimale par
+        // setMinWidth, et aucun vrai changement de largeur ne partirait.
+        stage.setWidth(largeur + 1);
+        PauseTransition retour = new PauseTransition(Duration.millis(120));
+        retour.setOnFinished(e -> {
+            stage.setWidth(largeur);
+            correctionEnCours = false;
+        });
+        retour.playFromStart();
+    }
+
+    /**
+     * Un aller-retour d'un pixel ne sert que s'il reste quelque chose à rentrer :
+     * on ne le joue que quand un tableau pose encore ses colonnes au-delà de son
+     * cadre, et on recommence tant que la fenêtre n'a pas stabilisé sa pose.
+     */
+    private static void retablirTableaux(int essais) {
+        Scene scene = stagePrincipal == null ? null : stagePrincipal.getScene();
+        if (scene == null || scene.getRoot() == null) return;
+        double cadre = 0, posees = 0;
+        for (Node n : scene.getRoot().lookupAll(".table-view")) {
+            if (n instanceof javafx.scene.control.TableView<?> table && table.getWidth() > cadre) {
+                cadre = table.getWidth();
+                for (javafx.scene.control.TableColumn<?, ?> c : table.getColumns()) posees += c.getWidth();
+            }
+        }
+        if (cadre == 0 || posees <= cadre + 1 || essais <= 0) return;
+        rectifierLargeur();
+        PauseTransition reessai = new PauseTransition(Duration.millis(260));
+        reessai.setOnFinished(e -> retablirTableaux(essais - 1));
+        reessai.playFromStart();
     }
 
     /**
