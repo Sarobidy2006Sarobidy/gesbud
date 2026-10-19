@@ -31,8 +31,6 @@ import java.io.IOException;
 public class Main extends Application {
 
     private static Stage stagePrincipal;
-    /** Dernière taille demandée : sert à savoir si l'on reste dans la même « famille » d'écrans. */
-    private static int largeurDemandee, hauteurDemandee;
 
     /** Taille commune des écrans d'authentification (connexion, inscription, mot de passe oublié). */
     public static final int LARGEUR_AUTH = 1040;
@@ -242,10 +240,12 @@ public class Main extends Application {
             racine.setOpacity(0);
         }
 
+        // Une fenêtre déjà à l'écran garde sa taille : la page affichée ne décide pas.
+        // Sinon, du login au tableau de bord, la scène maximisée de 1536 px retombait
+        // aux 1220 px demandés par le FXML, barre de titre pourtant laissée en place.
         Scene ancienne = stagePrincipal.getScene();
-        boolean conserver = ancienne != null && stagePrincipal.isShowing()
-                && largeur == largeurDemandee && hauteur == hauteurDemandee;
-        Scene scene = conserver
+        boolean aDejaUneTaille = ancienne != null && stagePrincipal.isShowing();
+        Scene scene = aDejaUneTaille
                 ? new Scene(racine, ancienne.getWidth(), ancienne.getHeight())
                 : new Scene(racine, largeur, hauteur);
 
@@ -255,12 +255,10 @@ public class Main extends Application {
 
         installerRaccourcis(scene);
         stagePrincipal.setScene(scene);
-        if (!conserver && !stagePrincipal.isMaximized()) {
+        if (!aDejaUneTaille && !stagePrincipal.isMaximized()) {
             stagePrincipal.sizeToScene();
             stagePrincipal.centerOnScreen();
         }
-        largeurDemandee = largeur;
-        hauteurDemandee = hauteur;
 
         FadeTransition fondu = new FadeTransition(DUREE_FONDU, racine);
         fondu.setFromValue(0);
