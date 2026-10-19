@@ -271,6 +271,11 @@
 .chart-horizontal-grid-lines { -fx-stroke: #eef3fb; }
 .chart-alternative-row-fill { -fx-fill: transparent; -fx-stroke: transparent; }
 .chart-plot-background { -fx-background-color: transparent; }
+/* La ligne zéro de JavaFX est un gris anthracite plein qui barre tout le tracé :
+   dès qu'une valeur passe sous zéro, elle écrase la courbe. Elle devient un repère
+   volontaire, un cran au-dessus de la grille, et le seul trait qui sépare surplus
+   et déficit. */
+.chart-horizontal-zero-line { -fx-stroke: #b9c8de; -fx-stroke-width: 1px; }
 .pie-label { -fx-font-family: "Inter"; -fx-font-size: 11px; -fx-fill: #0b2a6b; }
 
 /* Une série par histogramme : la couleur se porte sur le chart, pas sur
@@ -289,6 +294,21 @@
 .default-color1.chart-series-line { -fx-stroke: #26c6da; }
 .default-color0.chart-line-symbol { -fx-background-color: #1e88e5, white; }
 .default-color1.chart-line-symbol { -fx-background-color: #26c6da, white; }
+/* Les points de la courbe restent nus : un seul cas se signale, le passage sous
+   zéro. Un déficit peint du bleu du surplus se lirait à l'envers. La règle se
+   limite aux symboles du tracé, sinon la légende disparaîtrait avec eux. */
+.courbe-solde .plot-content .chart-area-symbol { -fx-opacity: 0; }
+.courbe-solde .plot-content .porteur-deficit {
+    -fx-opacity: 1.0;
+    /* Le support hérite du carré arrondi de JavaFX ; sans le vider, ce cadre
+       entoure la tache rouge d'un liseré orange étranger à la palette. */
+    -fx-background-color: transparent;
+}
+.courbe-solde .plot-content .point-deficit {
+    -fx-fill: #e5564b;
+    -fx-stroke: white;
+    -fx-stroke-width: 2px;
+}
 
 /* --- Courbes en aire dégradée ---
    La série principale se remplit d'un bleu qui s'évapore vers le bas ; la seconde

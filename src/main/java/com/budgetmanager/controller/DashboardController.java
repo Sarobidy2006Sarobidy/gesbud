@@ -162,7 +162,12 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
      * dessus, mesurés sur les parts réellement dessinées.
      */
     private void preparerAnneauxEtCourbes() {
-        lineSolde.setCreateSymbols(false);
+        // Les symboles sont créés mais laissés invisibles par le CSS : seul un point
+        // sous zéro les habille, et ils n'existent qu'après la première disposition.
+        lineSolde.setCreateSymbols(true);
+        lineSolde.needsLayoutProperty().addListener((obs, avant, apres) -> {
+            if (!apres) com.budgetmanager.util.MarqueursDeficit.marquer(lineSolde);
+        });
         for (var paire : java.util.List.of(
                 java.util.Map.entry(pieRevenus, survolPieRevenus),
                 java.util.Map.entry(pieDepenses, survolPieDepenses))) {

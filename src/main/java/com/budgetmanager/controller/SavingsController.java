@@ -156,6 +156,11 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         courbeEconomies.setAnimated(false);
         ((javafx.scene.chart.NumberAxis) courbeEconomies.getYAxis())
                 .setTickLabelFormatter(com.budgetmanager.util.CurrencyUtil.compact());
+        // Le point passé sous zéro ne se repère qu'après disposition : c'est là que
+        // la courbe fabrique ses symboles.
+        courbeEconomies.needsLayoutProperty().addListener((obs, ancien, nouveau) -> {
+            if (!nouveau) com.budgetmanager.util.MarqueursDeficit.marquer(courbeEconomies);
+        });
 
         tableEconomies.getSelectionModel().selectedItemProperty().addListener((obs, ancien, nouveau) -> {
             economieSelectionnee = nouveau;
@@ -248,7 +253,7 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
         List<SavingsCurve.Point> points = SavingsCurve.construire(toutes, periode, LocalDate.now());
 
         courbeEconomies.setTitle("Ce qu'il reste dans la tirelire — " + periode.toString().toLowerCase());
-        courbeEconomies.setCreateSymbols(false);
+        courbeEconomies.setCreateSymbols(true);
         courbeEconomies.getData().clear();
 
         XYChart.Series<String, Number> serie = new XYChart.Series<>();
