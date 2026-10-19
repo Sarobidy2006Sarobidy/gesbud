@@ -39,7 +39,8 @@ public class CategoryDAO {
     }
 
     public boolean modifier(Category categorie) {
-        String sql = "UPDATE categories SET nom = ?, type = ?, budget = ? WHERE id_categorie = ?";
+        String sql = "UPDATE categories SET nom = ?, type = ?, budget = ? " +
+                "WHERE id_categorie = ? AND id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
 
@@ -47,6 +48,7 @@ public class CategoryDAO {
             stmt.setString(2, categorie.getType().name());
             setBudget(stmt, 3, categorie.getBudget());
             stmt.setInt(4, categorie.getIdCategorie());
+            stmt.setInt(5, categorie.getIdUser());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -77,11 +79,12 @@ public class CategoryDAO {
         return 0;
     }
 
-    public boolean supprimer(int idCategorie) {
-        String sql = "DELETE FROM categories WHERE id_categorie = ?";
+    public boolean supprimer(int idCategorie, int idUser) {
+        String sql = "DELETE FROM categories WHERE id_categorie = ? AND id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idCategorie);
+            stmt.setInt(2, idUser);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             log.error("CategoryDAO.supprimer() — {}", e.getMessage(), e);
