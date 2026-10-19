@@ -28,8 +28,8 @@
     </left>
 
     <center>
-        <ScrollPane fitToWidth="true" styleClass="page-scroll">
-            <VBox spacing="18" styleClass="page-content">
+        <ScrollPane fx:id="pageScrollPane" fitToWidth="true" styleClass="page-scroll">
+            <VBox fx:id="pageContent" spacing="18" styleClass="page-content">
 
                 <!-- ===== En-tête ===== -->
                 <HBox alignment="CENTER_LEFT" spacing="14">
@@ -88,7 +88,7 @@
                 </VBox>
 
                 <!-- ===== Formulaire ===== -->
-                <VBox styleClass="form-card" spacing="14">
+                <VBox fx:id="formulaireEconomie" styleClass="form-card" spacing="14">
                     <VBox spacing="2">
                         <Label text="Ajouter / Modifier une économie" styleClass="form-card-title"/>
                         <Label text="Sélectionnez une ligne du tableau pour la modifier."
@@ -132,7 +132,7 @@
                 </VBox>
 
                 <!-- ===== Retrait d'épargne ===== -->
-                <VBox styleClass="form-card, sortie-card" spacing="14">
+                <VBox fx:id="formulaireRetrait" styleClass="form-card, sortie-card" spacing="14">
                     <HBox spacing="12" alignment="CENTER_LEFT">
                         <StackPane fx:id="sortiePuce" styleClass="sortie-puce"/>
                         <VBox spacing="2" HBox.hgrow="ALWAYS">

@@ -25,7 +25,7 @@
 
     <center>
         <StackPane>
-            <ScrollPane fitToWidth="true" styleClass="page-scroll">
+            <ScrollPane fx:id="pageScrollPane" fitToWidth="true" styleClass="page-scroll">
             <VBox spacing="18" styleClass="page-content">
 
                 <!-- ===== En-tête : titre + total à l'écran ===== -->
@@ -42,7 +42,7 @@
                 </HBox>
 
                 <!-- ===== Formulaire ===== -->
-                <VBox styleClass="form-card" spacing="14">
+                <VBox fx:id="formulaireDepense" styleClass="form-card" spacing="14">
                     <VBox spacing="2">
                         <Label text="Ajouter / Modifier une dépense" styleClass="form-card-title"/>
                         <Label text="Sélectionnez une ligne du tableau pour la modifier."

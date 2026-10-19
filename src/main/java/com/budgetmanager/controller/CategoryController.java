@@ -7,6 +7,7 @@ import com.budgetmanager.model.User;
 import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.DbHeartbeat;
 import com.budgetmanager.util.Icons;
+import com.budgetmanager.util.PageScrollUtil;
 import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
 import com.budgetmanager.util.VideEtat;
@@ -46,6 +47,8 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
     @FXML private Button boutonModifier;
     @FXML private Button boutonSupprimer;
     @FXML private TextField champRecherche;
+    @FXML private ScrollPane pageScrollPane;
+    @FXML private javafx.scene.Node formulaireCategorie;
     @FXML private TableView<Category> tableCategories;
     @FXML private TableColumn<Category, String> colonneNom;
     @FXML private TableColumn<Category, CategoryType> colonneType;
@@ -66,7 +69,10 @@ public class CategoryController implements RaccourcisClavier, com.budgetmanager.
     private final javafx.beans.value.ChangeListener<Category> listenerSelection =
             (obs, avant, nouveau) -> {
                 categorieSelectionnee = nouveau;
-                if (nouveau != null) remplirFormulaire(nouveau);
+                if (nouveau != null) {
+                    remplirFormulaire(nouveau);
+                    PageScrollUtil.defilerVers(pageScrollPane, formulaireCategorie);
+                }
             };
 
     @FXML

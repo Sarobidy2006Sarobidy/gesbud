@@ -12,6 +12,7 @@ import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.ListSyncUtil;
 import com.budgetmanager.util.LongueurFieldFormatter;
 import com.budgetmanager.util.NumberFieldFormatter;
+import com.budgetmanager.util.PageScrollUtil;
 import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
 import com.budgetmanager.util.TableUtil;
@@ -75,6 +76,8 @@ public class CarnetController implements RaccourcisClavier, com.budgetmanager.ut
     @FXML private Button boutonAjouter;
     @FXML private Button boutonModifier;
     @FXML private Button boutonSupprimer;
+    @FXML private ScrollPane pageScrollPane;
+    @FXML private javafx.scene.Node formulaireCarnet;
 
     /** Contrôleur de la barre latérale incluse (fx:id="sidebar" -> champ "sidebarController"). */
     @FXML private SidebarController sidebarController;
@@ -141,7 +144,10 @@ public class CarnetController implements RaccourcisClavier, com.budgetmanager.ut
 
         tableCarnet.getSelectionModel().selectedItemProperty().addListener((obs, ancien, nouveau) -> {
             ecritureSelectionnee = nouveau;
-            if (nouveau != null) remplirFormulaire(nouveau);
+            if (nouveau != null) {
+                remplirFormulaire(nouveau);
+                PageScrollUtil.defilerVers(pageScrollPane, formulaireCarnet);
+            }
         });
 
         com.budgetmanager.util.BoutonsLigne.lier(tableCarnet, boutonModifier, boutonSupprimer);

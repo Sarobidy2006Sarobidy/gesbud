@@ -8,6 +8,7 @@ import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.CurrencyUtil;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.ListSyncUtil;
+import com.budgetmanager.util.PageScrollUtil;
 import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SavingsCurve;
 import com.budgetmanager.util.SavingsCurve.Period;
@@ -78,6 +79,9 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
     @FXML private Button boutonAjouter;
     @FXML private Button boutonModifier;
     @FXML private Button boutonSupprimer;
+    @FXML private ScrollPane pageScrollPane;
+    @FXML private javafx.scene.Node formulaireEconomie;
+    @FXML private javafx.scene.Node formulaireRetrait;
 
     /** Contrôleur de la barre latérale incluse (fx:id="sidebar" -> champ "sidebarController"). */
     @FXML private SidebarController sidebarController;
@@ -164,7 +168,11 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
 
         tableEconomies.getSelectionModel().selectedItemProperty().addListener((obs, ancien, nouveau) -> {
             economieSelectionnee = nouveau;
-            if (nouveau != null) remplirFormulaire(nouveau);
+            if (nouveau != null) {
+                remplirFormulaire(nouveau);
+                PageScrollUtil.defilerVers(pageScrollPane,
+                        nouveau.getMontant() < 0 ? formulaireRetrait : formulaireEconomie);
+            }
         });
 
         // Les deux boutons de ligne n'ont de sens qu'avec une ligne sous la main.

@@ -7,8 +7,6 @@ import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 
 import java.time.LocalDate;
 import java.util.function.Function;

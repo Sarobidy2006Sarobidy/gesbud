@@ -14,6 +14,7 @@ import com.budgetmanager.util.SessionManager;
 import com.budgetmanager.util.SqlUtil;
 import com.budgetmanager.util.VideEtat;
 import com.budgetmanager.util.ListSyncUtil;
+import com.budgetmanager.util.PageScrollUtil;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -61,6 +62,8 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
     @FXML private Button boutonReinitialiser;
     @FXML private javafx.scene.layout.VBox overlayChargement;
     @FXML private javafx.scene.control.ProgressIndicator indicateurChargement;
+    @FXML private ScrollPane pageScrollPane;
+    @FXML private javafx.scene.Node formulaireRevenu;
 
     /** Contrôleur de la barre latérale incluse (fx:id="sidebar" -> champ "sidebarController"). */
     @FXML private SidebarController sidebarController;
@@ -72,12 +75,14 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
     /** FilteredList liée au champ de recherche — filtre en mémoire sans requête DB. */
     private FilteredList<Income> donneesFiltrees;
     /** SortedList liée à la TableView — tri natif par colonne. */
-    private final ObservableList<Income> donnees = FXCollections.observableArrayList();
     private Income revenuSelectionne;
     /** Référence forte sur le listener de sélection pour éviter le GC prématuré avec WeakChangeListener. */
     private final javafx.beans.value.ChangeListener<Income> listenerSelection = (obs, ancien, nouveau) -> {
         revenuSelectionne = nouveau;
-        if (nouveau != null) remplirFormulaire(nouveau);
+        if (nouveau != null) {
+            remplirFormulaire(nouveau);
+            PageScrollUtil.defilerVers(pageScrollPane, formulaireRevenu);
+        }
     };
 
     @FXML

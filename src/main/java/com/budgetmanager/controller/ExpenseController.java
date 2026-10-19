@@ -10,6 +10,7 @@ import com.budgetmanager.model.User;
 import com.budgetmanager.util.AlertUtil;
 import com.budgetmanager.util.Icons;
 import com.budgetmanager.util.ListSyncUtil;
+import com.budgetmanager.util.PageScrollUtil;
 import com.budgetmanager.util.RaccourcisClavier;
 import com.budgetmanager.util.SessionManager;
 import com.budgetmanager.util.SqlUtil;
@@ -61,6 +62,8 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
     @FXML private Button boutonReinitialiser;
     @FXML private javafx.scene.layout.VBox overlayChargement;
     @FXML private javafx.scene.control.ProgressIndicator indicateurChargement;
+    @FXML private ScrollPane pageScrollPane;
+    @FXML private javafx.scene.Node formulaireDepense;
 
     /** Contrôleur de la barre latérale incluse (fx:id="sidebar" -> champ "sidebarController"). */
     @FXML private SidebarController sidebarController;
@@ -69,11 +72,13 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
     private final CategoryDAO categoryDAO = new CategoryDAO();
     private final ObservableList<Expense> donneesMaitres = FXCollections.observableArrayList();
     private FilteredList<Expense> donneesFiltrees;
-    private final ObservableList<Expense> donnees = FXCollections.observableArrayList();
     private Expense depenseSelectionne;
     private final javafx.beans.value.ChangeListener<Expense> listenerSelection = (obs, ancien, nouveau) -> {
         depenseSelectionne = nouveau;
-        if (nouveau != null) remplirFormulaire(nouveau);
+        if (nouveau != null) {
+            remplirFormulaire(nouveau);
+            PageScrollUtil.defilerVers(pageScrollPane, formulaireDepense);
+        }
     };
 
     @FXML

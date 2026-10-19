@@ -3,8 +3,6 @@ package com.budgetmanager.util;
 import javafx.scene.control.TextFormatter;
 import javafx.util.StringConverter;
 
-import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
