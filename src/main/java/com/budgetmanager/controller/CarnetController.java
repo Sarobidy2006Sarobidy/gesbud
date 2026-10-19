@@ -298,7 +298,8 @@ public class CarnetController implements RaccourcisClavier, com.budgetmanager.ut
                 + CurrencyUtil.formater(ecritureSelectionnee.getMontant(), devise);
         if (!AlertUtil.confirmer("Confirmation", "Supprimer cette écriture du carnet ?\n" + detail)) return;
 
-        if (carnetDAO.supprimer(ecritureSelectionnee.getIdCarnet())) {
+        if (carnetDAO.supprimer(ecritureSelectionnee.getIdCarnet(),
+                SessionManager.getUtilisateurConnecte().getIdUser())) {
             chargerCarnet();
             viderFormulaire();
         } else {

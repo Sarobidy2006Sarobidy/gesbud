@@ -49,7 +49,8 @@ public class SavingDAO {
 
     public boolean modifier(Saving economie) {
         String sql = "UPDATE savings SET montant = ?, description = ?, date_economie = ?, " +
-                "frequence = ?, date_fin = ?, derniere_generation = COALESCE(?, derniere_generation) WHERE id_economie = ?";
+                "frequence = ?, date_fin = ?, derniere_generation = COALESCE(?, derniere_generation) " +
+                "WHERE id_economie = ? AND id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
 
@@ -60,6 +61,7 @@ public class SavingDAO {
             stmt.setDate(5, economie.getDateFin() == null ? null : Date.valueOf(economie.getDateFin()));
             stmt.setDate(6, economie.getDerniereGeneration() == null ? null : Date.valueOf(economie.getDerniereGeneration()));
             stmt.setInt(7, economie.getIdEconomie());
+            stmt.setInt(8, economie.getIdUser());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             log.error("SavingDAO.modifier() — {}", e.getMessage(), e);
@@ -73,7 +75,8 @@ public class SavingDAO {
      */
     public boolean changerMontantRecurrent(Saving source, Saving suite) {
         String majSql = "UPDATE savings SET montant = ?, description = ?, date_economie = ?, " +
-                "frequence = ?, date_fin = ?, derniere_generation = COALESCE(?, derniere_generation) WHERE id_economie = ?";
+                "frequence = ?, date_fin = ?, derniere_generation = COALESCE(?, derniere_generation) " +
+                "WHERE id_economie = ? AND id_user = ?";
         String insertionSql = "INSERT INTO savings (id_user, montant, description, date_economie, " +
                 "frequence, date_fin, derniere_generation) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
@@ -90,6 +93,7 @@ public class SavingDAO {
                 maj.setDate(5, source.getDateFin() == null ? null : Date.valueOf(source.getDateFin()));
                 maj.setDate(6, source.getDerniereGeneration() == null ? null : Date.valueOf(source.getDerniereGeneration()));
                 maj.setInt(7, source.getIdEconomie());
+                maj.setInt(8, source.getIdUser());
 
                 insertion.setInt(1, suite.getIdUser());
                 insertion.setDouble(2, suite.getMontant());
@@ -121,11 +125,12 @@ public class SavingDAO {
         }
     }
 
-    public boolean supprimer(int idEconomie) {
-        String sql = "DELETE FROM savings WHERE id_economie = ?";
+    public boolean supprimer(int idEconomie, int idUser) {
+        String sql = "DELETE FROM savings WHERE id_economie = ? AND id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
             stmt.setInt(1, idEconomie);
+            stmt.setInt(2, idUser);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             log.error("SavingDAO.supprimer() — {}", e.getMessage(), e);

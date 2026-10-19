@@ -381,7 +381,8 @@ public class ExpenseController implements RaccourcisClavier, com.budgetmanager.u
                 ? "Supprimer cette dépense récurrente ? Les dépenses ajoutées automatiquement seront supprimées aussi."
                 : "Supprimer cette dépense ?";
         if (AlertUtil.confirmer("Confirmation", message)) {
-            if (expenseDAO.supprimer(depenseSelectionne.getIdDepense())) {
+            if (expenseDAO.supprimer(depenseSelectionne.getIdDepense(),
+                    SessionManager.getUtilisateurConnecte().getIdUser())) {
                 chargerDepenses();
                 viderFormulaire();
             } else {

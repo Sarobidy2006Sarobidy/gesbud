@@ -49,7 +49,7 @@ public class CarnetDAO {
 
     public boolean modifier(Carnet ecriture) {
         String sql = "UPDATE carnet SET sens = ?, personne = ?, motif = ?, montant = ?, "
-                + "date_debut = ?, date_fin = ?, statut = ? WHERE id_carnet = ?";
+                + "date_debut = ?, date_fin = ?, statut = ? WHERE id_carnet = ? AND id_user = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn, sql)) {
 
@@ -61,6 +61,7 @@ public class CarnetDAO {
             stmt.setDate(6, ecriture.getDateFin() == null ? null : Date.valueOf(ecriture.getDateFin()));
             stmt.setString(7, ecriture.getStatut().name());
             stmt.setInt(8, ecriture.getIdCarnet());
+            stmt.setInt(9, ecriture.getIdUser());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             log.error("CarnetDAO.modifier() — {}", e.getMessage(), e);
@@ -68,11 +69,12 @@ public class CarnetDAO {
         }
     }
 
-    public boolean supprimer(int idCarnet) {
+    public boolean supprimer(int idCarnet, int idUser) {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = DatabaseConnection.preparer(conn,
-                     "DELETE FROM carnet WHERE id_carnet = ?")) {
+                 "DELETE FROM carnet WHERE id_carnet = ? AND id_user = ?")) {
             stmt.setInt(1, idCarnet);
+            stmt.setInt(2, idUser);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             log.error("CarnetDAO.supprimer() — {}", e.getMessage(), e);

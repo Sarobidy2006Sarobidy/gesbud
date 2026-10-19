@@ -502,7 +502,8 @@ public class SavingsController implements RaccourcisClavier, com.budgetmanager.u
                 ? "Supprimer cette économie récurrente ? Les économies ajoutées automatiquement seront supprimées aussi."
                 : "Supprimer cette économie ?";
         if (AlertUtil.confirmer("Confirmation", message)) {
-            if (savingDAO.supprimer(economieSelectionnee.getIdEconomie())) {
+            if (savingDAO.supprimer(economieSelectionnee.getIdEconomie(),
+                    SessionManager.getUtilisateurConnecte().getIdUser())) {
                 chargerEconomies();
                 viderFormulaire();
             } else {

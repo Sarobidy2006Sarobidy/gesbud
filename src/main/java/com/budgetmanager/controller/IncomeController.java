@@ -389,7 +389,8 @@ public class IncomeController implements RaccourcisClavier, com.budgetmanager.ut
                 ? "Supprimer ce revenu récurrent ? Les revenus ajoutés automatiquement seront supprimés aussi."
                 : "Supprimer ce revenu ?";
         if (AlertUtil.confirmer("Confirmation", message)) {
-            if (incomeDAO.supprimer(revenuSelectionne.getIdRevenu())) {
+            if (incomeDAO.supprimer(revenuSelectionne.getIdRevenu(),
+                    SessionManager.getUtilisateurConnecte().getIdUser())) {
                 chargerRevenus();
                 viderFormulaire();
             } else {
