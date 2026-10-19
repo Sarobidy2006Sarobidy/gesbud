@@ -153,14 +153,21 @@
                     </HBox>
                     <TableView fx:id="tableCarnet" styleClass="table-embed" VBox.vgrow="ALWAYS" minHeight="200">
                     <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                        <!-- Les minimums tiennent dans la fenetre la plus etroite autorisee
+                             (920 px, soit ~560 px de tableau) : au-dessus, la politique
+                             contrainte etale les colonnes a sa largeur. Un total de minimums
+                             plus grand que le tableau fait renoncer cette politique, qui laisse
+                             alors les colonnes a leur pref et masque l'ascenseur horizontal :
+                             mesure a 920 px, « Montant », « La date », « A rendre le » et
+                             « Statut » passaient hors fenetre, inatteignables. -->
                         <columns>
-                            <TableColumn fx:id="colonneSens" text="Sens" prefWidth="130" minWidth="110"/>
-                            <TableColumn fx:id="colonnePersonne" text="Avec qui" prefWidth="180" minWidth="120"/>
-                            <TableColumn fx:id="colonneMotif" text="Pour quoi" prefWidth="240"/>
-                            <TableColumn fx:id="colonneMontant" text="Montant" prefWidth="150" minWidth="120"/>
-                            <TableColumn fx:id="colonneDateDebut" text="La date" prefWidth="120" minWidth="95"/>
-                            <TableColumn fx:id="colonneDateFin" text="À rendre le" prefWidth="120" minWidth="95"/>
-                            <TableColumn fx:id="colonneStatut" text="Statut" prefWidth="120" minWidth="100"/>
+                            <TableColumn fx:id="colonneSens" text="Sens" prefWidth="130" minWidth="92"/>
+                            <TableColumn fx:id="colonnePersonne" text="Avec qui" prefWidth="180" minWidth="64"/>
+                            <TableColumn fx:id="colonneMotif" text="Pour quoi" prefWidth="240" minWidth="64"/>
+                            <TableColumn fx:id="colonneMontant" text="Montant" prefWidth="150" minWidth="96"/>
+                            <TableColumn fx:id="colonneDateDebut" text="La date" prefWidth="120" minWidth="84"/>
+                            <TableColumn fx:id="colonneDateFin" text="À rendre le" prefWidth="120" minWidth="84"/>
+                            <TableColumn fx:id="colonneStatut" text="Statut" prefWidth="120" minWidth="72"/>
                         </columns>
                     </TableView>
                 </VBox>
