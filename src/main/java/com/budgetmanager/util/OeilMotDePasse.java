@@ -57,6 +57,8 @@ public final class OeilMotDePasse {
         });
         champClair.setVisible(false);
         champClair.setManaged(false);
+        champ.setMaxWidth(Double.MAX_VALUE);
+        champClair.setMaxWidth(Double.MAX_VALUE);
 
         Color couleur = champ.getStyleClass().contains("auth-textfield-premium")
                 ? COULEUR_THEME_SOMBRE : COULEUR_THEME_CLAIR;

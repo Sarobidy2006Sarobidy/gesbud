@@ -460,19 +460,24 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
     private void afficherTendance(Label badge, double actuel, double precedent, boolean hausseEstBonne) {
         badge.getStyleClass().removeAll("tendance-hausse", "tendance-baisse", "tendance-neutre");
 
-        if (precedent == 0 && actuel == 0) {
+        if (Math.abs(precedent) < 0.005 && Math.abs(actuel) < 0.005) {
             badge.setText("—");
             badge.getStyleClass().add("tendance-neutre");
             return;
         }
 
-        double variation;
-        if (precedent == 0) {
-            variation = 100;                       // passage de rien à quelque chose
-        } else {
-            variation = (actuel - precedent) / Math.abs(precedent) * 100;
+        // De zéro vers une première valeur : « +100 % » n'a aucun sens.
+        if (Math.abs(precedent) < 0.005) {
+            badge.setText("Nouveau");
+            if (!hausseEstBonne) {
+                badge.getStyleClass().add(actuel > 0 ? "tendance-baisse" : "tendance-hausse");
+            } else {
+                badge.getStyleClass().add(actuel >= 0 ? "tendance-hausse" : "tendance-baisse");
+            }
+            return;
         }
 
+        double variation = (actuel - precedent) / Math.abs(precedent) * 100;
         boolean enHausse = variation >= 0;
         badge.setText(String.format(java.util.Locale.FRANCE, "%s%.1f %%",
                 enHausse ? "▲ " : "▼ ", Math.abs(variation)));
@@ -501,11 +506,21 @@ public class DashboardController implements com.budgetmanager.util.Rafraichissab
         int jours = mois.equals(courant)
                 ? mois.lengthOfMonth() - java.time.LocalDate.now().getDayOfMonth() + 1
                 : mois.lengthOfMonth();
+
+        // Un mois courant qui ne laisse rien à dépenser affiche un « reste » à zéro : un
+        // nombre négatif sous ce libellé se lirait « vous pouvez encore dépenser par jour ».
+        if (mois.equals(courant) && soldeMois <= 0.004) {
+            labelResteParJour.setText(CurrencyUtil.formater(0, devise));
+            detailResteParJour.setText(soldeMois < -0.004
+                    ? "Le mois est déjà à découvert de " + CurrencyUtil.formater(-soldeMois, devise)
+                            + " : rien de plus à dépenser"
+                    : "Le budget du mois est exactement à zéro : rien de plus à dépenser");
+            return;
+        }
+
         labelResteParJour.setText(CurrencyUtil.formater(soldeMois / jours, devise));
 
-        if (mois.equals(courant) && soldeMois <= 0) {
-            detailResteParJour.setText("Le mois est déjà à découvert : rien de plus à dépenser");
-        } else if (mois.equals(courant)) {
+        if (mois.equals(courant)) {
             detailResteParJour.setText("Réparti sur " + jours + (jours > 1 ? " jours restants" : " jour restant"));
         } else {
             detailResteParJour.setText("Solde du mois réparti sur ses " + jours + " jours");

@@ -124,16 +124,27 @@ public final class AuthUi {
     }
 
     public static void effacer(Label bandeau) {
-        bandeau.setVisible(false);
-        bandeau.setManaged(false);
+        bandeau.getStyleClass().removeAll("auth-message-error", "auth-message-success");
         bandeau.setText("");
         bandeau.setGraphic(null);
+        // Sur la connexion, la place du bandeau reste prise : sinon les champs
+        // descendent au premier refus et le clic suivant rate la cible.
+        if (bandeau.getStyleClass().contains("auth-message-reserve")) {
+            bandeau.setOpacity(0);
+            bandeau.setVisible(true);
+            bandeau.setManaged(true);
+        } else {
+            bandeau.setOpacity(1);
+            bandeau.setVisible(false);
+            bandeau.setManaged(false);
+        }
     }
 
     private static void afficher(Label bandeau, String texte, String classe) {
         bandeau.getStyleClass().removeAll("auth-message-error", "auth-message-success");
         bandeau.getStyleClass().add(classe);
         bandeau.setText(texte);
+        bandeau.setOpacity(1);
         bandeau.setVisible(true);
         bandeau.setManaged(true);
     }

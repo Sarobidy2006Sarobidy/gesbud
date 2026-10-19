@@ -53,7 +53,7 @@
                         </VBox>
 
                         <!-- Message flash (erreur / succès) -->
-                        <Label fx:id="labelMessage" styleClass="auth-message" wrapText="true" maxWidth="Infinity"
+                        <Label fx:id="labelMessage" styleClass="auth-message, auth-message-reserve" wrapText="true" maxWidth="Infinity"
                                managed="false" visible="false"/>
 
                         <!-- Champ email / pseudo -->

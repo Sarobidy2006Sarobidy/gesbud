@@ -1138,6 +1138,12 @@
     -fx-border-width: 1;
 }
 
+/* La page de connexion garde la ligne du bandeau vide : les champs ne bougent
+   plus quand un refus s'affiche, sinon le clic suivant rate le bouton. */
+.auth-card-premium .auth-message-reserve {
+    -fx-min-height: 38;
+}
+
 .auth-step {
     -fx-min-width: 30; -fx-min-height: 30; -fx-max-width: 30; -fx-max-height: 30;
     -fx-alignment: center; -fx-background-radius: 15; -fx-border-color: rgba(255,255,255,0.55);

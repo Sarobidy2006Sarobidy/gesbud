@@ -119,7 +119,8 @@ public final class TableUtil {
                     return;
                 }
                 boolean prevue = date.isAfter(LocalDate.now());
-                setText(prevue ? date + "  ·  prévue" : date.toString());
+                String jour = DateFr.formater(date);
+                setText(prevue ? jour + "  ·  prévue" : jour);
                 pseudoClassStateChanged(PREVUE, prevue);
             }
         });

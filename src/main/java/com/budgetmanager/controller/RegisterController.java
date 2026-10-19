@@ -109,6 +109,12 @@ public class RegisterController {
             AuthUi.erreur(labelMessage, "Nom, prénom, pseudo, email et mot de passe sont obligatoires.");
             return;
         }
+        String erreurNom = com.budgetmanager.util.NomPersonne.valider(nom, "nom");
+        if (erreurNom == null) erreurNom = com.budgetmanager.util.NomPersonne.valider(prenom, "prénom");
+        if (erreurNom != null) {
+            AuthUi.erreur(labelMessage, erreurNom);
+            return;
+        }
         String erreurPseudo = PseudoUtil.valider(pseudo);
         if (erreurPseudo != null) {
             AuthUi.erreur(labelMessage, erreurPseudo);
