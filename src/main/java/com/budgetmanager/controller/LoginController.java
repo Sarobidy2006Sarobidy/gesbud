@@ -46,6 +46,11 @@ public class LoginController {
 
     private final UserDAO userDAO = new UserDAO();
 
+    /** Roue posée dans le bouton pendant que la base répond, et son animation. */
+    private javafx.animation.RotateTransition roueConnexion;
+    /** Libellé d'origine du bouton, lu à l'affichage pour ne pas le dupliquer ici. */
+    private String libelleConnexion;
+
     @FXML
     public void initialize() {
         try {
@@ -62,6 +67,7 @@ public class LoginController {
         }
 
         AuthUi.effacer(labelMessage);
+        libelleConnexion = boutonConnexion.getText();
         String flash = FlashMessage.consommer();
         if (flash != null) AuthUi.succes(labelMessage, flash);
 
@@ -83,6 +89,50 @@ public class LoginController {
         else racine.getStyleClass().remove("serree");
     }
 
+    /**
+     * Remplace le libellé du bouton par une roue blanche le temps que la base réponde,
+     * puis le rend. Le cadre fait la hauteur d'une ligne de texte : la carte ne saute pas.
+     */
+    private void afficherRoue(boolean enTravail) {
+        if (enTravail) {
+            // La roue se taille sur la hauteur de la ligne de texte qu'elle remplace :
+            // sinon le bouton grandit d'un coup quand la carte passe en mode serré.
+            javafx.scene.text.Text mesure = new javafx.scene.text.Text(libelleConnexion);
+            mesure.setFont(boutonConnexion.getFont());
+            double ligne = Math.ceil(mesure.getLayoutBounds().getHeight());
+            double diametre = Math.min(20, ligne);
+
+            javafx.scene.shape.Arc arc = new javafx.scene.shape.Arc(0, 0,
+                    diametre / 2 - 1.2, diametre / 2 - 1.2, 0, 265);
+            // Un Arc se remplit par défaut en blanc : sans retrait, la roue serait un disque.
+            arc.setFill(null);
+            arc.setStroke(javafx.scene.paint.Color.WHITE);
+            arc.setStrokeWidth(Math.max(1.8, diametre * 0.11));
+            arc.setStrokeLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
+            roueConnexion = new javafx.animation.RotateTransition(
+                    javafx.util.Duration.millis(750), arc);
+            roueConnexion.setByAngle(360);
+            roueConnexion.setCycleCount(javafx.animation.Animation.INDEFINITE);
+            roueConnexion.setInterpolator(javafx.animation.Interpolator.LINEAR);
+            roueConnexion.play();
+
+            StackPane cadre = new StackPane(arc);
+            cadre.setMinSize(diametre, ligne);
+            cadre.setPrefSize(diametre, ligne);
+            boutonConnexion.setText("");
+            boutonConnexion.setGraphic(cadre);
+            boutonConnexion.getStyleClass().add("bouton-en-travail");
+            return;
+        }
+        if (roueConnexion != null) {
+            roueConnexion.stop();
+            roueConnexion = null;
+        }
+        boutonConnexion.setGraphic(null);
+        boutonConnexion.getStyleClass().remove("bouton-en-travail");
+        boutonConnexion.setText(libelleConnexion);
+    }
+
     @FXML
     public void seConnecter() {
         String identifiant = champEmail.getText().trim();
@@ -101,6 +151,7 @@ public class LoginController {
         }
 
         boutonConnexion.setDisable(true);
+        afficherRoue(true);
         AuthUi.effacer(labelMessage);
 
         Task<Optional<User>> tache = new Task<>() {
@@ -133,6 +184,7 @@ public class LoginController {
 
         tache.setOnSucceeded(evt -> {
             boutonConnexion.setDisable(false);
+            afficherRoue(false);
             Optional<User> resultat = tache.getValue();
 
             if (resultat.isEmpty()) {
@@ -158,6 +210,7 @@ public class LoginController {
 
         tache.setOnFailed(evt -> {
             boutonConnexion.setDisable(false);
+            afficherRoue(false);
             Throwable erreur = tache.getException();
             if (erreur instanceof IllegalStateException) {
                 AuthUi.erreur(labelMessage, erreur.getMessage());

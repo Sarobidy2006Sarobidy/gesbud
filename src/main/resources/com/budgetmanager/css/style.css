@@ -902,6 +902,20 @@
     -fx-effect: dropshadow(gaussian, rgba(0,100,200,0.40), 10, 0, 0, 2);
 }
 
+/* Bouton au travail : il est désactivé (pas de double envoi) mais doit rester aussi
+   vivant que pendant le survol, sinon la roue blanche se noie dans un dégradé pâli. */
+.auth-button-premium.bouton-en-travail,
+.auth-button-premium.bouton-en-travail:disabled,
+.auth-button-premium.bouton-en-travail:hover,
+.auth-button-premium.bouton-en-travail:pressed {
+    -fx-opacity: 1.0;
+    -fx-background-color: linear-gradient(to right, #1e88e5 0%, #00b4d8 50%, #0077b6 100%);
+    -fx-effect: dropshadow(gaussian, rgba(0,150,255,0.55), 22, 0.1, 0, 6);
+    -fx-scale-x: 1.0;
+    -fx-scale-y: 1.0;
+    -fx-cursor: wait;
+}
+
 /* Bouton discret d'une carte verre (Quitter, retour) */
 .auth-button-ghost {
     -fx-background-color: rgba(255,255,255,0.08);
